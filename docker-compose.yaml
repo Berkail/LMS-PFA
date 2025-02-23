@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: back-end/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./back-end:/app  # For hot reloading
+      - /app/node_modules  # Prevents overwriting container node_modules
+    command: npm run start:dev  # Use development command instead of production
+
+  frontend:
+    build:
+      context: .
+      dockerfile: front-end/Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - BACKEND_URL=http://backend:3000
+    volumes:
+      - ./front-end:/app  # For hot reloading
+      - /app/node_modules  # Prevents overwriting container node_modules
+    command: npm run dev
+    depends_on:
+      - backend
