@@ -1,5 +1,5 @@
 #front-end Dockerefile
-FROM node:18-alpine
+FROM node:20-alpine
 WORKDIR /app
 COPY front-end/package*.json ./
 RUN npm install
