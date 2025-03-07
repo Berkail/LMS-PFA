@@ -1,5 +1,5 @@
 #back-end Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
 WORKDIR /app
 COPY back-end/package*.json ./
 RUN npm install
