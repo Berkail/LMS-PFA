@@ -76,6 +76,19 @@ services:
     networks:
       - lms_network
 
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"  # Expose Nginx on port 80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Mount the Nginx configuration
+    networks:
+      - lms_network
+    depends_on:
+      - frontend
+      - backend
+
 # Define Networks
 networks:
   lms_network:
