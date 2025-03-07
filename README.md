@@ -65,13 +65,13 @@ After running the project, the following services will be available:
 **backend:**
 
 ```sh
-localhost:3000/
+localhost/api
 ```
 
 **frontend:**
 
 ```sh
-localhost:3001/
+localhost/
 ```
 
 **postgresql:**
