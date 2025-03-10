@@ -50,7 +50,7 @@ services:
       - ./back-end/.env
     volumes:
       - ./back-end:/app
-      - /app/node_modules
+      - backend_node_modules:/app/node_modules
     command: npm run start:dev
     depends_on:
       postgres:
@@ -69,7 +69,7 @@ services:
       - ./front-end/.env
     volumes:
       - ./front-end:/app
-      - /app/node_modules
+      - frontend_node_modules:/app/node_modules
     command: npm run dev
     depends_on:
       - backend
@@ -100,3 +100,5 @@ volumes:
     driver: local
   pgadmin:
     driver: local
+  backend_node_modules:
+  frontend_node_modules:
