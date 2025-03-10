@@ -47,7 +47,7 @@ const LoadingSkeleton = () => {
   );
 };
 
-  const currentImage = useCarousel ({ totalImages: 3 });
+const currentImage = useCarousel ({ totalImages: 3 });
 
   return (
       <motion.div
@@ -101,10 +101,10 @@ const LoadingSkeleton = () => {
           viewport={{ amount:0.3, once:true}}
           className="landing__featured"
           >
-          <h2 className="landing__featured__title">Featured Courses</h2>
-          <p className="landing__featured__description">
+          <h2 className="landing__featured-title">Featured Courses</h2>
+          <p className="landing__featured-description">
             From beginner to advanced, in all industries, we have the right courses just for you and preparing your intire journey for learning and making the most.
-          </p>
+          </p> 
 
           <div className="landing__tags">
             {["web development","enterprise IT", "react nextjs" , "javascript","backend development"].map((tag, index) => (
