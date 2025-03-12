@@ -2,10 +2,10 @@ import React from 'react'
 
 const Header = ({title, subtitle, rightElement }: HeaderProps) => {
   return (
-    <div className='Header'>
+    <div className='header'>
         <div>
-            <h1 className='Header__title'>{title}</h1>
-            <p className='Header__subtitle'>{subtitle}</p>     
+            <h1 className='header__title'>{title}</h1>
+            <p className='header__subtitle'>{subtitle}</p>     
         </div>
         {rightElement && <div>{rightElement}</div>}
     </div>

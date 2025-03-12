@@ -5,6 +5,7 @@ function StudentProfilePage() {
   return (
     <>
       <Header title='Profile' subtitle='View your profile' />
+      <div className='content'>Content..</div>
     </>
 
   )
