@@ -1,8 +1,12 @@
+import Header from '@/components/Header'
 import React from 'react'
 
 function StudentProfilePage() {
   return (
-    <div>StudentProfilePage</div>
+    <>
+      <Header title='Profile' subtitle='View your profile' />
+    </>
+
   )
 }
 
