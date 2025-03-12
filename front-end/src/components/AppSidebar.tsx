@@ -3,11 +3,18 @@ import Link from 'next/link'; // FIXED: Correct Link import
 import React from 'react';
 import { 
     Sidebar,
-  SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar 
+    SidebarContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarFooter, // ADD: Import SidebarFooter
+    useSidebar 
 } from '@/components/ui/sidebar';
 import { BookOpen, ChartColumn, ClipboardPenLine, PanelLeft, Settings, User } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { NavUser } from './NavUser'; // Import NavUser component
 
 const AppSidebar = () => {
     const pathname = usePathname();
@@ -32,7 +39,7 @@ const AppSidebar = () => {
 
     return (
       <Sidebar
-        collapsible="icon" // FIXED: Changed to boolean
+        collapsible="icon"
         style={{ height: '100vh' }}
         className="bg-customgreys-primarybg border-none shadow-lg"
       >
@@ -58,7 +65,7 @@ const AppSidebar = () => {
         <SidebarContent>
           <SidebarMenu className='app-sidebar__nav-menu'>
             {currentNavLinks.map((link) => {
-                const isActive = pathname && pathname.startsWith(link.href); // FIXED: Ensure pathname exists
+                const isActive = pathname && pathname.startsWith(link.href);
                 return (
                   <SidebarMenuItem 
                     key={link.href}
@@ -82,6 +89,17 @@ const AppSidebar = () => {
             })}
           </SidebarMenu>
         </SidebarContent>
+
+        {/* Add NavUser in SidebarFooter */}
+        <SidebarFooter>
+          <NavUser
+            user={{
+              name: 'Y. Taha ',
+              email: 'taha@gmail.com',
+              avatar: '/profile-pic.png',
+            }}
+          />
+        </SidebarFooter>
       </Sidebar>
     );
 };
