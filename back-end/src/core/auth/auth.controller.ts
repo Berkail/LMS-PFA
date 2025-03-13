@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
+  /*
   @Post('signup/instructor')
   async signupInstructor(@Body() instructor: CreateInstructorDto) {
     return this.authService.signupInstructor(instructor);
@@ -19,4 +19,5 @@ export class AuthController {
   async login(@Body() credentials: { email: string; password: string }) {
     return this.authService.login(credentials);
   }
+  */
 }

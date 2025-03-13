@@ -3,6 +3,7 @@ import { IntegerType } from 'typeorm';
 
 @Injectable()
 export class AuthService {
+  /*
   constructor(
     private readonly instructorService : InstructorService,
     private readonly studentService : StudentService,
@@ -26,4 +27,5 @@ export class AuthService {
   private validateUser(email: string, password: string){
       
   }
+  */
 }

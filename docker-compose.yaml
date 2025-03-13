@@ -114,5 +114,7 @@ volumes:
     driver: local
   pgadmin:
     driver: local
+  redis_data:
+    driver: local
   backend_node_modules:
   frontend_node_modules:
