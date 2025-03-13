@@ -55,6 +55,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - lms_network
 
@@ -88,6 +90,18 @@ services:
     depends_on:
       - frontend
       - backend
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+    - lms_network
+    volumes:
+    - redis_data:/data
+
 
 # Define Networks
 networks:
