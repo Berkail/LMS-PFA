@@ -21,7 +21,7 @@ function SignInComponent({
 
     return (
       <div className={cn("flex flex-col gap-6 dark", className)} {...props}>
-        <Card>
+        <Card className='bg-customgreys-primarybg'>
           <CardHeader>
             <CardTitle className="text-2xl">Login</CardTitle>
             <CardDescription>
