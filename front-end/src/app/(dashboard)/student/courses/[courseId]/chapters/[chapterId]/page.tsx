@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import ReactPlayer from "react-player";
 import Loading from "@/components/Loading";
 import { useParams } from "next/navigation";
 
@@ -53,7 +52,6 @@ const dummyProgress = {
 const Course = () => {
   const params = useParams();
   const { courseId, chapterId } = params;
-  const playerRef = useRef<ReactPlayer>(null);
   
   const [isLoading, setIsLoading] = useState(true);
   const [course, setCourse] = useState(dummyCourse);
