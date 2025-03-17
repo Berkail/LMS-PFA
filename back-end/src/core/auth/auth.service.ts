@@ -7,7 +7,6 @@ export class AuthService {
   constructor(
     private readonly instructorService : InstructorService,
     private readonly studentService : StudentService,
-    private readonly userService
   )
 
   signupInstructor(instructorDto: CreateInstructorDto) {
