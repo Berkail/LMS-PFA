@@ -15,6 +15,24 @@ const dummyCourses = [
     image: "/placeholder.png",
     teacherName: "John Doe",
     category: "Programming",
+    sections: [
+      {
+        sectionId: "section1",
+        sectionTitle: "Getting Started",
+        chapters: [
+          { chapterId: "chapter1", title: "Introduction to React", type: "Text" },
+          { chapterId: "chapter2", title: "Setting Up Environment", type: "Text" }
+        ]
+      },
+      {
+        sectionId: "section2",
+        sectionTitle: "React Fundamentals",
+        chapters: [
+          { chapterId: "chapter3", title: "Components", type: "Text" },
+          { chapterId: "chapter4", title: "Props & State", type: "Text" }
+        ]
+      }
+    ]
   },
   {
     courseId: "course2",

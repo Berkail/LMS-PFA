@@ -21,9 +21,9 @@ const dummyCourse = {
         {
           chapterId: "chapter1",
           title: "Introduction to React",
-          type: "Text",
-          content: "React is a JavaScript library for building user interfaces.",
-          video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          type: "PDF",
+          content: "/sample.pdf", // Place your PDF in the public folder
+          video: null
         },
         {
           chapterId: "chapter2",
@@ -149,7 +149,27 @@ const Course = () => {
 
         <Card className="course__video">
           <CardContent className="course__video-container">
-            
+            {currentChapter?.type === "PDF" ? (
+              <object
+                data={currentChapter.content}
+                type="application/pdf"
+                className="pdf-viewer"
+              >
+                <p>
+                  It appears you don't have a PDF plugin for this browser.
+                  You can {" "}
+                  <a href={currentChapter.content} target="_blank" rel="noopener noreferrer">
+                    click here to download the PDF file.
+                  </a>
+                </p>
+              </object>
+            ) : currentChapter?.type === "Video" ? (
+              <div>Video player here</div>
+            ) : (
+              <div className="text-content">
+                {currentChapter?.content}
+              </div>
+            )}
           </CardContent>
         </Card>
 

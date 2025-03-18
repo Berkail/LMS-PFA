@@ -1,14 +1,14 @@
 import Header from '@/components/Header'
 import React from 'react'
 
-function StudentProfilePage() {
+function MyLearning() {
   return (
     <>
-      <Header title='Profile' subtitle='View your profile' />
+      <Header title='My Learning' subtitle='View your my learning' />
       <div className='content'>Content..</div>
     </>
 
   )
 }
 
-export default StudentProfilePage
+export default MyLearning

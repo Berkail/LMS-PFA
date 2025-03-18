@@ -96,6 +96,24 @@ input[type="color"] {
 
 
 
+
+.pdf-viewer {
+  width: 100%;
+  height: calc(100vh - 200px);
+  border: none;
+}
+
+.course__video-container {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: white;
+}
+
+.text-content {
+  padding: 1rem;
+}
+
 .bg-sidebar {
   @apply bg-customgreys-primarybg;
 }
@@ -635,19 +653,19 @@ input[type="color"] {
 }
 
 .course__tabs-list {
-  @apply flex justify-start gap-10;
+  @apply flex justify-start gap-10 bg-customgreys-secondarybg;
 }
 
 .course__tab {
-  @apply text-md w-20;
+  @apply text-md w-20 bg-customgreys-secondarybg;
 }
 
 .course__tab-content {
-  @apply mt-5;
+  @apply mt-5 bg-customgreys-secondarybg;
 }
 
 .course__tab-card {
-  @apply !border-none shadow-none;
+  @apply !border-none shadow-none bg-customgreys-secondarybg;
 }
 
 .course__tab-header {

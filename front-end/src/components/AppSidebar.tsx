@@ -11,7 +11,7 @@ import {
     SidebarFooter, // ADD: Import SidebarFooter
     useSidebar 
 } from '@/components/ui/sidebar';
-import { BookOpen, ChartColumn, ClipboardPenLine, PanelLeft, Settings, User } from 'lucide-react';
+import { BookOpen, ChartColumn, ClipboardPenLine, LibraryBig, PanelLeft, Settings, User } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { NavUser } from './NavUser'; // Import NavUser component
@@ -24,7 +24,7 @@ const AppSidebar = () => {
         students: [
             { icon: BookOpen, label: "Courses", href: '/student/courses' },
             { icon: ClipboardPenLine, label: "Assignments", href: '/student/assignments' },
-            { icon: User, label: "Profile", href: '/student/profile' },
+            { icon: LibraryBig, label: "My leaning", href: '/student/my-learning' },
             { icon: ChartColumn, label: "Progress", href: '/student/progress' },
         ],
         teacher: [
