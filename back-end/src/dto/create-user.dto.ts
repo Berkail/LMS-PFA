@@ -29,10 +29,6 @@ export class CreateUserDto {
   @IsDate()
   birthDate: Date;
 
-  @IsNotEmpty()
-  @IsString()
-  role: string;
-
   @IsOptional()
   @IsDate()
   lastLogin?: Date;

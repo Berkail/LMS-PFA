@@ -7,8 +7,9 @@ export abstract class User {
   phone: string;
   address: string;
   birthDate: Date;
-  role: string;
   createdAt: Date;
   updatedAt: Date;
   lastLogin: Date;
+
+  abstract getRole(): string;
 }
