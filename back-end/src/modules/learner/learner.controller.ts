@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { LearnerService } from './learner.service';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
@@ -8,8 +16,16 @@ export class LearnerController {
   constructor(private readonly learnerService: LearnerService) {}
 
   @Post()
-  create(@Body() createLearnerDto: CreateLearnerDto) {
-    return this.learnerService.create(createLearnerDto);
+  async create(@Body() createLearnerDto: CreateLearnerDto) {
+    createLearnerDto = {
+      firstName: 'john',
+      lastName: 'doe',
+      username: 'johndoe',
+      email: 'mimi@tt.r',
+      password: '123578',
+      birthdate: new Date('2021-10-10'),
+    }
+    return await this.learnerService.create(createLearnerDto);
   }
 
   @Get()
