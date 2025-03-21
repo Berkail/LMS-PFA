@@ -8,7 +8,7 @@ import {
 
 export abstract class User {
   @PrimaryGeneratedColumn()
-  userId: number;
+  id: number;
 
   @Column()
   firstName: string;
@@ -21,15 +21,6 @@ export abstract class User {
 
   @Column()
   password: string;
-
-  @Column({ unique: true })
-  phone: string;
-
-  @Column()
-  address: string;
-
-  @Column({ type: 'date' })
-  birthDate: Date;
 
   @CreateDateColumn()
   createdAt: Date;
