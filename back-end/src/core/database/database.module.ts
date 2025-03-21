@@ -21,6 +21,7 @@ console.log('Entities path:', __dirname + '/../**/*.entity{.ts,.js}'); // 🔥 A
         entities: [User,Instructor,__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: process.env.NODE_ENV === 'development',
         logging: process.env.NODE_ENV === 'development',
+        dropSchema: true,
       }),
     }),
   ],
