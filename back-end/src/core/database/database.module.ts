@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Instructor } from 'src/entities/instructor.entity';
-import { Student } from 'src/entities/student.entity';
 import { User } from 'src/entities/user.entity';
 console.log('Entities path:', __dirname + '/../**/*.entity{.ts,.js}'); // 🔥 Ajout ici pour debug
 
@@ -19,7 +18,7 @@ console.log('Entities path:', __dirname + '/../**/*.entity{.ts,.js}'); // 🔥 A
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [Student,User,Instructor,__dirname + '/../**/*.entity{.ts,.js}'],
+        entities: [User,Instructor,__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: process.env.NODE_ENV === 'development',
         logging: process.env.NODE_ENV === 'development',
       }),

@@ -12,18 +12,15 @@ export class InstructorService {
     private readonly instructorRepository: Repository<Instructor>,
   ) {}
 
-  // CREATE
   async create(createInstructorDto: CreateInstructorDto): Promise<Instructor> {
     const instructor = this.instructorRepository.create(createInstructorDto);
     return await this.instructorRepository.save(instructor);
   }
 
-  // FIND ALL
   async findAll(): Promise<Instructor[]> {
     return await this.instructorRepository.find();
   }
 
-  // FIND ONE
   async findOne(id: number): Promise<Instructor> {
     const instructor = await this.instructorRepository.findOne({ where: { id } });
     if (!instructor) {
@@ -32,7 +29,6 @@ export class InstructorService {
     return instructor;
   }
 
-  // UPDATE
   async update(id: number, updateInstructorDto: UpdateInstructorDto): Promise<Instructor> {
     await this.instructorRepository.update(id, updateInstructorDto);
     const updatedInstructor = await this.instructorRepository.findOne({ where: { id } });
@@ -42,7 +38,7 @@ export class InstructorService {
     return updatedInstructor;
   }
 
-  // DELETE
+  
   async remove(id: number): Promise<void> {
     const result = await this.instructorRepository.delete(id);
     if (result.affected === 0) {
