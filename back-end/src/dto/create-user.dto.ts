@@ -7,6 +7,10 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
+  username: string;
+
+  @IsNotEmpty()
+  @IsString()
   lastName: string;
 
   @IsNotEmpty()
@@ -17,19 +21,8 @@ export class CreateUserDto {
   @IsString()
   password: string;
 
-  @IsNotEmpty()
-  @IsString()
-  phone: string;
 
-  @IsNotEmpty()
-  @IsString()
-  address: string;
 
-  @IsNotEmpty()
-  @IsDate()
-  birthDate: Date;
 
-  @IsOptional()
-  @IsDate()
-  lastLogin?: Date;
+  
 }
