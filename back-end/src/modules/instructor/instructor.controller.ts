@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, Patch } from '@nestjs/common';
 import { InstructorService } from './instructor.service';
-import { Instructor } from '../../entities/instructor.entity';
 import { CreateInstructorDto } from './dto/create-instructor.dto';
 import { UpdateInstructorDto } from './dto/update-instructor.dto';
 

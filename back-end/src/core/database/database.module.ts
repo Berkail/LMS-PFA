@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Instructor } from 'src/entities/instructor.entity';
-import { User } from 'src/entities/user.entity';
+import { Instructor } from 'src/modules/instructor/entities/instructor.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 console.log('Entities path:', __dirname + '/../**/*.entity{.ts,.js}'); // 🔥 Ajout ici pour debug
 
 @Module({
