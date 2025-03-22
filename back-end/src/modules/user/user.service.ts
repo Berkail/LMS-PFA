@@ -11,6 +11,6 @@ export class UserService {
     user.lastName = createUserDto.lastName;
     user.username = createUserDto.username;
     user.email = createUserDto.email;
-    user.password = this.encryptionUtil.hashSync(createUserDto.password);
+    user.hashedPassword = this.encryptionUtil.hashSync(createUserDto.plainPassword);
   }
 }

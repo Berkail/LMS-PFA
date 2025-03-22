@@ -32,7 +32,7 @@ export class LearnerService {
 
           await transactionalEntityManager.save(learner);
 
-          const { password, ...result } = learner;
+          const { hashedPassword, ...result } = learner;
           return result;
         },
       );
@@ -45,6 +45,7 @@ export class LearnerService {
   }
 
   findAll(params: CursorPaginationDto) {
+    console.log('params:', params);
     return this.paginationService.paginate(this.learnerRepo, params);
   }
 

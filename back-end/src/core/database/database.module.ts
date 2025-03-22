@@ -5,7 +5,6 @@ import { Learner } from 'src/modules/learner/entities/learner.entity';
 
 @Module({
   imports: [
-    // This sets up the connection using async configuration from ConfigService.
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

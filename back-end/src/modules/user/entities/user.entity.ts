@@ -22,8 +22,8 @@ export abstract class User {
   @Column()
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ select: false })
+  hashedPassword: string;
 
   @CreateDateColumn()
   createdAt: Date;

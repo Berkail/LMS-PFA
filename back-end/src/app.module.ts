@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import databaseConfig from './core/config/database.config';
 import { DatabaseModule } from './core/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { LearnerModule } from './modules/learner/learner.module';
+import { qsParserMiddleware } from './core/common/middlewares/qs-parser.middleware';
 
 @Module({
   imports: [
@@ -18,4 +19,8 @@ import { LearnerModule } from './modules/learner/learner.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(qsParserMiddleware).forRoutes('*');
+  }
+}
