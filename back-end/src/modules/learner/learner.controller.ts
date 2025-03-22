@@ -21,10 +21,10 @@ export class LearnerController {
       firstName: 'john',
       lastName: 'doe',
       username: 'johndoe',
-      email: 'mimi@tt.r',
+      email: 'mimi@gmail.com',
       password: '123578',
       birthdate: new Date('2021-10-10'),
-    }
+    };
     return await this.learnerService.create(createLearnerDto);
   }
 

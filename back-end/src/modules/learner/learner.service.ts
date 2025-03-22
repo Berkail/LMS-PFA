@@ -29,6 +29,7 @@ export class LearnerService {
         },
       );
     } catch (error) {
+      console.error('Error initializing user:', error);
       throw new InternalServerErrorException(
         'Failed to create learner. Please try again later.',
       );
@@ -36,7 +37,7 @@ export class LearnerService {
   }
 
   findAll() {
-    return `This action returns all learner`;
+    return ;
   }
 
   findOne(id: number) {
