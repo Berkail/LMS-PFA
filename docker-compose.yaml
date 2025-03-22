@@ -7,9 +7,9 @@ services:
     env_file:
       - ./back-end/.env
     environment:
-      POSTGRES_USER: "${DB_USERNAME:-user}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD:-pwd}"
-      POSTGRES_DB: "${DB_NAME:-lms}"
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_NAME}"
       PGDATA: /var/lib/postgresql/data
     ports:
       - "5432:5432"

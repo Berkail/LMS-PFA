@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Instructor } from 'src/modules/instructor/entities/instructor.entity';
+import { User } from 'src/modules/user/entities/user.entity';
+console.log('Entities path:', __dirname + '/../**/*.entity{.ts,.js}'); // 🔥 Ajout ici pour debug
 
 @Module({
   imports: [
-    // This sets up the connection using async configuration from ConfigService.
+    // Cette configuration initialise la connexion à la base de données en utilisant les configurations asynchrones de ConfigService.
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -15,7 +18,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        entities: [User,Instructor,__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: process.env.NODE_ENV === 'development',
         logging: process.env.NODE_ENV === 'development',
         dropSchema: true,
