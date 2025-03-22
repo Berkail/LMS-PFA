@@ -19,7 +19,6 @@ import { Learner } from 'src/modules/learner/entities/learner.entity';
         entities: [Learner, __dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: process.env.NODE_ENV === 'development',
         logging: process.env.NODE_ENV === 'development',
-        dropSchema: true,
       }),
     }),
   ],

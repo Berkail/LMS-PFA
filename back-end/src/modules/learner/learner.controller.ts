@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { LearnerService } from './learner.service';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
+import { CursorPaginationDto } from 'src/core/pagination/dto/cursor-pagination.dto';
 
 @Controller('learner')
 export class LearnerController {
@@ -20,7 +22,7 @@ export class LearnerController {
     createLearnerDto = {
       firstName: 'john',
       lastName: 'doe',
-      username: 'johndoe',
+      username: 'timie',
       email: 'mimi@gmail.com',
       password: '123578',
       birthdate: new Date('2021-10-10'),
@@ -29,8 +31,8 @@ export class LearnerController {
   }
 
   @Get()
-  findAll() {
-    return this.learnerService.findAll();
+  findAll(@Query() params: CursorPaginationDto) {
+    return this.learnerService.findAll(params);
   }
 
   @Get(':id')
