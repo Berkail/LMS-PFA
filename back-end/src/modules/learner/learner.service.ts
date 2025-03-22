@@ -11,23 +11,27 @@ import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { CursorPaginationDto } from 'src/core/pagination/dto/cursor-pagination.dto';
 import { PaginationStrategy } from 'src/core/pagination/pagination-strategy.interface';
+import { EncryptionInterface } from 'src/core/common/utils/encryption/encryption.interface';
 
 @Injectable()
-export class LearnerService {
+export class LearnerService extends UserService<Learner> {
   constructor(
-    @InjectRepository(Learner)
-    private readonly learnerRepo: Repository<Learner>,
-    private readonly userService: UserService,
+    @Inject('ENCRYPTION_UTIL')
+    protected readonly encryptionService: EncryptionInterface,
     @Inject('PAGINATION_SERVICE')
-    private readonly paginationService: PaginationStrategy<Learner>,
-  ) {}
+    protected readonly paginationService: PaginationStrategy<Learner>,
+    @InjectRepository(Learner)
+    protected readonly repository: Repository<Learner>,
+  ) {
+    super(encryptionService, repository);
+  }
 
   async create(createLearnerDto: CreateLearnerDto) {
     try {
-      return await this.learnerRepo.manager.transaction(
+      return await this.repository.manager.transaction(
         async (transactionalEntityManager) => {
           const learner = new Learner();
-          this.userService.init_user(learner, createLearnerDto);
+          super.init_user(learner, createLearnerDto);
           learner.birthdate = createLearnerDto.birthdate;
 
           await transactionalEntityManager.save(learner);
@@ -44,20 +48,48 @@ export class LearnerService {
     }
   }
 
-  findAll(params: CursorPaginationDto) {
+  async findAll(params: CursorPaginationDto) {
     console.log('params:', params);
-    return this.paginationService.paginate(this.learnerRepo, params);
+    return await this.paginationService.paginate(this.repository, params);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} learner`;
+  async findById(id: number): Promise<Learner> {
+    return await super.findById(id);
   }
 
-  update(id: number, updateLearnerDto: UpdateLearnerDto) {
-    return `This action updates a #${id} learner`;
+  async findByUsername(email: string): Promise<Learner> {
+    return await super.findByUsername(email);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} learner`;
+  async update(id: number, updateLearnerDto: UpdateLearnerDto) {
+    try {
+      const learner = await this.findById(id);
+      if (!learner) {
+        return null;
+      }
+
+      Object.assign(learner, updateLearnerDto);
+      await this.repository.save(learner);
+
+      const { hashedPassword, ...result } = learner;
+      return result;
+    } catch (error) {
+      console.error('Error updating learner:', error);
+      throw new InternalServerErrorException(
+        'Failed to update learner. Please try again later.',
+      );
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      const result = await this.repository.softDelete(id);
+      return (result.affected ?? 0) > 0;
+    } catch (error) {
+      console.error('Error removing learner:', error);
+      throw new InternalServerErrorException(
+        'Failed to remove learner. Please try again later.',
+      );
+    }
   }
 }

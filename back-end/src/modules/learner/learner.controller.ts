@@ -6,9 +6,8 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
-  UsePipes,
   Req,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { LearnerService } from './learner.service';
 import { CreateLearnerDto } from './dto/create-learner.dto';
@@ -33,23 +32,29 @@ export class LearnerController {
   }
 
   @Get()
-  findAll(@Req() request: Request) {
-    const params: CursorPaginationParams = request['paginationParams'];
-    return this.learnerService.findAll(params);
+  async findAll(@Req() request: Request) {
+    try {
+      const params: CursorPaginationParams = request['paginationParams'];
+      const result = await this.learnerService.findAll(params);
+      return result;
+    } catch (error) {
+      console.error('Error in findAll:', error);
+      throw new InternalServerErrorException('Failed to fetch learners.');
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.learnerService.findOne(+id);
+  async findById(@Param('id') id: string) {
+    return await this.learnerService.findById(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLearnerDto: UpdateLearnerDto) {
-    return this.learnerService.update(+id, updateLearnerDto);
+  async update(@Param('id') id: string, @Body() updateLearnerDto: UpdateLearnerDto) {
+    return await this.learnerService.update(+id, updateLearnerDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.learnerService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.learnerService.remove(+id);
   }
 }

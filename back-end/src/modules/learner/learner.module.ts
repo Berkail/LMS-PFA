@@ -5,9 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Learner } from './entities/learner.entity';
 import { UserModule } from '../user/user.module';
 import { PaginationModule } from 'src/core/pagination/pagination.module';
+import { EncryptionModule } from 'src/core/common/utils/encryption/encryption.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Learner]), UserModule, PaginationModule],
+  imports: [
+    TypeOrmModule.forFeature([Learner]),
+    EncryptionModule,
+    PaginationModule,
+  ],
   controllers: [LearnerController],
   providers: [LearnerService],
 })
