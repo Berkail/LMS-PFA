@@ -12,7 +12,6 @@ import { Repository } from 'typeorm';
 import { PaginationStrategy } from 'src/core/pagination/pagination-strategy.interface';
 import { EncryptionInterface } from 'src/core/common/utils/encryption/encryption.interface';
 import { CursorPaginationDto } from 'src/core/pagination/dto/cursor-pagination.dto';
-import { Learner } from '../learner/entities/learner.entity';
 
 @Injectable()
 export class InstructorService extends UserService<Instructor> {

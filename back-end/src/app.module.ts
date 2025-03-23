@@ -6,6 +6,7 @@ import { DatabaseModule } from './core/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { LearnerModule } from './modules/learner/learner.module';
 import { qsParserMiddleware } from './core/common/middlewares/qs-parser.middleware';
+import { InstructorModule } from './modules/instructor/instructor.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { qsParserMiddleware } from './core/common/middlewares/qs-parser.middlewa
     }),
     DatabaseModule,
     LearnerModule,
+    InstructorModule,
   ],
   controllers: [AppController],
   providers: [AppService],

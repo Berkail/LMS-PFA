@@ -20,6 +20,13 @@ export class InstructorController {
 
   @Post()
   async create(@Body() createInstructorDto: CreateInstructorDto) {
+    createInstructorDto = {
+      firstName: 'jamal',
+      lastName: 'coco',
+      username: 'loco',
+      email: 'mikey@gmail.com',
+      plainPassword: '123578',
+    };
     return await this.instructorService.create(createInstructorDto);
   }
 
@@ -31,7 +38,7 @@ export class InstructorController {
       return result;
     } catch (error) {
       console.error('Error in findAll:', error);
-      throw new InternalServerErrorException('Failed to fetch learners.');
+      throw new InternalServerErrorException('Failed to fetch Instructors.');
     }
   }
 
