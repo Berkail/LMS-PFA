@@ -14,7 +14,7 @@ import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { CursorPaginationParams } from 'src/core/pagination/params/cursor-pagination-params.interface';
 
-@Controller('learner')
+@Controller('learners')
 export class LearnerController {
   constructor(private readonly learnerService: LearnerService) {}
 
@@ -49,7 +49,10 @@ export class LearnerController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateLearnerDto: UpdateLearnerDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateLearnerDto: UpdateLearnerDto,
+  ) {
     return await this.learnerService.update(+id, updateLearnerDto);
   }
 

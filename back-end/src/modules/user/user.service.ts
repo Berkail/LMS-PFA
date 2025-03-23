@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { EncryptionInterface } from 'src/core/common/utils/encryption/encryption.interface';
@@ -12,7 +17,7 @@ export class UserService<T extends ObjectLiteral> {
     protected readonly repository: Repository<T>,
   ) {}
 
-  init_user(user: User, createUserDto: CreateUserDto): void {
+  populate(user: User, createUserDto: CreateUserDto): void {
     user.firstName = createUserDto.firstName;
     user.lastName = createUserDto.lastName;
     user.username = createUserDto.username;
@@ -37,6 +42,18 @@ export class UserService<T extends ObjectLiteral> {
         `User with username:  ${username} not found.`,
       );
     }
-    return user;
+    return user as T;
+  }
+
+  async remove(id: number): Promise<boolean> {
+    try {
+      const result = await this.repository.softDelete(id);
+      return (result.affected ?? 0) > 0;
+    } catch (error) {
+      console.error('Error removing learner:', error);
+      throw new InternalServerErrorException(
+        'Failed to remove User. Please try again later.',
+      );
+    }
   }
 }

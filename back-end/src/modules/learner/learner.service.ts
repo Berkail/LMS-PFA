@@ -26,20 +26,20 @@ export class LearnerService extends UserService<Learner> {
     super(encryptionService, repository);
   }
 
+  populate(user: Learner, createUserDto: CreateLearnerDto): void {
+    super.populate(user, createUserDto);
+    user.birthdate = createUserDto.birthdate;
+  }
+
   async create(createLearnerDto: CreateLearnerDto) {
     try {
-      return await this.repository.manager.transaction(
-        async (transactionalEntityManager) => {
-          const learner = new Learner();
-          super.init_user(learner, createLearnerDto);
-          learner.birthdate = createLearnerDto.birthdate;
+      const learner = new Learner();
+      this.populate(learner, createLearnerDto);
 
-          await transactionalEntityManager.save(learner);
+      await this.repository.save(learner);
 
-          const { hashedPassword, ...result } = learner;
-          return result;
-        },
-      );
+      const { hashedPassword, ...result } = learner;
+      return result;
     } catch (error) {
       console.error('Error initializing user:', error);
       throw new InternalServerErrorException(
@@ -49,7 +49,6 @@ export class LearnerService extends UserService<Learner> {
   }
 
   async findAll(params: CursorPaginationDto) {
-    console.log('params:', params);
     return await this.paginationService.paginate(this.repository, params);
   }
 
@@ -57,8 +56,8 @@ export class LearnerService extends UserService<Learner> {
     return await super.findById(id);
   }
 
-  async findByUsername(email: string): Promise<Learner> {
-    return await super.findByUsername(email);
+  async findByUsername(username: string): Promise<Learner> {
+    return await super.findByUsername(username);
   }
 
   async update(id: number, updateLearnerDto: UpdateLearnerDto) {
@@ -68,7 +67,15 @@ export class LearnerService extends UserService<Learner> {
         return null;
       }
 
-      Object.assign(learner, updateLearnerDto);
+      if (updateLearnerDto.plainPassword) {
+        learner.hashedPassword = await this.encryptionService.hashSync(
+          updateLearnerDto.plainPassword,
+        );
+      }
+
+      const { plainPassword, ...updateData } = updateLearnerDto;
+
+      Object.assign(learner, updateData);
       await this.repository.save(learner);
 
       const { hashedPassword, ...result } = learner;
@@ -81,15 +88,7 @@ export class LearnerService extends UserService<Learner> {
     }
   }
 
-  async remove(id: number) {
-    try {
-      const result = await this.repository.softDelete(id);
-      return (result.affected ?? 0) > 0;
-    } catch (error) {
-      console.error('Error removing learner:', error);
-      throw new InternalServerErrorException(
-        'Failed to remove learner. Please try again later.',
-      );
-    }
+  async remove(id: number): Promise<boolean> {
+    return await super.remove(id);
   }
 }

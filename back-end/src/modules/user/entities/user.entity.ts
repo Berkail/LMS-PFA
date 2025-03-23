@@ -35,4 +35,8 @@ export abstract class User {
   deletedAt: Date | null;
 
   public abstract getRole(): string;
+
+  public isDeleted(): boolean {
+    return !!this.deletedAt;
+  }
 }
