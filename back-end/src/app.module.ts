@@ -4,9 +4,7 @@ import { AppService } from './app.service';
 import databaseConfig from './core/config/database.config';
 import { DatabaseModule } from './core/database/database.module';
 import { ConfigModule } from '@nestjs/config';
-import { LearnerModule } from './modules/learner/learner.module';
-import { qsParserMiddleware } from './core/common/middlewares/qs-parser.middleware';
-import { InstructorModule } from './modules/instructor/instructor.module';
+import { SessionModule } from './core/session/session.module';
 
 @Module({
   imports: [
@@ -15,6 +13,7 @@ import { InstructorModule } from './modules/instructor/instructor.module';
       isGlobal: true,
     }),
     DatabaseModule,
+    SessionModule,
     LearnerModule,
     InstructorModule,
   ],
