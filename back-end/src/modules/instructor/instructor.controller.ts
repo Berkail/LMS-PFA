@@ -20,13 +20,6 @@ export class InstructorController {
 
   @Post()
   async create(@Body() createInstructorDto: CreateInstructorDto) {
-    createInstructorDto = {
-      firstName: 'jamal',
-      lastName: 'coco',
-      username: 'loco',
-      email: 'mikey@gmail.com',
-      plainPassword: '123578',
-    };
     return await this.instructorService.create(createInstructorDto);
   }
 

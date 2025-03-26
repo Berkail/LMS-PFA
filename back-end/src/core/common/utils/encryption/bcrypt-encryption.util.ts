@@ -11,4 +11,12 @@ export class BcryptEncryption implements EncryptionInterface {
   compareSync(plainText: string, hash: string): boolean {
     return bcrypt.compareSync(plainText, hash);
   }
+
+  hash(plainText: string): string {
+    return bcrypt.hash(plainText, this.saltRounds);
+  }
+
+  compare(plainText: string, hash: string): boolean {
+    return bcrypt.compare(plainText, hash);
+  }
 }

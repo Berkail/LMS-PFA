@@ -15,5 +15,6 @@ import { EncryptionModule } from 'src/core/common/utils/encryption/encryption.mo
   ],
   controllers: [LearnerController],
   providers: [LearnerService],
+  exports: [LearnerService],
 })
 export class LearnerModule {}

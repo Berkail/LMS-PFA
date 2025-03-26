@@ -23,28 +23,22 @@ export class InstructorService extends UserService<Instructor> {
     @InjectRepository(Instructor)
     protected readonly repository: Repository<Instructor>,
   ) {
-    super(encryptionService, repository);
+    super(encryptionService, paginationService, repository);
+  }
+
+  async populate(
+    instructor: Instructor,
+    createInstructorDto: CreateInstructorDto,
+  ): Promise<void> {
+    await super.populate(instructor, createInstructorDto);
   }
 
   async create(createInstructorDto: CreateInstructorDto) {
-    try {
-      const instructor = new Instructor();
-      this.populate(instructor, createInstructorDto);
-
-      await this.repository.save(instructor);
-
-      const { hashedPassword, ...result } = instructor;
-      return result;
-    } catch (error) {
-      console.error('Error initializing Instuctor:', error);
-      throw new InternalServerErrorException(
-        'Failed to create Instructor. Please try again later.',
-      );
-    }
+    return await super.create(createInstructorDto);
   }
 
   async findAll(params: CursorPaginationDto) {
-    return await this.paginationService.paginate(this.repository, params);
+    return await super.findAll(params);
   }
 
   async findById(id: number): Promise<Instructor> {
@@ -56,31 +50,7 @@ export class InstructorService extends UserService<Instructor> {
   }
 
   async update(id: number, updateInstructorDto: UpdateInstructorDto) {
-    try {
-      const instructor = await this.findById(id);
-      if (!Instructor) {
-        return null;
-      }
-
-      if (updateInstructorDto.plainPassword) {
-        instructor.hashedPassword = await this.encryptionService.hashSync(
-          updateInstructorDto.plainPassword,
-        );
-      }
-
-      const { plainPassword, ...updateData } = updateInstructorDto;
-
-      Object.assign(instructor, updateData);
-      await this.repository.save(instructor);
-
-      const { hashedPassword, ...result } = instructor;
-      return result;
-    } catch (error) {
-      console.error('Error updating instructor:', error);
-      throw new InternalServerErrorException(
-        'Failed to update instructor. Please try again later.',
-      );
-    }
+    return await super.update(id, updateInstructorDto);
   }
 
   async remove(id: number): Promise<boolean> {

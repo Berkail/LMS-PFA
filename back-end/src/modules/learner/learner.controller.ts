@@ -20,14 +20,6 @@ export class LearnerController {
 
   @Post()
   async create(@Body() createLearnerDto: CreateLearnerDto) {
-    createLearnerDto = {
-      firstName: 'john',
-      lastName: 'doe',
-      username: 'smik',
-      email: 'mimi@gmail.com',
-      plainPassword: '123578',
-      birthdate: new Date('2021-10-10'),
-    };
     return await this.learnerService.create(createLearnerDto);
   }
 

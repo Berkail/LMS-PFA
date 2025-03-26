@@ -5,6 +5,10 @@ import databaseConfig from './core/config/database.config';
 import { DatabaseModule } from './core/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { SessionModule } from './core/session/session.module';
+import { LearnerModule } from './modules/learner/learner.module';
+import { InstructorModule } from './modules/instructor/instructor.module';
+import { qsParserMiddleware } from './core/common/middlewares/qs-parser.middleware';
+import { AuthModule } from './core/auth/auth.module';
 
 @Module({
   imports: [
@@ -12,6 +16,7 @@ import { SessionModule } from './core/session/session.module';
       load: [databaseConfig],
       isGlobal: true,
     }),
+    AuthModule,
     DatabaseModule,
     SessionModule,
     LearnerModule,

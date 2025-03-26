@@ -14,5 +14,6 @@ import { PaginationModule } from 'src/core/pagination/pagination.module';
   ],
   controllers: [InstructorController],
   providers: [InstructorService],
+  exports: [InstructorService],
 })
 export class InstructorModule {}
