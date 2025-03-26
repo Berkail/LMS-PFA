@@ -35,14 +35,6 @@ export class LearnerService extends UserService<Learner> {
   }
 
   async create(createLearnerDto: CreateLearnerDto) {
-    createLearnerDto = {
-      firstName: 'hihi',
-      lastName: 'toto',
-      username: 'simi',
-      email: 'bibi@gg.com',
-      plainPassword: 'timy now',
-      birthdate: new Date('1999-05-09'),
-    };
     return await super.create(createLearnerDto);
   }
 
