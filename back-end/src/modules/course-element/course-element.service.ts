@@ -1,11 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateCourseElementDto } from './dto/create-course-element.dto';
 import { UpdateCourseElementDto } from './dto/update-course-element.dto';
+import { CourseElement } from './entities/course-element.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
-export class CourseElementService {
-  create(createCourseElementDto: CreateCourseElementDto) {
-    return 'This action adds a new courseElement';
+export class CourseElementService<T extends CourseElement> {
+  constructor(private readonly repository: Repository<T>) {}
+
+  async create(createCourseElementDto: CreateCourseElementDto) {
+    const courseElement = this.repository.create();
+    try {
+      return await this.repository.save(courseElement);
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException("Couldn't create CourseElement");
+    }
   }
 
   findAll() {
