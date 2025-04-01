@@ -1,9 +1,10 @@
 import { UserMapper } from "src/modules/user/mappers/user.mapper";
 import { Instructor } from "../entities/instructor.entity";
 import { CreateInstructorDto } from "../dto/create-instructor.dto";
-import { Inject } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { EncryptionInterface } from "src/core/common/utils/encryption/encryption.interface";
 
+@Injectable()
 export class InstructorMapper extends UserMapper{
     constructor(@Inject('ENCRYPTION_UTIL') encryptionService: EncryptionInterface) {
         super(encryptionService);

@@ -6,15 +6,15 @@ import { Learner } from './entities/learner.entity';
 import { UserModule } from '../user/user.module';
 import { PaginationModule } from 'src/core/pagination/pagination.module';
 import { EncryptionModule } from 'src/core/common/utils/encryption/encryption.module';
+import { LearnerMapper } from './mappers/learner.mapper';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Learner]),
     EncryptionModule,
-    PaginationModule,
   ],
   controllers: [LearnerController],
-  providers: [LearnerService],
+  providers: [LearnerService, LearnerMapper],
   exports: [LearnerService],
 })
 export class LearnerModule {}

@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { CursorPaginationStrategy } from './cursor-pagination.strategy';
 
+@Global()
 @Module({
   imports: [],
   providers: [

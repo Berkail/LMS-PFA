@@ -21,19 +21,21 @@ export class UserService<T extends User> {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<T> {
-    try {
-      const user = this.repository.create();
-      await this.userMapper.toEntity(user, createUserDto);
-      await this.repository.save(user);
+    return await this.repository.manager.transaction(async (manager) => {
+      try {
+        const user: T = this.repository.create();
+        await this.userMapper.toEntity(user, createUserDto);
+        await manager.save(user);
 
-      const { hashedPassword, ...result } = user as any;
-      return result as T;
-    } catch (error) {
-      console.error('Error creating user:', error);
-      throw new InternalServerErrorException(
-        'Failed to create user. Please try again later.',
-      );
-    }
+        const { hashedPassword, ...result } = user as any;
+        return result as T;
+      } catch (error) {
+        console.error('Error creating user:', error);
+        throw new InternalServerErrorException(
+          'Failed to create user. Please try again later.',
+        );
+      }
+    });
   }
 
   async findAll(params: CursorPaginationDto) {
@@ -41,13 +43,13 @@ export class UserService<T extends User> {
   }
 
   async findById(id: number): Promise<T> {
-    return await this.repository
-      .findOneOrFail({
+    try {
+      return await this.repository.findOneOrFail({
         where: { id } as any,
-      })
-      .catch(() => {
-        throw new NotFoundException(`User with ID ${id} not found.`);
       });
+    } catch {
+      throw new NotFoundException(`User with ID ${id} not found.`);
+    }
   }
 
   async findByUsername(username: string): Promise<T> {
@@ -62,17 +64,16 @@ export class UserService<T extends User> {
     return user as T;
   }
 
-  async update(id: number, updateUserDto: Partial<T>): Promise<T> {
-    const user = await this.findById(id);
-
-    await this.userMapper.toEntity(user, updateUserDto);
-
-    await this.repository.save(user);
-    return user;
+  async update(id: number, updateUserDto: Partial<CreateUserDto>): Promise<T> {
+    return await this.repository.manager.transaction(async (manager) => {
+      const user = await this.findById(id);
+      await this.userMapper.toEntity(user, updateUserDto);
+      return (await manager.save(user)) as T;
+    });
   }
 
   async remove(id: number): Promise<boolean> {
-    const user = await this.findById(id);
+    const user: T = await this.findById(id);
     await this.repository.softRemove(user);
     return true;
   }

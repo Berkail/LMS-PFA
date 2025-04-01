@@ -9,6 +9,7 @@ import { LearnerModule } from './modules/learner/learner.module';
 import { InstructorModule } from './modules/instructor/instructor.module';
 import { qsParserMiddleware } from './core/common/middlewares/qs-parser.middleware';
 import { AuthModule } from './core/auth/auth.module';
+import { PaginationModule } from './core/pagination/pagination.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AuthModule } from './core/auth/auth.module';
     SessionModule,
     LearnerModule,
     InstructorModule,
+    PaginationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
