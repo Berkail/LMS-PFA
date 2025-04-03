@@ -19,4 +19,10 @@ export abstract class CourseElement {
   updatedAt: Date | null;
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt: Date | null;
+  @Column({ name: 'published_at', nullable: true })
+  publishedAt: Date | null;
+
+  get published(): boolean {
+    return this.publishedAt !== null;
+  }
 }
