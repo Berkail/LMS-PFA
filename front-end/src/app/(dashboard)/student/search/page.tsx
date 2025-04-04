@@ -7,6 +7,14 @@ import Header from "@/components/Header";
 import { useState, useMemo, useEffect } from "react";
 import Loading from "@/components/Loading";
 import CourseCardSearch from "@/components/CourseCardSearch";
+import SelectedCourse from "./SelectedCourse";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
+import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+
+interface SelectedCourseProps {
+  course: Course;  // Remove the optional '?' if it exists
+  handleEnrollNow: (courseId: string) => void;
+}
 
 // Define Course type
 interface Course {
@@ -74,6 +82,9 @@ const dummyCourses: Course[] = [
 ];
 
 const Search = () => {
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get("id");
@@ -110,8 +121,13 @@ const Search = () => {
   }, [id]);
 
   const handleCourseSelect = (course: Course) => {
+    setIsDialogOpen(true);
     setSelectedCourse(course);
     router.push(`/student/search?id=${course.courseId}`);
+  };
+
+  const handleEnrollNow = (courseId: string) => {
+    router.push(`/signup`);
   };
 
   if (isLoading) return <Loading />;
@@ -137,6 +153,21 @@ const Search = () => {
           />
         ))}
       </div>
+      
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+
+        <DialogTitle></DialogTitle>
+        <DialogDescription></DialogDescription>
+  <DialogContent className="search__selected-course">
+  <SelectedCourse
+      course={selectedCourse}
+      handleEnrollNow={handleEnrollNow}
+      />
+  </DialogContent>
+</Dialog>
+      
+      
     </div>
   );
 };

@@ -15,6 +15,7 @@ const dummyCourses = [
     image: "/placeholder.png",
     teacherName: "John Doe",
     category: "Programming",
+    progress: 30,
     sections: [
       {
         sectionId: "section1",
@@ -41,6 +42,7 @@ const dummyCourses = [
     image: "/placeholder.png",
     teacherName: "Jane Smith",
     category: "Programming",
+    progress: 70,
   },
 ];
 

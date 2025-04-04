@@ -53,7 +53,7 @@ const CourseCardSearch: React.FC<CourseCardSearchProps> = ({
         <div className="mt-2">
           <p className="course-card-search__teacher">By {course.teacherName}</p>
           <div className="course-card-search__footer">
-            <span className="course-card-search__price">
+            <span className="text-primary-600">
               {course.category}
             </span>
             <span className="course-card-search__enrollment">

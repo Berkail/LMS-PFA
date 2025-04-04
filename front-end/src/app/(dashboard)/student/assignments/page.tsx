@@ -11,21 +11,34 @@ const dummyAssignments = [
   {
     assignmentId: "assignment1",
     title: "React Fundamentals Quiz",
+    courseTitle: "Introduction to React",
     description: "Complete the quiz about React basics",
-    teacherName: "John Doe"
+    dueDate: "2025-04-10",
+    teacherName: "John Doe",
+    teacherTitle: "Senior React Developer",
+    pdfUrl: "/assignments/react-quiz.pdf",
+    status: "pending",
+    maxPoints: 100,
+    instructions: "Please complete all questions. You have 60 minutes to finish this assignment."
   },
   {
     assignmentId: "assignment2",
     title: "JavaScript Project",
+    courseTitle: "Advanced JavaScript",
     description: "Build a simple JavaScript application",
-    teacherName: "Jane Smith"
+    dueDate: "2025-04-15",
+    teacherName: "Jane Smith",
+    teacherTitle: "JavaScript Expert",
+    pdfUrl: "/assignments/javascript-project.pdf",
+    status: "pending",
+    maxPoints: 100,
+    instructions: "Build a JavaScript application following the provided specifications."
   },
 ];
 
 const Assignments = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
 
   const filteredAssignments = useMemo(() => {
@@ -45,13 +58,16 @@ const Assignments = () => {
 
   return (
     <div className="user-assignments">
-      <Header title="Assignments to take" subtitle="View your pending assignments" />
+      <Header 
+        title="Assignments to take" 
+        subtitle="View your pending assignments" 
+      />
       <div className="user-courses__grid">
         {filteredAssignments.map((assignment) => (
           <AssignmentCard
             key={assignment.assignmentId}
             assignment={assignment}
-            onGoToCourse={handleGoToAssignment}
+            onGoToCourse={() => handleGoToAssignment(assignment)}
           />
         ))}
       </div>

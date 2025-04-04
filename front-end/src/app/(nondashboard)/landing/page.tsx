@@ -64,11 +64,9 @@ const currentImage = useCarousel ({ totalImages: 3 });
 
           >
              <div className="landing__hero-content">
-               <h1 className="landing__title">Courses</h1>
+               <h1 className="landing__title">Stay Hungry, Stay Foolish</h1>
                <p className="landing__description">
-                 This is the list of the courses you can enroll in .
-                 <br/>
-                 Courses when you need them and want them .
+               Embracing Steve Jobs' timeless wisdom, we value curiosity and bold thinking. Our platform encourages students to question, explore, and never settle.
                </p>
                <div className="landing__cta">
                  <Link href="/signup">

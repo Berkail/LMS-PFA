@@ -836,9 +836,57 @@ input[type="color"] {
 }
 
 
+
+
+
+
+
+
+.assignment__breadcrumb {
+  margin-bottom: 2rem;
+}
+
+.assignment__path {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.assignment__current {
+  font-weight: 600;
+  color: #333;
+}
+
+.assignment__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1rem 0;
+}
+
+.assignment__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.assignment__instructor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.assignment__instructions {
+  margin-bottom: 2rem;
+}
+
+
+.assignment__content{
+  @apply bg-customgreys-primarybg ;
+}
+
+
 /* Assignment Card Styles */
 .assignment-card {
-  @apply flex flex-col w-full h-[200px] border-none bg-customgreys-primarybg overflow-hidden cursor-pointer hover:bg-white-100/10 transition duration-200 rounded-lg;
+  @apply flex flex-col w-full h-[200px] border-none bg-customgreys-primarybg overflow-hidden transition duration-200 rounded-lg;
 }
 
 .assignment-card__header {

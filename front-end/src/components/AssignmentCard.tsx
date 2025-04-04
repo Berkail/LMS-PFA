@@ -45,7 +45,7 @@ import { Button } from "./ui/button";
   
           <CardFooter className="assignment-card__footer flex justify-between">
             <div className="course-card__category">Pending</div>
-            <Button variant="outline">Take assignment</Button>
+            <Button className="hover:bg-white-50 hover:text-gray-800">Take assignment</Button>
           </CardFooter>
 
         </CardContent>
