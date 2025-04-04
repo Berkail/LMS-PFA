@@ -16,15 +16,6 @@ const NonDashboardNavBar = () => {
                 EHEI-LMS
             </Link>
             </div>
-            <div className='flex item-center gap-4'>
-                <div className='relative group'>
-                    <Link href="/search" className="nondashboard-navbar__search-input">
-                           <span className="hidden sm:inline">Search Cources</span>
-                           <span className="hidden sm:inline">Search</span>
-                    </Link>
-                    <BookOpen className="nondashboard-navbar__search-icon" size={18}/>
-                </div>
-            </div>
            </div>
         </div>
         <div className="nondashboard-navbar__actions">

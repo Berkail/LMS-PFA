@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Loading from "@/components/Loading";
 import { useParams } from "next/navigation";
@@ -149,77 +149,57 @@ const Course = () => {
 
         <Card className="course__video">
           <CardContent className="course__video-container">
-            {currentChapter?.type === "PDF" ? (
-              <object
-                data={currentChapter.content}
-                type="application/pdf"
-                className="pdf-viewer"
-              >
-                <p>
-                  It appears you don't have a PDF plugin for this browser.
-                  You can {" "}
-                  <a href={currentChapter.content} target="_blank" rel="noopener noreferrer">
-                    click here to download the PDF file.
-                  </a>
-                </p>
-              </object>
-            ) : currentChapter?.type === "Video" ? (
-              <div>Video player here</div>
-            ) : (
-              <div className="text-content">
-                {currentChapter?.content}
-              </div>
-            )}
+          <iframe 
+      src="https://www.youtube.com/embed/19g66ezsKAg"
+      title="Course Video"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen 
+    />
           </CardContent>
         </Card>
 
+
+
+
+
         <div className="course__content">
-          <Tabs defaultValue="Notes" className="course__tabs">
-            <TabsList className="course__tabs-list">
-              <TabsTrigger className="course__tab" value="Notes">
-                Notes
-              </TabsTrigger>
-              <TabsTrigger className="course__tab" value="Resources">
-                Resources
-              </TabsTrigger>
-              <TabsTrigger className="course__tab" value="Quiz">
-                Quiz
-              </TabsTrigger>
-            </TabsList>
+          
+        <Tabs defaultValue="Notes" className="w-full course-tab-bg">
+      <TabsList className="grid w-full grid-cols-2 bg-customgreys-secondarybg">
+        <TabsTrigger value="Notes">Notes</TabsTrigger>
+        <TabsTrigger value="Resources">Resources</TabsTrigger>
+      </TabsList>
+      <TabsContent value="Notes">
+        <Card className="course-tab-card">
+          <CardHeader>
+            <CardTitle>Account</CardTitle>
+            <CardDescription>
+              Make changes to your account here. Click save when you're done.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+          </CardContent>
+          <CardFooter>
+          </CardFooter>
+        </Card>
+      </TabsContent>
+      <TabsContent value="Resources">
+        <Card className="course-tab-card">
+          <CardHeader>
+            <CardTitle>Password</CardTitle>
+            <CardDescription>
+              Change your password here. After saving, you'll be logged out.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            
+          </CardContent>
+          <CardFooter>
+          </CardFooter>
+        </Card>
+      </TabsContent>
+    </Tabs>
 
-            <TabsContent className="course__tab-content" value="Notes">
-              <Card className="course__tab-card">
-                <CardHeader className="course__tab-header">
-                  <CardTitle>Notes Content</CardTitle>
-                </CardHeader>
-                <CardContent className="course__tab-body">
-                  {currentChapter?.content}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent className="course__tab-content" value="Resources">
-              <Card className="course__tab-card">
-                <CardHeader className="course__tab-header">
-                  <CardTitle>Resources Content</CardTitle>
-                </CardHeader>
-                <CardContent className="course__tab-body">
-                  {/* Add resources content here */}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent className="course__tab-content" value="Quiz">
-              <Card className="course__tab-card">
-                <CardHeader className="course__tab-header">
-                  <CardTitle>Quiz Content</CardTitle>
-                </CardHeader>
-                <CardContent className="course__tab-body">
-                  {/* Add quiz content here */}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
 
           <Card className="course__instructor-card">
             <CardContent className="course__instructor-info">

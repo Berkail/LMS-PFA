@@ -41,7 +41,6 @@ export default function SwitchForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6 dark">
         <div>
-          <h3 className="mb-4 text-lg font-medium">Email Notifications</h3>
           <div className="space-y-4">
             <FormField
             
@@ -88,7 +87,7 @@ export default function SwitchForm() {
             />
           </div>
         </div>
-        <Button type="submit">Submit</Button>
+        <Button type="submit">Save</Button>
       </form>
     </Form>
   )

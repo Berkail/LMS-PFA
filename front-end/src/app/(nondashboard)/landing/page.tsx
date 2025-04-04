@@ -71,8 +71,8 @@ const currentImage = useCarousel ({ totalImages: 3 });
                  Courses when you need them and want them .
                </p>
                <div className="landing__cta">
-                 <Link href="/search">
-                   <div className="landing__cta-button">Search for Courses</div>
+                 <Link href="/signup">
+                   <div className="landing__cta-button">Join us</div>
                  </Link>
                </div>
              </div>

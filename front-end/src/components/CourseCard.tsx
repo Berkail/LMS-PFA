@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
-
+import { Progress } from "./ui/progress";
+ 
 type CourseCardProps = {
   course: {
     courseId: string;
@@ -39,7 +40,13 @@ const CourseCard = ({ course , onGoToCourse }: CourseCardProps) => {
           {course.title}: {course.description}
         </CardTitle>
 
-        <div className="flex items-center gap-2">
+        <div>
+          <p className="text-white-50 mb-2">Progress</p>
+        <Progress value={30} className="w-[100%]" />
+        </div>
+        <CardFooter className="course-card__footer">
+          <div className="course-card__category">{course.category}</div>
+          <div className="flex items-center gap-2">
           <Avatar className="w-6 h-6">
             <AvatarImage alt={course.teacherName} />
             <AvatarFallback className="bg-secondary-700 text-black">
@@ -51,9 +58,6 @@ const CourseCard = ({ course , onGoToCourse }: CourseCardProps) => {
             {course.teacherName}
           </p>
         </div>
-
-        <CardFooter className="course-card__footer">
-          <div className="course-card__category">{course.category}</div>
         </CardFooter>
       </CardContent>
     </Card>
