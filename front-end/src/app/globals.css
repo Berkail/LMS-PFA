@@ -419,6 +419,11 @@ input[type="color"] {
   @apply px-8 py-4;
 }
 
+
+
+
+
+
 /* Course Page */
 .course {
   @apply flex h-[100vh];
@@ -481,11 +486,11 @@ input[type="color"] {
 }
 
 .course__video {
-  @apply w-full bg-background text-card-foreground shadow-none rounded-lg overflow-hidden;
+  @apply w-full text-card-foreground shadow-none rounded-lg overflow-hidden;
 }
 
 .course__video-container {
-  @apply relative w-full pt-[56.25%] bg-background p-0; /* 16:9 Aspect Ratio */
+  @apply relative w-full pt-[56.25%] p-0; /* 16:9 Aspect Ratio */
 }
 
 .course__video-container iframe {
@@ -565,8 +570,19 @@ input[type="color"] {
 }
 
 /* Chapters Sidebar */
-.chapters-sidebar {
+
+.chapters-sidebar-sections-skeleton {
+  @apply h-20 w-full flex items-center justify-center;
+}
+
+
+.chapters-sidebar-skeleton {
   @apply bg-customgreys-secondarybg border-x border-gray-700 overflow-y-auto transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-left flex-shrink-0;
+  height: 100vh;
+}
+
+.chapters-sidebar {
+  @apply bg-customgreys-secondarybg border-x border-gray-700 overflow-y-auto transition-all duration-500 ease-in-out flex-shrink-0;
   height: 100vh;
 }
 
@@ -619,15 +635,15 @@ input[type="color"] {
 }
 
 .chapters-sidebar__progress-bar--completed {
-  @apply bg-secondary-700;
+  @apply bg-primary-600;
 }
 
 .chapters-sidebar__trophy {
-  @apply bg-secondary-700 rounded-full p-3 flex items-center justify-center;
+  @apply bg-primary-600 rounded-full p-3 flex items-center justify-center;
 }
 
 .chapters-sidebar__trophy-icon {
-  @apply text-customgreys-secondarybg w-4 h-4;
+  @apply text-white-50 w-4 h-4;
 }
 
 .chapters-sidebar__progress-text {
@@ -643,7 +659,7 @@ input[type="color"] {
 }
 
 .chapters-sidebar__chapter-check {
-  @apply bg-secondary-700 rounded-full p-1;
+  @apply bg-primary-600 rounded-full p-1;
 }
 
 .chapters-sidebar__check-icon {
@@ -655,7 +671,7 @@ input[type="color"] {
 }
 
 .chapters-sidebar__chapter-number--current {
-  @apply bg-secondary-700 text-gray-800;
+  @apply bg-primary-600 text-gray-800;
 }
 
 .chapters-sidebar__chapter-title {
@@ -667,7 +683,7 @@ input[type="color"] {
 }
 
 .chapters-sidebar__chapter-title--current {
-  @apply text-secondary-700;
+  @apply text-primary-600;
 }
 
 .chapters-sidebar__text-icon {

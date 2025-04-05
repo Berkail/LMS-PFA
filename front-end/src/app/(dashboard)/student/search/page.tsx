@@ -4,15 +4,16 @@ import Toolbar from "@/components/Toolbar";
 import CourseCard from "@/components/CourseCard";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Loading from "@/components/Loading";
 import CourseCardSearch from "@/components/CourseCardSearch";
 import SelectedCourse from "./SelectedCourse";
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+import { CourseSkeleton } from "@/components/skeletons/CourseSkeleton";
 
 interface SelectedCourseProps {
-  course: Course;  // Remove the optional '?' if it exists
+  course: Course | null;  // Changed this line to allow null
   handleEnrollNow: (courseId: string) => void;
 }
 
@@ -105,20 +106,6 @@ const Search = () => {
     });
   }, [searchTerm, selectedCategory]);
 
-  useEffect(() => {
-    try {
-      if (id) {
-        const course = dummyCourses.find((course) => course.courseId === id);
-        setSelectedCourse(course || dummyCourses[0]);
-      } else {
-        setSelectedCourse(dummyCourses[0]);
-      }
-    } catch (error) {
-      console.error("Error setting selected course:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
 
   const handleCourseSelect = (course: Course) => {
     setIsDialogOpen(true);
@@ -130,7 +117,46 @@ const Search = () => {
     router.push(`/signup`);
   };
 
-  if (isLoading) return <Loading />;
+
+  useEffect(() => {
+    try {
+      if (id) {
+        const course = dummyCourses.find((course) => course.courseId === id);
+        setSelectedCourse(course || dummyCourses[0]);
+      } else {
+        setSelectedCourse(dummyCourses[0]);
+      }
+    } catch (error) {
+      console.error("Error setting selected course:", error);
+    }
+    // Add a longer delay before setting isLoading to false
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000); // Increased to 3.5 seconds
+  
+    return () => clearTimeout(timer);
+  }, [id]);
+
+    if (isLoading) {
+      return (
+        <div className="user-courses">
+          <Header 
+            title="Search for courses" 
+            subtitle="find new courses to gain more skills" 
+          />
+          <Toolbar
+            onSearch={setSearchTerm}
+            onCategoryChange={setSelectedCategory}
+          />
+          <h2>Loading courses...</h2>
+          <div className="user-courses__grid">
+            {filteredCourses.map((course) => (
+              <CourseSkeleton key={course.courseId} />
+            ))}
+          </div>
+        </div>
+      );
+    }
 
   return (
     <div className="user-courses">
@@ -161,9 +187,9 @@ const Search = () => {
         <DialogDescription></DialogDescription>
   <DialogContent className="search__selected-course">
   <SelectedCourse
-      course={selectedCourse}
-      handleEnrollNow={handleEnrollNow}
-      />
+    course={selectedCourse}
+    handleEnrollNow={handleEnrollNow}
+  />
   </DialogContent>
 </Dialog>
       

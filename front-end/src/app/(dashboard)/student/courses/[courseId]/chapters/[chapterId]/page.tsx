@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Loading from "@/components/Loading";
 import { useParams } from "next/navigation";
+import { ProfileSkeleton } from "@/components/skeletons/ProfileSkeleton";
+import { CourseVideoSkeleton } from "@/components/skeletons/CourseVideoSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const dummyCourse = {
   courseId: "course1",
@@ -117,7 +120,27 @@ const Course = () => {
     }));
   };
 
-  if (isLoading) return <Loading />;
+  if (isLoading) {
+    return(
+      <div className="course">
+      
+      <div className="course__container">
+
+            <div className="pt-4 course__instructor">
+            <ProfileSkeleton />
+            </div>
+        <div className="w-full">
+          <div className="w-full">
+          <CourseVideoSkeleton />
+          </div>
+
+        </div>
+        
+      </div>
+      </div>
+    );
+  }
+
   if (!currentChapter || !currentSection) return <div>Chapter not found</div>;
 
   return (
@@ -154,6 +177,7 @@ const Course = () => {
       title="Course Video"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowFullScreen 
+      className="bg-customgreys-secondarybg"
     />
           </CardContent>
         </Card>

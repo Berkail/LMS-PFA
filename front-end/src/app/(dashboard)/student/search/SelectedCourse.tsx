@@ -3,7 +3,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 
+
+interface SelectedCourseProps {
+  course: Course | null;
+  handleEnrollNow: (courseId: string) => void;
+}
+
 const SelectedCourse = ({ course, handleEnrollNow} : SelectedCourseProps) => {
+  
+  if (!course) {
+    return <div>No course selected</div>;
+  }
+
   return (
     <div className=''>
         <div className='selected-course'>

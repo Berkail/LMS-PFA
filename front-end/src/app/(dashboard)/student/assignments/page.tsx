@@ -4,8 +4,9 @@ import Toolbar from "@/components/Toolbar";
 import AssignmentCard from "@/components/AssignmentCard";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Loading from "@/components/Loading";
+import { AssignmentSkeleton } from "@/components/skeletons/AssignmentSkeleton";
 
 const dummyAssignments = [
   {
@@ -39,7 +40,7 @@ const dummyAssignments = [
 const Assignments = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const filteredAssignments = useMemo(() => {
     return dummyAssignments.filter((assignment) => {
@@ -54,7 +55,30 @@ const Assignments = () => {
     router.push(`/student/assignments/${assignment.assignmentId}`);
   };
 
-  if (isLoading) return <Loading />;
+  useEffect(() => {
+    
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000); // Increased to 3.5 seconds
+  
+    return () => clearTimeout(timer);
+  }, []);
+
+    if (isLoading) {
+      return (
+      <div className="user-assignments">
+      <Header 
+        title="Assignments to take" 
+        subtitle="View your pending assignments" 
+      />
+      <div className="user-courses__grid">
+          {filteredAssignments.map((assignment) => (
+            <AssignmentSkeleton key={assignment.assignmentId}/>
+          ))}
+      </div>
+    </div>
+      );
+    }
 
   return (
     <div className="user-assignments">

@@ -4,8 +4,9 @@ import Toolbar from "@/components/Toolbar";
 import CourseCard from "@/components/CourseCard";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Loading from "@/components/Loading";
+import { CourseSkeleton } from "@/components/skeletons/CourseSkeleton";
 
 const dummyCourses = [
   {
@@ -50,7 +51,7 @@ const Courses = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const filteredCourses = useMemo(() => {
     return dummyCourses.filter((course) => {
@@ -77,8 +78,31 @@ const Courses = () => {
       router.push(`/student/courses/${course.courseId}`);
     }
   };
+  useEffect(() => {
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000); // Set to 3.5 seconds
 
-  if (isLoading) return <Loading />;
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="user-courses">
+        <Header title="My Courses" subtitle="View your enrolled courses" />
+        <Toolbar
+          onSearch={setSearchTerm}
+          onCategoryChange={setSelectedCategory}
+        />
+        <div className="user-courses__grid">
+          {filteredCourses.map((course) => (
+            <CourseSkeleton key={course.courseId} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="user-courses">

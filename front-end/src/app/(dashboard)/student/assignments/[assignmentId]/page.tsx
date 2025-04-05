@@ -7,6 +7,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Loading from "@/components/Loading";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ProfileSkeleton } from "@/components/skeletons/ProfileSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const dummyAssignment = {
     assignmentId: "assignment1",
@@ -35,7 +37,14 @@ const dummyAssignment = {
       }, 1000);
     }, []);
   
-    if (isLoading) return <Loading />;
+    if (isLoading){
+      return (
+        <div>
+          <ProfileSkeleton />
+          <Skeleton className="h-[1080px] w-full rounded-xl"/>
+        </div>
+      );
+    }
   
     return (
       <div className="assignment dark">
