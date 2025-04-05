@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/table"
 import { Progress } from '@/components/ui/progress'
 import { Card } from '@/components/ui/card'
-import ProgressSkeleton from '@/components/skeletons/ProgressSkeleton'
 import { Skeleton } from '@/components/ui/skeleton'
  
 const CourseProgress = [
