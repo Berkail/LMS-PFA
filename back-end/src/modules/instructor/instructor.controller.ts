@@ -6,13 +6,11 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
 } from '@nestjs/common';
 import { InstructorService } from './instructor.service';
 import { CreateInstructorDto } from './dto/create-instructor.dto';
 import { UpdateInstructorDto } from './dto/update-instructor.dto';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
-import { AuthGuard } from 'src/core/auth/guards';
 
 @Controller('instructors')
 export class InstructorController {

@@ -51,15 +51,18 @@ export class SessionService {
     return req.session[key] || null;
   }
 
-  destroySession(req: Request, res: Response): Promise<void> {
+  async destroySession(req: Request, res: Response): Promise<void> {
     return new Promise((resolve, reject) => {
       req.session.destroy((err) => {
         if (err) {
           reject(err);
           return;
         }
-        res.clearCookie('connect.sid');
-        resolve();
+        Promise.all([
+          res.clearCookie('connect.sid'),
+        ])
+          .then(() => resolve())
+          .catch(reject);
       });
     });
   }

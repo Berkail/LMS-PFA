@@ -8,6 +8,7 @@ import { SessionModule } from './core/session/session.module';
 import { LearnerModule } from './modules/learner/learner.module';
 import { InstructorModule } from './modules/instructor/instructor.module';
 import { AuthModule } from './core/auth/auth.module';
+import { CourseModule } from './modules/course/course.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from './core/auth/auth.module';
     SessionModule,
     LearnerModule,
     InstructorModule,
+    CourseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { CreateInstructorDto } from 'src/modules/instructor/dto/create-instructor.dto';
 import { CreateLearnerDto } from 'src/modules/learner/dto/create-learner.dto';
 import { LoginDto } from './dto/login.dto';
@@ -14,6 +14,8 @@ import { EncryptionInterface } from '../common/utils/encryption/encryption.inter
 import { SessionService } from '../session/session.service';
 import { InstructorService } from 'src/modules/instructor/instructor.service';
 import { LearnerService } from 'src/modules/learner/learner.service';
+import { ParamsDictionary } from 'express-serve-static-core';
+import { ParsedQs } from 'qs';
 
 @Injectable()
 export class AuthService {
@@ -75,5 +77,9 @@ export class AuthService {
 
   async loginAsLearner(request: Request, credentials: LoginDto) {
     return this.loginUser(request, credentials, this.learnerService);
+  }
+
+  async logout(request: Request, response: Response): Promise<void> {
+    await this.sessionService.destroySession(request, response);
   }
 }

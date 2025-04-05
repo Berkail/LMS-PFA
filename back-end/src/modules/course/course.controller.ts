@@ -7,28 +7,29 @@ import {
   Param,
   Delete,
   Req,
-  InternalServerErrorException,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { AuthGuard, RolesGuard } from 'src/core/auth/guards';
+import { Roles } from 'src/core/auth/decorators';
+import { UserRole } from '../user/enums/user-role.enum';
 
-@Controller('course')
+@Controller('courses')
 export class CourseController {
-  /*
-  instructorService: any;
   constructor(private readonly courseService: CourseService) {}
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.INSTRUCTOR)
   @Post()
   create(@Body() createCourseDto: CreateCourseDto) {
-    return this.courseService.create(req, createCourseDto);
+    return this.courseService.create(createCourseDto);
   }
 
   @Get()
-  async findAll(@Req() request: Request) {
-
-  }
+  async findAll(@Req() request: Request) {}
 
   @Get(':id')
   findById(@Param('id') id: string) {
@@ -44,5 +45,4 @@ export class CourseController {
   remove(@Param('id') id: string) {
     return this.courseService.remove(+id);
   }
-  */
 }
