@@ -1,6 +1,7 @@
 import NonDashboardNavBar from "@/components/NonDashboardNavBar";
 import Landing from "@/app/(nondashboard)/landing/page";
 import Footer from "@/components/Footer";
+import { useState } from "react";
 
 export default function Home() {
   const [sessionData, setSessionData] = useState<string | null>(null);
