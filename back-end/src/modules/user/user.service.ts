@@ -7,16 +7,12 @@ import {
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Repository } from 'typeorm';
-import { PaginationStrategy } from 'src/core/pagination/pagination-strategy.interface';
-import { CursorPaginationDto } from 'src/core/pagination/dto/cursor-pagination.dto';
 import { UserMapper } from './mappers/user.mapper';
 
 @Injectable()
 export class UserService<T extends User> {
   constructor(
     protected readonly userMapper: UserMapper,
-    @Inject('PAGINATION_SERVICE')
-    protected readonly paginationService: PaginationStrategy<T>,
     protected readonly repository: Repository<T>,
   ) {}
 
@@ -36,10 +32,6 @@ export class UserService<T extends User> {
         );
       }
     });
-  }
-
-  async findAll(params: CursorPaginationDto) {
-    return await this.paginationService.paginate(this.repository, params);
   }
 
   async findById(id: number): Promise<T> {

@@ -5,30 +5,39 @@ import { UserService } from '../user/user.service';
 import { Instructor } from './entities/instructor.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PaginationStrategy } from 'src/core/pagination/pagination-strategy.interface';
-import { CursorPaginationDto } from 'src/core/pagination/dto/cursor-pagination.dto';
 import { InstructorMapper } from './mappers/instructor.mapper';
+import { paginate, PaginateConfig, Paginated, PaginateQuery, PaginationType } from 'nestjs-paginate';
 
 @Injectable()
 export class InstructorService extends UserService<Instructor> {
   constructor(
     protected readonly instructorMapper: InstructorMapper,
-    @Inject('PAGINATION_SERVICE')
-    protected readonly paginationService: PaginationStrategy<Instructor>,
     @InjectRepository(Instructor)
-    protected readonly repository: Repository<Instructor>,
+    protected readonly instructorRepo: Repository<Instructor>,
   ) {
-    super(instructorMapper, paginationService, repository);
+    super(instructorMapper, instructorRepo);
   }
 
   async create(createInstructorDto: CreateInstructorDto) {
     return await super.create(createInstructorDto);
   }
 
-  async findAll(params: CursorPaginationDto) {
-    return await super.findAll(params);
-  }
+  async findAll(query: PaginateQuery): Promise<Paginated<Instructor>> {
+    const config: PaginateConfig<Instructor> = {
+      sortableColumns: ['id', 'createdAt', 'username'],
+      searchableColumns: ['firstName', 'lastName', 'username', 'email'],
+      defaultSortBy: [['createdAt', 'DESC']],
+      paginationType: PaginationType.CURSOR,
+      withDeleted: false,
+      maxLimit: 25,
+      defaultLimit: 10,
+      
+      relations: ['courses'],
+    };
 
+    return paginate(query, this.instructorRepo, config);
+  }
+  
   async findById(id: number): Promise<Instructor> {
     return await super.findById(id);
   }

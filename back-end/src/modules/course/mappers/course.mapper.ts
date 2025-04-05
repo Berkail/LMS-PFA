@@ -6,7 +6,7 @@ export class CourseMapper extends CourseElementMapper {
   toEntity(entity: Course, dto: Partial<CreateCourseDto>) {
     entity = entity ?? new Course();
     if (dto.pathToImg) entity.pathToImg = dto.pathToImg;
-    if (dto.level) entity.level = dto.level;
+    if (dto.difficulty) entity.difficulty = dto.difficulty;
 
     return entity;
   }

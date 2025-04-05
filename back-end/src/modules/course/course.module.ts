@@ -3,7 +3,6 @@ import { CourseService } from './course.service';
 import { CourseController } from './course.controller';
 import { CourseMapper } from './mappers/course.mapper';
 import { CourseElementModule } from '../course-element/course-element.module';
-import { SessionModule } from 'src/core/session/session.module';
 
 @Module({
   imports: [CourseElementModule],

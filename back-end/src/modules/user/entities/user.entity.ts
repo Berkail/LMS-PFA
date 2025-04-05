@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserRole } from '../enums/user-role.enum';
 
 export abstract class User {
   @PrimaryGeneratedColumn()
@@ -34,7 +35,7 @@ export abstract class User {
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date | null;
 
-  public abstract getRole(): string;
+  public abstract getRole(): UserRole;
 
   public get isDeleted(): boolean {
     return !!this.deletedAt;

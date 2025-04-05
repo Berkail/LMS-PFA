@@ -1,23 +1,28 @@
 import { CourseElement } from 'src/modules/course-element/entities/course-element.entity';
-import { Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Level } from '../enums/level.enum';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Instructor } from 'src/modules/instructor/entities/instructor.entity';
 import { Enrollment } from 'src/modules/enrollment/entities/enrollment.entity';
+import { CourseDifficulty } from '../enums/course-difficulty.enum';
 
-@Entity({name: 'courses'})
+@Entity({ name: 'courses' })
 export class Course extends CourseElement {
-  @PrimaryGeneratedColumn()
-  id : number;
-
   @Column({ nullable: true })
   pathToImg: string;
 
-  @Column({ type: 'enum', enum: Level, default: Level.INTERMEDIATE })
-  level: Level;
+  @Column({
+    type: 'enum',
+    enum: CourseDifficulty,
+    default: CourseDifficulty.INTERMEDIATE,
+  })
+  difficulty: CourseDifficulty;
 
-  @ManyToOne(() => Instructor, (instructor) => instructor.courses, {nullable : false})
+  @ManyToOne(() => Instructor, (instructor) => instructor.courses, {
+    nullable: false,
+  })
   instructor: Instructor;
-  
-  @OneToMany(() => Enrollment, (enrollment) => enrollment.course, {nullable: true})
-  enrollments : Enrollment[];
+
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.course, {
+    nullable: true,
+  })
+  enrollments: Enrollment[];
 }

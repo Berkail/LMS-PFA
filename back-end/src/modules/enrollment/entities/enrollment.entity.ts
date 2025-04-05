@@ -35,9 +35,6 @@ export class Enrollment {
   @CreateDateColumn({ name: 'enrolled_at', nullable: true })
   enrolledAt?: Date;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
-  progress: number;
-
   @Column({
     type: 'enum',
     enum: EnrollmentStatus,

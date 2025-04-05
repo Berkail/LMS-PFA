@@ -7,9 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SessionModule } from './core/session/session.module';
 import { LearnerModule } from './modules/learner/learner.module';
 import { InstructorModule } from './modules/instructor/instructor.module';
-import { qsParserMiddleware } from './core/common/middlewares/qs-parser.middleware';
 import { AuthModule } from './core/auth/auth.module';
-import { PaginationModule } from './core/pagination/pagination.module';
 
 @Module({
   imports: [
@@ -22,13 +20,8 @@ import { PaginationModule } from './core/pagination/pagination.module';
     SessionModule,
     LearnerModule,
     InstructorModule,
-    PaginationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(qsParserMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}

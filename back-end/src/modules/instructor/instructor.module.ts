@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Instructor } from './entities/instructor.entity';
 import { EncryptionModule } from 'src/core/common/utils/encryption/encryption.module';
 import { InstructorMapper } from './mappers/instructor.mapper';
+import { SessionModule } from 'src/core/session/session.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Instructor]), EncryptionModule],
+  imports: [TypeOrmModule.forFeature([Instructor]), EncryptionModule, SessionModule],
   controllers: [InstructorController],
   providers: [InstructorService, InstructorMapper],
   exports: [InstructorService],

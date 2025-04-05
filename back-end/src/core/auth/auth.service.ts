@@ -54,13 +54,11 @@ export class AuthService {
   }
 
   private setUserSession(request: Request, user: User): void {
-    const userId = user.id;
-    const username = user.username;
-    const userRole = user.getRole();
-
-    this.sessionService.setSession(request, 'userId', userId);
-    this.sessionService.setSession(request, 'username', username);
-    this.sessionService.setSession(request, 'userRole', userRole);
+    this.sessionService.setSession(request, 'user', {
+      id: user.id,
+      username: user.username,
+      role: user.getRole(),
+    });
   }
 
   async signupInstructor(createInstructorDto: CreateInstructorDto) {

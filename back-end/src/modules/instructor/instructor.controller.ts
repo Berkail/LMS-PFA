@@ -6,13 +6,13 @@ import {
   Patch,
   Param,
   Delete,
-  Req,
-  InternalServerErrorException,
+  UseGuards,
 } from '@nestjs/common';
 import { InstructorService } from './instructor.service';
 import { CreateInstructorDto } from './dto/create-instructor.dto';
 import { UpdateInstructorDto } from './dto/update-instructor.dto';
-import { CursorPaginationParams } from 'src/core/pagination/params/cursor-pagination-params.interface';
+import { Paginate, PaginateQuery } from 'nestjs-paginate';
+import { AuthGuard } from 'src/core/auth/guards';
 
 @Controller('instructors')
 export class InstructorController {
@@ -24,15 +24,8 @@ export class InstructorController {
   }
 
   @Get()
-  async findAll(@Req() request: Request) {
-    try {
-      const params: CursorPaginationParams = request['paginationParams'];
-      const result = await this.instructorService.findAll(params);
-      return result;
-    } catch (error) {
-      console.error('Error in findAll:', error);
-      throw new InternalServerErrorException('Failed to fetch Instructors.');
-    }
+  async findAll(@Paginate() query: PaginateQuery) {
+    return this.instructorService.findAll(query);
   }
 
   @Get(':id')

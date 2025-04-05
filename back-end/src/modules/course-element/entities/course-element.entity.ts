@@ -1,3 +1,4 @@
+import { timestamp } from 'rxjs';
 import {
   Column,
   CreateDateColumn,
@@ -19,10 +20,10 @@ export abstract class CourseElement {
   updatedAt: Date | null;
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt: Date | null;
-  @Column({ name: 'published_at', nullable: true })
+  @Column({ name: 'published_at', type: 'timestamp', nullable: true })
   publishedAt: Date | null;
 
-  get published(): boolean {
+  public isPublished(): boolean {
     return this.publishedAt !== null;
   }
 }
