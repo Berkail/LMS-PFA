@@ -6,13 +6,13 @@ import {
   Patch,
   Param,
   Delete,
-  Req,
-  InternalServerErrorException,
+  UseGuards,
 } from '@nestjs/common';
 import { LearnerService } from './learner.service';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
-import { CursorPaginationParams } from 'src/core/pagination/params/cursor-pagination-params.interface';
+import { Paginate, PaginateQuery } from 'nestjs-paginate';
+import { AuthGuard } from 'src/core/auth/guards';
 
 @Controller('learners')
 export class LearnerController {
@@ -24,15 +24,8 @@ export class LearnerController {
   }
 
   @Get()
-  async findAll(@Req() request: Request) {
-    try {
-      const params: CursorPaginationParams = request['paginationParams'];
-      const result = await this.learnerService.findAll(params);
-      return result;
-    } catch (error) {
-      console.error('Error in findAll:', error);
-      throw new InternalServerErrorException('Failed to fetch learners.');
-    }
+  async findAll(@Paginate() query: PaginateQuery) {
+    return this.learnerService.findAll(query);
   }
 
   @Get(':id')

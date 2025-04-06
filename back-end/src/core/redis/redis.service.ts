@@ -27,6 +27,16 @@ export class RedisService {
     }
   }
 
+  async setJSON(key: string, value: any, ttl?: number): Promise<void> {
+    const serialized = JSON.stringify(value);
+    await this.set(key, serialized, ttl);
+  }
+  
+  async getJSON<T = any>(key: string): Promise<T | null> {
+    const data = await this.get(key);
+    return data ? JSON.parse(data) as T : null;
+  }  
+
   async get(key: string): Promise<string | null> {
     return this.client.get(key);
   }

@@ -1,9 +1,9 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateInstructorDto } from 'src/modules/instructor/dto/create-instructor.dto';
 import { CreateLearnerDto } from 'src/modules/learner/dto/create-learner.dto';
 import { LoginDto } from './dto/login.dto';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -36,5 +36,15 @@ export class AuthController {
   async loginAsLearner(@Req() request: Request, @Body() credentials: LoginDto) {
     const result = await this.authService.loginAsLearner(request, credentials);
     return { message: 'Login successful', data: result };
+  }
+
+  @Delete('logout')
+  async logout(@Req() request: Request, @Res() response: Response) {
+    try {
+      await this.authService.logout(request, response);
+      return { message: 'Logout successful' };
+    } catch (error) {
+      return { message: 'Logout failed', error: error.message };
+    }
   }
 }

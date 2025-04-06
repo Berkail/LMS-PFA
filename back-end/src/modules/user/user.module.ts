@@ -5,7 +5,6 @@ import { LearnerModule } from '../learner/learner.module';
 import { InstructorModule } from '../instructor/instructor.module';
 
 @Module({
-  controllers: [],
   providers: [UserService],
   imports: [EncryptionModule, LearnerModule, InstructorModule],
   exports: [UserService],

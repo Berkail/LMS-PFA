@@ -1,3 +1,5 @@
+"use client";
+
 import NonDashboardNavBar from "@/components/NonDashboardNavBar";
 import Landing from "@/app/(nondashboard)/landing/page";
 import Footer from "@/components/Footer";
