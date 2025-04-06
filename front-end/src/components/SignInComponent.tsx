@@ -20,11 +20,11 @@ function SignInComponent({
     const signUpUrl = "/signup";
 
     return (
-      <div className={cn("flex flex-col gap-6 dark", className)} {...props}>
-        <Card className='bg-customgreys-primarybg'>
-          <CardHeader>
-            <CardTitle className="text-2xl">Login</CardTitle>
-            <CardDescription>
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Card className='auth-card-bg-color'>
+        <CardHeader>
+          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardDescription>
               Enter your email below to login to your account
             </CardDescription>
           </CardHeader>
@@ -38,6 +38,7 @@ function SignInComponent({
                     type="email"
                     placeholder="m@example.com"
                     required
+                    className='auth-form-input'
                   />
                 </div>
                 <div className="grid gap-2">
@@ -50,15 +51,15 @@ function SignInComponent({
                       Forgot your password?
                     </a>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input id="password" className='auth-form-input' type="password" required />
                 </div>
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full auth-action">
                   Login
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <a href={signUpUrl} className="underline underline-offset-4">
+                <a href={signUpUrl} className="auth-link">
                   Sign up
                 </a>
               </div>

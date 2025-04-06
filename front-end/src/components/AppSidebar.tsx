@@ -11,7 +11,7 @@ import {
     SidebarFooter, // ADD: Import SidebarFooter
     useSidebar 
 } from '@/components/ui/sidebar';
-import { BookOpen, ChartColumn, ClipboardPenLine, LibraryBig, PanelLeft, Settings, User } from 'lucide-react';
+import { BookOpen, ChartColumn, ClipboardPenLine, LibraryBig, PanelLeft, Search, Settings, User } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { NavUser } from './NavUser'; // Import NavUser component
@@ -22,9 +22,9 @@ const AppSidebar = () => {
 
     const navLinks = {
         students: [
+          { icon: Search, label: "Search", href: '/student/search' },
             { icon: BookOpen, label: "Courses", href: '/student/courses' },
             { icon: ClipboardPenLine, label: "Assignments", href: '/student/assignments' },
-            { icon: LibraryBig, label: "My leaning", href: '/student/my-learning' },
             { icon: ChartColumn, label: "Progress", href: '/student/progress' },
         ],
         teacher: [
@@ -99,6 +99,7 @@ const AppSidebar = () => {
               avatar: '/profile-pic.png',
             }}
             userLinks={{
+              profile: '/student/profile',
               notifications: '/student/notification-settings',
             }}
           />

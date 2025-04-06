@@ -38,6 +38,7 @@ export function NavUser({
     avatar: string
   }
   userLinks:{
+    profile: string,
     notifications: string,
   }
 }) {
@@ -63,7 +64,7 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg dark"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg dark bg-customgreys-primarybg"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
@@ -82,14 +83,12 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup >
+            <Link href={userLinks.profile} passHref>
               <DropdownMenuItem>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
+            </Link>
               <Link href={userLinks.notifications} passHref>
                 <DropdownMenuItem className="cursor-pointer">
                   <Bell />

@@ -37,27 +37,28 @@ input[type="color"] {
 
 
 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -67,25 +68,25 @@ input[type="color"] {
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -95,20 +96,40 @@ input[type="color"] {
 }
 
 
+/*course-tabs-style*/
 
-
-.pdf-viewer {
-  width: 100%;
-  height: calc(100vh - 200px);
-  border: none;
+.course-tab-bg{
+  @apply dark;
 }
 
-.course__video-container {
-  padding: 0;
-  overflow: hidden;
-  border-radius: 8px;
-  background: white;
+.course-tab-trigger {
+  @apply bg-customgreys-primarybg
 }
+
+.course-tab-card {
+  @apply bg-customgreys-secondarybg border-none;
+}
+
+/*auth-style*/
+
+.auth-card-bg-color{
+  @apply bg-customgreys-secondarybg dark;
+}
+
+.auth-form-input {
+  @apply bg-customgreys-primarybg text-white-50 !shadow-none border-none;
+}
+
+.auth-action{
+  @apply bg-primary text-white-100 hover:bg-primary/80 !shadow-none;
+}
+
+.auth-link{
+  @apply underline underline-offset-4 text-primary hover:text-primary/70;
+}
+
+
+
 
 .text-content {
   padding: 1rem;
@@ -117,6 +138,11 @@ input[type="color"] {
 .bg-sidebar {
   @apply bg-customgreys-primarybg;
 }
+
+.profile-container{
+  @apply !bg-customgreys-primarybg;
+}
+
 
 /* Filepond */
 .filepond--panel-root {
@@ -262,7 +288,7 @@ input[type="color"] {
 }
 
 .landing__cta-button {
-  @apply bg-primary-700 hover:bg-primary-600 px-4 py-2 rounded-md;
+  @apply bg-primary hover:bg-primary/90 px-4 py-2 rounded-md;
 }
 
 .landing__hero-images {
@@ -362,184 +388,6 @@ input[type="color"] {
   @apply h-[300px] rounded-lg;
 }
 
-/* Checkout Details Page */
-.checkout-details {
-  @apply w-full h-fit gap-10;
-}
-
-.checkout-details__container {
-  @apply sm:flex gap-10;
-}
-
-.checkout-details__preview {
-  @apply basis-1/2 rounded-lg;
-}
-
-.checkout-details__options {
-  @apply basis-1/2 flex-1 h-auto flex flex-col gap-10;
-}
-
-.checkout-details__guest {
-  @apply w-full bg-customgreys-secondarybg py-12 px-24 rounded-lg;
-}
-
-.checkout-details__title {
-  @apply text-3xl font-bold text-center mb-2;
-}
-
-.checkout-details__subtitle {
-  @apply mb-6 text-sm text-center text-gray-400 mx-auto;
-}
-
-.checkout-details__form {
-  @apply space-y-8;
-}
-
-.checkout-details__submit {
-  @apply w-full my-6 py-3 bg-primary-700 hover:bg-primary-600 text-white-100 rounded shadow text-sm font-semibold;
-}
-
-.checkout-details__divider {
-  @apply flex items-center justify-between;
-}
-
-.checkout-details__divider-line {
-  @apply w-full border-customgreys-dirtyGrey;
-}
-
-.checkout-details__divider-text {
-  @apply px-4 text-sm text-gray-400 whitespace-nowrap;
-}
-
-.checkout-details__auth {
-  @apply w-full bg-customgreys-secondarybg flex justify-center items-center rounded-lg;
-}
-
-/* Payment Page */
-.payment {
-  @apply flex flex-col w-full;
-}
-
-.payment__container {
-  @apply sm:flex gap-10 mb-6;
-}
-
-.payment__preview {
-  @apply basis-1/2 rounded-lg;
-}
-
-.payment__form-container {
-  @apply basis-1/2;
-}
-
-.payment__form {
-  @apply space-y-4;
-}
-
-.payment__content {
-  @apply flex flex-col gap-4 bg-customgreys-secondarybg px-10 py-10 rounded-lg;
-}
-
-.payment__title {
-  @apply text-2xl font-bold;
-}
-
-.payment__subtitle {
-  @apply text-sm text-gray-400;
-}
-
-.payment__method {
-  @apply flex flex-col gap-2 w-full mt-6;
-}
-
-.payment__method-title {
-  @apply text-md;
-}
-
-.payment__card-container {
-  @apply flex flex-col border-[2px] border-white-100/5 rounded-lg;
-}
-
-.payment__card-header {
-  @apply flex items-center gap-2 bg-white-50/5 py-2 px-2;
-}
-
-.payment__card-element {
-  @apply px-4 py-6;
-}
-
-.payment__actions {
-  @apply flex justify-between items-center w-full mt-6;
-}
-
-.payment__submit {
-  @apply hover:bg-primary-600 bg-primary-700;
-}
-
-/* Billing Page */
-.billing {
-  @apply space-y-8;
-}
-
-.billing__container {
-  @apply space-y-6 bg-customgreys-secondarybg;
-}
-
-.billing__title {
-  @apply text-2xl font-semibold;
-}
-
-.billing__filters {
-  @apply flex space-x-4;
-}
-
-.billing__select {
-  @apply w-[180px] border-none bg-customgreys-primarybg;
-}
-
-.billing__select-content {
-  @apply bg-customgreys-primarybg;
-}
-
-.billing__select-item {
-  @apply hover:!bg-white-50 hover:!text-customgreys-primarybg cursor-pointer;
-}
-
-.billing__grid {
-  @apply h-[400px] w-full;
-}
-
-.billing__amount {
-  @apply font-medium;
-}
-
-.billing__table {
-  @apply text-customgreys-dirtyGrey min-h-[200px];
-}
-
-.billing__table-header {
-  @apply bg-customgreys-darkGrey;
-}
-
-.billing__table-header-row {
-  @apply border-none text-white-50;
-}
-
-.billing__table-cell {
-  @apply border-none p-4;
-}
-
-.billing__table-row {
-  @apply border-none;
-}
-
-.billing__table-row:hover {
-  @apply bg-customgreys-primarybg;
-}
-
-.billing__table-body {
-  @apply bg-customgreys-primarybg min-h-[200px];
-}
 
 /* User Courses Page */
 .user-courses {
@@ -570,6 +418,11 @@ input[type="color"] {
 .dashboard__body {
   @apply px-8 py-4;
 }
+
+
+
+
+
 
 /* Course Page */
 .course {
@@ -625,7 +478,7 @@ input[type="color"] {
 }
 
 .course__nav-button {
-  @apply border-none bg-primary-700;
+  @apply border-none bg-primary;
 }
 
 .course__nav-button--prev {
@@ -633,11 +486,15 @@ input[type="color"] {
 }
 
 .course__video {
-  @apply mb-6 !border-none;
+  @apply w-full text-card-foreground shadow-none rounded-lg overflow-hidden;
 }
 
 .course__video-container {
-  @apply h-[50vh] flex justify-center items-center p-0 m-0;
+  @apply relative w-full pt-[56.25%] p-0; /* 16:9 Aspect Ratio */
+}
+
+.course__video-container iframe {
+  @apply absolute top-0 left-0 w-full h-full border-0;
 }
 
 .course__no-video {
@@ -645,7 +502,7 @@ input[type="color"] {
 }
 
 .course__content {
-  @apply flex gap-4 mt-12;
+  @apply flex justify-between gap-4 mt-12;
 }
 
 .course__tabs {
@@ -713,8 +570,19 @@ input[type="color"] {
 }
 
 /* Chapters Sidebar */
-.chapters-sidebar {
+
+.chapters-sidebar-sections-skeleton {
+  @apply h-20 w-full flex items-center justify-center;
+}
+
+
+.chapters-sidebar-skeleton {
   @apply bg-customgreys-secondarybg border-x border-gray-700 overflow-y-auto transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-left flex-shrink-0;
+  height: 100vh;
+}
+
+.chapters-sidebar {
+  @apply bg-customgreys-secondarybg border-x border-gray-700 overflow-y-auto transition-all duration-500 ease-in-out flex-shrink-0;
   height: 100vh;
 }
 
@@ -767,15 +635,15 @@ input[type="color"] {
 }
 
 .chapters-sidebar__progress-bar--completed {
-  @apply bg-secondary-700;
+  @apply bg-primary-600;
 }
 
 .chapters-sidebar__trophy {
-  @apply bg-secondary-700 rounded-full p-3 flex items-center justify-center;
+  @apply bg-primary-600 rounded-full p-3 flex items-center justify-center;
 }
 
 .chapters-sidebar__trophy-icon {
-  @apply text-customgreys-secondarybg w-4 h-4;
+  @apply text-white-50 w-4 h-4;
 }
 
 .chapters-sidebar__progress-text {
@@ -791,7 +659,7 @@ input[type="color"] {
 }
 
 .chapters-sidebar__chapter-check {
-  @apply bg-secondary-700 rounded-full p-1;
+  @apply bg-primary-600 rounded-full p-1;
 }
 
 .chapters-sidebar__check-icon {
@@ -803,7 +671,7 @@ input[type="color"] {
 }
 
 .chapters-sidebar__chapter-number--current {
-  @apply bg-secondary-700 text-gray-800;
+  @apply bg-primary-600 text-gray-800;
 }
 
 .chapters-sidebar__chapter-title {
@@ -815,7 +683,7 @@ input[type="color"] {
 }
 
 .chapters-sidebar__chapter-title--current {
-  @apply text-secondary-700;
+  @apply text-primary-600;
 }
 
 .chapters-sidebar__text-icon {
@@ -955,7 +823,7 @@ input[type="color"] {
 }
 
 .teacher-courses__header {
-  @apply bg-primary-700 hover:bg-primary-600;
+  @apply bg-primary hover:bg-primary;
 }
 
 .teacher-courses__grid {
@@ -981,6 +849,88 @@ input[type="color"] {
 
 .accordion-section__chapter {
   @apply flex items-center text-gray-400/90 py-1;
+}
+
+
+
+
+
+
+
+
+.assignment__breadcrumb {
+  margin-bottom: 2rem;
+}
+
+.assignment__path {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.assignment__current {
+  font-weight: 600;
+  color: #333;
+}
+
+.assignment__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1rem 0;
+}
+
+.assignment__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.assignment__instructor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.assignment__instructions {
+  margin-bottom: 2rem;
+}
+
+
+.assignment__content{
+  @apply bg-customgreys-primarybg ;
+}
+
+
+/* Assignment Card Styles */
+.assignment-card {
+  @apply flex flex-col w-full h-[200px] border-none bg-customgreys-primarybg overflow-hidden transition duration-200 rounded-lg;
+}
+
+.assignment-card__header {
+  @apply p-4 border-b border-customgreys-secondarybg;
+}
+
+.assignment-card__content {
+  @apply flex-grow flex flex-col justify-between w-full h-full p-6;
+}
+
+.assignment-card__title {
+  @apply text-md lg:text-lg font-semibold mb-3 text-white-50;
+}
+
+.assignment-card__description {
+  @apply text-sm text-gray-400 line-clamp-2 mb-4;
+}
+
+.assignment-card__teacher-info {
+  @apply flex items-center gap-2 mb-4;
+}
+
+.assignment-card__footer {
+  @apply p-0 flex justify-between items-center mt-auto;
+}
+
+.assignment-card__status {
+  @apply text-sm bg-customgreys-secondarybg rounded-full px-3 py-2 text-gray-400;
 }
 
 /* Course Card */
@@ -1018,7 +968,7 @@ input[type="color"] {
 
 /* Course Card Search */
 .course-card-search {
-  @apply bg-customgreys-secondarybg overflow-hidden rounded-lg hover:bg-white-100/10 transition duration-200 flex flex-col cursor-pointer border-2 h-full;
+  @apply bg-customgreys-primarybg overflow-hidden rounded-lg hover:bg-white-100/10 transition duration-200 flex flex-col cursor-pointer border-2 h-full;
 }
 
 .course-card-search--selected {
@@ -1095,7 +1045,7 @@ input[type="color"] {
 
 /* Loading */
 .loading {
-  @apply fixed inset-0 flex gap-2 items-center justify-center bg-background/50;
+  @apply fixed inset-0 flex gap-2 items-center justify-center bg-customgreys-secondarybg;
 }
 
 .loading__spinner {
@@ -1182,7 +1132,7 @@ input[type="color"] {
 }
 
 .wizard-stepper__circle--current {
-  @apply bg-primary-700;
+  @apply bg-primary;
 }
 
 .wizard-stepper__circle--upcoming {
@@ -1264,8 +1214,7 @@ input[type="color"] {
 }
 
 .nondashboard-navbar__auth-button--signup {
-  @apply bg-indigo-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-primary-600 hover:text-customgreys-primarybg text-sm sm:text-base;
-}
+  @apply bg-primary px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-primary/90 text-primary-foreground text-sm sm:text-base;}
 
 /* Add these classes for group hover effects */
 .group:hover .dashboard-navbar__search-icon,
@@ -1292,7 +1241,7 @@ input[type="color"] {
 }
 
 .notification-settings__submit {
-  @apply !mt-8 text-gray-100 bg-primary-700 hover:bg-primary-600;
+  @apply !mt-8 text-gray-100 bg-primary hover:bg-primary/90;
 }
 
 /* Header */
@@ -1322,7 +1271,7 @@ input[type="color"] {
 }
 
 .course-card-teacher__edit-button {
-  @apply rounded w-full bg-primary-700 border-none hover:bg-primary-600 hover:text-customgreys-primarybg text-white-100 cursor-pointer;
+  @apply rounded w-full bg-primary border-none hover:bg-primary/90 hover:text-customgreys-primarybg text-white-100 cursor-pointer;
 }
 
 .course-card-teacher__delete-button {
@@ -1448,11 +1397,11 @@ input[type="color"] {
 }
 
 .app-sidebar__active-indicator {
-  @apply absolute right-0 top-0 h-full w-[4px] bg-primary-750;
+  @apply absolute right-0 top-0 h-full w-[4px] bg-primary;
 }
 
 .app-sidebar__signout {
-  @apply text-primary-700 pl-8;
+  @apply text-primary pl-8;
 }
 
 /* NonDashboard Layout */

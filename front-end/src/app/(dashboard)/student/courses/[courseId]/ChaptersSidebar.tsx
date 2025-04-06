@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import Loading from "@/components/Loading";
+import { ChaptersSidebarSkeleton } from "@/components/skeletons/ChaptersSidebarSkeleton";
 
 // Add dummy data at the top of the file
 const dummyCourse = {
@@ -99,7 +100,11 @@ const ChaptersSidebar = () => {
     }));
   };
 
-  if (isLoading) return <Loading />;
+  if (isLoading){
+    return(
+      <ChaptersSidebarSkeleton />
+    );
+  }
   if (!course || !userProgress) return <div>Error loading course content</div>;
 
   // ... rest of the component code remains the same ...

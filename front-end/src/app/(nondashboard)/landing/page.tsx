@@ -6,48 +6,29 @@ import Link from "next/link";
 import {useCarousel} from "@/hooks/useCarousel";
 import Image from "next/image";
 import {Skeleton} from "@/components/ui/skeleton";
+import LandingLoadingSkeleton from '@/components/skeletons/LandingLoadingSkeleton';
 
 
 export default function LandingPage() {
 
+  const [isLoading, setIsLoading] = React.useState(true);
 
+  // Always call hooks at the top level
+  const currentImage = useCarousel({ totalImages: 3 });
 
-const LoadingSkeleton = () => {
-  return (
-      <div className="landing-skeleton">
-        <div className="landing-skeleton__hero">
-          <div className="landing-skeleton__hero-content">
-            <Skeleton className="landing-skeleton__title" />
-            <Skeleton className="landing-skeleton__subtitle" />
-            <Skeleton className="landing-skeleton__subtitle-secondary" />
-            <Skeleton className="landing-skeleton__button" />
-          </div>
-          <Skeleton className="landing-skeleton__hero-image" />
-        </div>
+  React.useEffect(() => {
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 700);
+    return () => clearTimeout(timer); // Cleanup timer
+  }, []);
 
-        <div className="landing-skeleton__featured">
-          <Skeleton className="landing-skeleton__featured-title" />
-          <Skeleton className="landing-skeleton__featured-description" />
+  // Conditional rendering for loading state
+  if (isLoading) {
+    return <LandingLoadingSkeleton />;
+  }
 
-          <div className="landing-skeleton__featured-tags">
-            {[1,2,3,4,5].map((tag, index) => (
-                <Skeleton key={index} className="landing-skeleton__tag" />
-            ))}
-          </div>
-
-          <div className="landing-skeleton__featured-courses">
-            {[1,2,3,4].map((tag, index) => (
-                <Skeleton key={index} className="landing-skeleton__course-card" />
-            ))}
-          </div>
-
-        </div>
-
-      </div>
-  );
-};
-
-const currentImage = useCarousel ({ totalImages: 3 });
 
   return (
       <motion.div
@@ -64,15 +45,13 @@ const currentImage = useCarousel ({ totalImages: 3 });
 
           >
              <div className="landing__hero-content">
-               <h1 className="landing__title">Courses</h1>
+               <h1 className="landing__title">Stay Hungry, Stay Foolish</h1>
                <p className="landing__description">
-                 This is the list of the courses you can enroll in .
-                 <br/>
-                 Courses when you need them and want them .
+               Embracing Steve Jobs' timeless wisdom, we value curiosity and bold thinking. Our platform encourages students to question, explore, and never settle.
                </p>
                <div className="landing__cta">
-                 <Link href="/search">
-                   <div className="landing__cta-button">Search for Courses</div>
+                 <Link href="/signup">
+                   <div className="landing__cta-button">Join us</div>
                  </Link>
                </div>
              </div>
