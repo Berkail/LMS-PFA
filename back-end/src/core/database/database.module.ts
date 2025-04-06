@@ -22,7 +22,6 @@ import { Learner } from 'src/modules/learner/entities/learner.entity';
         entities: [Learner, Instructor, Course, CourseModule, Enrollment],
         synchronize: process.env.NODE_ENV === 'development',
         logging: process.env.NODE_ENV === 'development',
-        dropSchema: true,
       }),
     }),
   ],
