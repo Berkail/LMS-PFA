@@ -7,6 +7,9 @@ import { CourseModule } from 'src/modules/course-module/entities/course-module.e
 
 @Entity({ name: 'courses' })
 export class Course extends CourseElement {
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
   @Column({ nullable: true })
   pathToImg: string;
 
@@ -28,5 +31,5 @@ export class Course extends CourseElement {
   enrollments: Enrollment[];
 
   @OneToMany(() => CourseModule, (courseModule) => courseModule.course)
-  courseModules : CourseModule
+  courseModules: CourseModule;
 }
