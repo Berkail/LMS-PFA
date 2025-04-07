@@ -9,6 +9,9 @@ import { LearnerModule } from './modules/learner/learner.module';
 import { InstructorModule } from './modules/instructor/instructor.module';
 import { AuthModule } from './core/auth/auth.module';
 import { CourseModule } from './modules/course/course.module';
+import { FileUploadModule } from './core/file-upload/file-upload.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -16,12 +19,18 @@ import { CourseModule } from './modules/course/course.module';
       load: [databaseConfig],
       isGlobal: true,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/api/uploads',
+    }),
+
     AuthModule,
     DatabaseModule,
     SessionModule,
     LearnerModule,
     InstructorModule,
     CourseModule,
+    FileUploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -5,6 +5,10 @@ import { CourseDifficulty } from '../enums/course-difficulty.enum';
 export class CreateCourseDto extends CreateCourseElementDto {
   @IsOptional()
   @IsString()
+  description?: string;
+  
+  @IsOptional()
+  @IsString()
   pathToImg?: string;
 
   @IsEnum(CourseDifficulty)
