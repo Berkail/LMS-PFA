@@ -24,7 +24,7 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(6)
+  @MinLength(8)
   @Match('plainPassword', { message: 'Passwords do not match' })
   confirmPlainPassword: string;
 }
