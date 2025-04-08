@@ -25,7 +25,7 @@ import { FileUploadService } from 'src/core/file-upload/file-upload.service';
 @Controller('courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
-  
+
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
   @Post()
@@ -56,9 +56,20 @@ export class CourseController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
+  @UseInterceptors(
+    FileInterceptor('courseImg', {
+      storage: FileUploadService.getImageStorage(),
+      fileFilter: FileUploadService.getImageFilter(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
-    return this.courseService.update(+id, updateCourseDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateCourseDto: UpdateCourseDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.courseService.update(+id, updateCourseDto, file);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
