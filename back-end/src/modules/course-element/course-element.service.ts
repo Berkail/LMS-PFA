@@ -8,7 +8,7 @@ import { CourseElement } from './entities/course-element.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class CourseElementService<T extends CourseElement> {
+export abstract class CourseElementService<T extends CourseElement> {
   constructor(protected readonly repository: Repository<T>) {}
 
   async findById(id: number): Promise<T> {
