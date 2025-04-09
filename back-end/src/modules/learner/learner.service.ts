@@ -1,4 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Request } from 'express';
+import { Injectable} from '@nestjs/common';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +14,9 @@ import {
   PaginateQuery,
   PaginationType,
 } from 'nestjs-paginate';
+import { EnrollmentService } from '../enrollment/enrollment.service';
+import { Enrollment } from '../enrollment/entities/enrollment.entity';
+import { SessionService } from 'src/core/session/session.service';
 
 @Injectable()
 export class LearnerService extends UserService<Learner> {
@@ -20,6 +24,8 @@ export class LearnerService extends UserService<Learner> {
     protected readonly learnerMapper: LearnerMapper,
     @InjectRepository(Learner)
     protected readonly learnerRepo: Repository<Learner>,
+    private readonly enrollmentService: EnrollmentService,
+    private readonly sessionService: SessionService,
   ) {
     super(learnerMapper, learnerRepo);
   }
@@ -56,5 +62,16 @@ export class LearnerService extends UserService<Learner> {
 
   async remove(id: number): Promise<boolean> {
     return await super.remove(id);
+  }
+
+  async findEnrollments(req : Request, query: PaginateQuery) : Promise<Paginated<Enrollment>> {
+    const learnerId : number = this.sessionService.getSession(req, 'user').id;
+    return await this.enrollmentService.findEnrollmentsByLearner(query, learnerId);
+  }
+
+  async enroll(req : Request, courseId: number) : Promise<Enrollment>{
+    const learnerId : number = this.sessionService.getSession(req, 'user').id;
+    const createdEnrollment = await this.enrollmentService.create(learnerId, courseId);
+    return createdEnrollment;
   }
 }

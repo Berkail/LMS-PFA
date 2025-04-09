@@ -6,6 +6,7 @@ import { Course } from 'src/modules/course/entities/course.entity';
 import { Enrollment } from 'src/modules/enrollment/entities/enrollment.entity';
 import { Instructor } from 'src/modules/instructor/entities/instructor.entity';
 import { Learner } from 'src/modules/learner/entities/learner.entity';
+import { Lesson } from 'src/modules/lesson/entities/lesson.entity';
 
 @Module({
   imports: [
@@ -19,9 +20,10 @@ import { Learner } from 'src/modules/learner/entities/learner.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [Learner, Instructor, Course, CourseModule, Enrollment],
+        entities: [Learner, Instructor, Course, CourseModule, Enrollment, Lesson],
         synchronize: process.env.NODE_ENV === 'development',
         logging: process.env.NODE_ENV === 'development',
+        dropSchema: true,
       }),
     }),
   ],

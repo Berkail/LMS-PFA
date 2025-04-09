@@ -6,22 +6,23 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { LearnerService } from './learner.service';
-import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
-import { AuthGuard } from 'src/core/auth/guards';
+import { AuthGuard, RolesGuard } from 'src/core/auth/guards';
+import { Roles } from 'src/core/auth/decorators';
+import { UserRole } from '../user/enums/user-role.enum';
+
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(UserRole.LEARNER)
 
 @Controller('learners')
 export class LearnerController {
   constructor(private readonly learnerService: LearnerService) {}
-
-  @Post()
-  async create(@Body() createLearnerDto: CreateLearnerDto) {
-    return await this.learnerService.create(createLearnerDto);
-  }
 
   @Get()
   async findAll(@Paginate() query: PaginateQuery) {
@@ -44,5 +45,15 @@ export class LearnerController {
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return await this.learnerService.remove(+id);
+  }
+
+  @Get('enrollments')
+  async findEnrollments(@Req() req: Request, @Paginate() query: PaginateQuery) {
+    return await this.learnerService.findEnrollments(req, query);
+  }
+
+  @Post('enrollments/:courseId')
+  async enroll(@Req() req : Request, @Param('courseId') courseId: string) {
+    return await this.learnerService.enroll(req, +courseId);
   }
 }

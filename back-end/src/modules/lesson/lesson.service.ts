@@ -43,7 +43,7 @@ export class LessonService extends CourseElementService<Lesson> {
 
   async remove(id: number): Promise<void> {
     try {
-      await super.remove(id); // Call the base class method
+      await super.remove(id);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(`Lesson with ID ${id} not found.`);
@@ -54,7 +54,7 @@ export class LessonService extends CourseElementService<Lesson> {
     }
   }
 
-  publish(courseElement: Lesson, publishDate: Date): Promise<void> {
+  publish(courseElement: Lesson, publishDate: Date): Promise<Lesson> {
     return super.publish(courseElement, publishDate);
   }
 }

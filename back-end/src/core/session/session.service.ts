@@ -1,8 +1,10 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import session from 'express-session';
 import { Request, Response } from 'express';
 import { RedisService } from '../redis/redis.service';
 import { RedisStore } from 'connect-redis';
+import { User } from 'src/modules/user/entities/user.entity';
+import { UserService } from 'src/modules/user/user.service';
 
 declare module 'express' {
   interface Request {
@@ -65,5 +67,22 @@ export class SessionService {
           .catch(reject);
       });
     });
+  }
+
+  async getUserFromSession<T extends User>(req: Request, userService: UserService<T>): Promise<T> {
+    const userId = this.getSession(req, 'user')?.id;
+    if (!userId) {
+      throw new NotFoundException('user not found in session');
+    }
+    
+    try {
+      const user = await userService.findById(+userId);
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('user not found in database');
+      }
+      throw error;
+    }
   }
 }

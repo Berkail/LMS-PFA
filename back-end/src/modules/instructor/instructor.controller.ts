@@ -43,4 +43,6 @@ export class InstructorController {
   async remove(@Param('id') id: string) {
     return await this.instructorService.remove(+id);
   }
+
+  
 }

@@ -3,13 +3,14 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
+import { IMG_UPLOAD_DIR, PDF_UPLOAD_DIR } from '../common/const/lms.const';
 
 @Injectable()
 export class FileUploadService {
   static getPDFStorage() {
     return diskStorage({
       destination: (req, file, cb) => {
-        const uploadPath = './uploads/pdf';
+        const uploadPath = PDF_UPLOAD_DIR;
         if (!fs.existsSync(uploadPath)) {
           fs.mkdirSync(uploadPath, { recursive: true });
         }
@@ -34,7 +35,7 @@ export class FileUploadService {
   static getImageStorage() {
     return diskStorage({
       destination: (req, file, cb) => {
-        const uploadPath = './uploads/img';
+        const uploadPath = IMG_UPLOAD_DIR;
         if (!fs.existsSync(uploadPath)) {
           fs.mkdirSync(uploadPath, { recursive: true });
         }
