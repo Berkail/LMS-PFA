@@ -1,11 +1,9 @@
 "use client";
 
 import Toolbar from "@/components/Toolbar";
-import CourseCard from "@/components/CourseCard";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import React, { useState, useMemo, useEffect } from "react";
-import Loading from "@/components/Loading";
 import CourseCardSearch from "@/components/CourseCardSearch";
 import SelectedCourse from "./SelectedCourse";
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";

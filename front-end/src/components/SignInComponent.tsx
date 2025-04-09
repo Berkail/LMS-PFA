@@ -48,7 +48,7 @@ function SignInComponent({
       const endpoint = activeTab === 'student' 
         ? `${process.env.NEXT_PUBLIC_API_BASED_URL}auth/login/learner`
         : `${process.env.NEXT_PUBLIC_API_BASED_URL}auth/login/instructor`;
-
+    
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -56,14 +56,15 @@ function SignInComponent({
         },
         body: JSON.stringify(formData),
       });
-
+    
       const data = await response.json();
-
+    
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        setError(data.message || 'Login failed');
+        setIsLoading(false);
+        return;
       }
-
-      // Redirect based on user type
+    
       if (activeTab === 'student') {
         window.location.href = '/student/search';
       } else {
@@ -71,6 +72,7 @@ function SignInComponent({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
+      setIsLoading(false);
     }
   };
 

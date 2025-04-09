@@ -24,8 +24,8 @@ interface SignUpFormData {
   lastName: string;
   email: string;
   username: string;
-  password: string;
   plainPassword: string;
+  confirmPlainPassword: string;
   birthdate?: string;
 }
 
@@ -47,27 +47,31 @@ function SignUpComponent({
     const form = e.currentTarget;
     const password = (form.querySelector('#studentPassword') as HTMLInputElement).value;
     const confirmPassword = (form.querySelector('#studentConfirmPassword') as HTMLInputElement).value;
-
+  
     if (!validatePasswords(password, confirmPassword)) {
       setPasswordMatch(false);
       setError("Passwords do not match");
       return;
     }
-
+  
     setIsLoading(true);
     setError(null);
     setPasswordMatch(true);
-
+  
+  
+    const birthdateInput = (form.querySelector('#Birthday') as HTMLInputElement).value;
+    const birthdate = new Date(birthdateInput).toISOString();
+  
     const formData: SignUpFormData = {
       firstName: (form.querySelector('#studentFirstName') as HTMLInputElement).value,
       lastName: (form.querySelector('#studentLastName') as HTMLInputElement).value,
       username: (form.querySelector('#Username') as HTMLInputElement).value,
       email: (form.querySelector('#studentEmail') as HTMLInputElement).value,
-      password: password,
       plainPassword: password,
-      birthdate: (form.querySelector('#Birthday') as HTMLInputElement).value,
+      confirmPlainPassword: password,
+      birthdate: birthdate, // Now sending as ISO string
     };
-
+  
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASED_URL}auth/signup/learner`, {
         method: 'POST',
@@ -76,14 +80,19 @@ function SignUpComponent({
         },
         body: JSON.stringify(formData),
       });
-
+    
+      const data = await response.json();
+    
       if (!response.ok) {
-        throw new Error(await response.text());
+        setError(data.message || 'Failed to create account');
+        setIsLoading(false);
+        return;
       }
-
+    
       window.location.href = signInUrl;
     } catch (err) {
-      setError('Failed to create account');
+      setError(err instanceof Error ? err.message : 'Failed to create account');
+      setIsLoading(false);
     }
   };
 
@@ -108,8 +117,8 @@ function SignUpComponent({
       lastName: (form.querySelector('#teacherLastName') as HTMLInputElement).value,
       username: (form.querySelector('#Username') as HTMLInputElement).value,
       email: (form.querySelector('#teacherEmail') as HTMLInputElement).value,
-      password: password,
       plainPassword: password,
+      confirmPlainPassword: password,
     };
 
     try {
@@ -120,14 +129,19 @@ function SignUpComponent({
         },
         body: JSON.stringify(formData),
       });
-
+    
+      const data = await response.json();
+    
       if (!response.ok) {
-        throw new Error(await response.text());
+        setError(data.message || 'Failed to create account');
+        setIsLoading(false);
+        return;
       }
-
+    
       window.location.href = signInUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account');
+      setIsLoading(false);
     }
   };
 
