@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -10,7 +9,7 @@ import { Repository } from 'typeorm';
 import { UserMapper } from './mappers/user.mapper';
 
 @Injectable()
-export class UserService<T extends User> {
+export abstract class UserService<T extends User> {
   constructor(
     protected readonly userMapper: UserMapper,
     protected readonly repository: Repository<T>,

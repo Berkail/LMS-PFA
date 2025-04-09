@@ -13,7 +13,7 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class LessonService extends CourseElementService<Lesson> {
   constructor(
-    @InjectRepository(Lesson) private lessonRepository: Repository<Lesson>,
+    @InjectRepository(Lesson) protected lessonRepository: Repository<Lesson>,
   ) {
     super(lessonRepository);
   }
