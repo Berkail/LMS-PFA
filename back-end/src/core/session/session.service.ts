@@ -68,7 +68,7 @@ export class SessionService {
       });
     });
   }
-
+/*
   async getUserFromSession<T extends User>(req: Request, userService: UserService<T>): Promise<T> {
     const userId = this.getSession(req, 'user')?.id;
     if (!userId) {
@@ -85,4 +85,5 @@ export class SessionService {
       throw error;
     }
   }
+  */
 }

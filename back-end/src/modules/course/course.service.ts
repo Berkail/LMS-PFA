@@ -51,9 +51,9 @@ export class CourseService extends CourseElementService<Course> {
   }
 
   async create(
-    req: Request,
+    instructor,
     createCourseDto: CreateCourseDto,
-    file?: Express.Multer.File,
+    file: Express.Multer.File,
   ): Promise<Course> {
     if (!file) {
       throw new BadRequestException('Image file is required');
@@ -61,15 +61,9 @@ export class CourseService extends CourseElementService<Course> {
     try {
       createCourseDto.pathToImg = `${IMG_UPLOAD_DIR}${file.filename}`;
 
-      const instructor: Instructor =
-        await this.sessionService.getUserFromSession(
-          req,
-          this.instructorService,
-        );
-
       const course: Course = this.courseRepo.create();
       this.courseMapper.toEntity(course, createCourseDto);
-      course.instructor = instructor;
+      course.instructorId = instructor.id;
 
       return await this.courseRepo.save(course);
     } catch (error) {
@@ -111,7 +105,9 @@ export class CourseService extends CourseElementService<Course> {
       await super.remove(id);
     } catch (error) {
       if (error instanceof InternalServerErrorException) {
-        throw new InternalServerErrorException('Could not delete course element.',);
+        throw new InternalServerErrorException(
+          'Could not delete course element.',
+        );
       }
       throw error;
     }

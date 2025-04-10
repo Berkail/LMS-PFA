@@ -17,6 +17,7 @@ import {
 import { EnrollmentService } from '../enrollment/enrollment.service';
 import { Enrollment } from '../enrollment/entities/enrollment.entity';
 import { SessionService } from 'src/core/session/session.service';
+import { CurrentUser } from 'src/core/auth/decorators';
 
 @Injectable()
 export class LearnerService extends UserService<Learner> {
@@ -64,14 +65,13 @@ export class LearnerService extends UserService<Learner> {
     return await super.remove(id);
   }
 
-  async findEnrollments(req : Request, query: PaginateQuery) : Promise<Paginated<Enrollment>> {
-    const learnerId : number = this.sessionService.getSession(req, 'user').id;
-    return await this.enrollmentService.findEnrollmentsByLearner(query, learnerId);
+  async findEnrollments(learner,  query: PaginateQuery) : Promise<Paginated<Enrollment>> 
+  {
+    return await this.enrollmentService.findEnrollmentsByLearner(query, learner.id);
   }
 
-  async enroll(req : Request, courseId: number) : Promise<Enrollment>{
-    const learnerId : number = this.sessionService.getSession(req, 'user').id;
-    const createdEnrollment = await this.enrollmentService.create(learnerId, courseId);
+  async enroll(learner, courseId: number, enrollTime: Date) : Promise<Enrollment>{
+    const createdEnrollment = await this.enrollmentService.create(learner.id, courseId, enrollTime);
     return createdEnrollment;
   }
 }

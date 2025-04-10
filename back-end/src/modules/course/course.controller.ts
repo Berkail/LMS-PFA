@@ -16,11 +16,12 @@ import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { AuthGuard, RolesGuard } from 'src/core/auth/guards';
-import { Roles } from 'src/core/auth/decorators';
+import { CurrentUser, Roles } from 'src/core/auth/decorators';
 import { UserRole } from '../user/enums/user-role.enum';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadService } from 'src/core/file-upload/file-upload.service';
+import { Instructor } from '../instructor/entities/instructor.entity';
 
 @Controller('courses')
 export class CourseController {
@@ -37,11 +38,11 @@ export class CourseController {
     }),
   )
   async create(
-    @Req() req: Request,
+    @CurrentUser() instructor,
     @Body() createCourseDto: CreateCourseDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.courseService.create(req, createCourseDto, file);
+    return this.courseService.create(instructor, createCourseDto, file);
   }
 
   @Get()
@@ -63,6 +64,7 @@ export class CourseController {
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
+  
   @Patch(':id')
   async update(
     @Param('id') id: string,
