@@ -9,6 +9,7 @@ import { LearnerModule } from './modules/learner/learner.module';
 import { InstructorModule } from './modules/instructor/instructor.module';
 import { AuthModule } from './core/auth/auth.module';
 import { CourseModule } from './modules/course/course.module';
+import { ExamsModule } from './modules/exam/exam.module'; 
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CourseModule } from './modules/course/course.module';
     LearnerModule,
     InstructorModule,
     CourseModule,
+    ExamsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

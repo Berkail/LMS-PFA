@@ -1,4 +1,4 @@
-import { timestamp } from 'rxjs';
+import { timestamp } from 'rxjs/operators';
 import {
   Column,
   CreateDateColumn,
