@@ -1,6 +1,7 @@
 import { CourseElement } from 'src/modules/course-element/entities/course-element.entity';
 import { Course } from 'src/modules/course/entities/course.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { ModuleBadge } from 'src/modules/module-badge/entities/module-badge.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 
 @Entity({ name: 'course_modules' })
 export class CourseModule extends CourseElement {
@@ -9,4 +10,7 @@ export class CourseModule extends CourseElement {
 
   @ManyToOne(() => Course, (course) => course.courseModules)
   course: Course;
+
+  @OneToMany(() => ModuleBadge, (moduleBadge) => moduleBadge.courseModule)
+  moduleBadges: ModuleBadge[];
 }

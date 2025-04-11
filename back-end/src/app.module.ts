@@ -12,6 +12,10 @@ import { CourseModule } from './modules/course/course.module';
 import { FileUploadModule } from './core/file-upload/file-upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { BadgeModule } from './modules/badge/badge.module';
+import { CourseModuleModule } from './modules/course-module/course-module.module';
+import { ModuleBadgeModule } from './modules/module-badge/module-badge.module';
+import { ModuleBadgeLearnerModule } from './modules/module-badge-learner/module-badge-learner.module';
 
 @Module({
   imports: [
@@ -31,6 +35,10 @@ import { join } from 'path';
     InstructorModule,
     CourseModule,
     FileUploadModule,
+    BadgeModule,
+    CourseModuleModule,
+    ModuleBadgeModule,
+    ModuleBadgeLearnerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
