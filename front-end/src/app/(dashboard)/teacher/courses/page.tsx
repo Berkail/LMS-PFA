@@ -1,29 +1,61 @@
 "use client";
 
 import Header from "@/components/ui/Header";
-import Loading from "@/components/ui/Loading";
-import TeacherCourseCard from "@/components//ui/TeacherCourseCard";
+
+import TeacherCourseCard from "@/components/ui/TeacherCourseCard";
 import Toolbar from "@/components/Toolbar";
 import { Button } from "@/components/ui/button";
 import {
     useCreateCourseMutation,
     useDeleteCourseMutation,
-    useGetCoursesQuery,
-} from "@/state/api";
 
+} from "@/state/api";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
+const courses = [
+    {
+        courseId: "course1",
+        teacherId: "teacher2",
+        title: "Advanced JavaScript",
+        description: "Master JavaScript concepts",
+        image: "/placeholder.png",
+        category: "Programming",
+        status: "draft",
+        progress: 70,
+    },
+    {
+        courseId: "course2",
+        teacherId: "teacher1",
+        title: "Advanced JavaScript",
+        description: "Master JavaScript concepts",
+        image: "/placeholder.png",
+        category: "Programming",
+        status: "published",
+        progress: 70,
+    }
+];
+
+
+// Option 1: Simple mock user hook
+const useUser = () => {
+    // Replace with your actual user logic or mock data
+    return {
+        user: {
+            id: 'mock-teacher-id',
+            fullName: 'Mock Teacher',
+        }
+    };
+};
+
 const Courses = () => {
     const router = useRouter();
-    const {
-        data: courses,
-        isLoading,
-        isError,
-    } = useGetCoursesQuery({ category: "all" });
+    const { user } = useUser();
+
 
     const [createCourse] = useCreateCourseMutation();
     const [deleteCourse] = useDeleteCourseMutation();
+
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -51,29 +83,56 @@ const Courses = () => {
             await deleteCourse(course.courseId).unwrap();
         }
     };
-      //this was changed
+
     const handleCreateCourse = async () => {
-        // Use static values for teacherId and teacherName
-        const teacherId = "teacher-1";
-        const teacherName = "John Doe";
+        try {
+            if (!user) {
+                console.error('No user found');
+                return;
+            }
 
-        const result = await createCourse({
-            teacherId: teacherId,
-            teacherName: teacherName,
-        }).unwrap();
+            // Add more defensive checks
+            const courseData = {
+                teacherId: user.id,
+                teacherName: user.fullName || "Unknown Teacher",
+            };
 
-        router.push(`/teacher/courses/${result.courseId}`, {
-            scroll: false,
-        });
+            console.log('Creating course with data:', courseData);
+
+
+
+
+             const result = await createCourse(courseData).unwrap();
+             console.log(result);
+             if (!result || typeof result.courseId !== 'string') {
+                 throw new Error('Invalid course creation response: Missing or invalid courseId');
+             }
+
+            // router.push(`/teacher/courses/${result.courseId}`, {
+            router.push(`/teacher/courses/${1}`, {
+                scroll: false,
+            });
+        } catch (error) {
+            console.error('Detailed course creation error:', error);
+
+            // More detailed error logging
+            if (error instanceof Error) {
+                console.error('Error name:', error.name);
+                console.error('Error message:', error.message);
+
+                // Check if it's a fetch/network error
+                if (error.message.includes('<!DOCTYPE html>')) {
+                    console.error('Received HTML instead of JSON. Check your API endpoint.');
+                    // Optionally show a user-friendly error message
+                    alert('There was a problem creating the course. Please try again.');
+                }
+            }
+        }
     };
 
-    if (isLoading) return <Loading />;
-    if (isError || !courses) return <div>Error loading courses.</div>;
 
-    //const user1 = {
-      //  id: "teacher-1",
-        //fullName: "John Doe"
-    //};
+   // if (isError || !courses) return <div>Error loading courses.</div>;
+
     return (
         <div className="teacher-courses">
             <Header
@@ -88,7 +147,6 @@ const Courses = () => {
                     </Button>
                 }
             />
-
             <Toolbar
                 onSearch={setSearchTerm}
                 onCategoryChange={setSelectedCategory}
@@ -100,7 +158,7 @@ const Courses = () => {
                         course={course}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
-                        isOwner={course.teacherId === "teacher-1"}
+                        isOwner={course.teacherId === user?.id}
                     />
                 ))}
             </div>

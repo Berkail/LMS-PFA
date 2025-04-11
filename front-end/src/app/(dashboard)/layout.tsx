@@ -8,8 +8,8 @@ import { useParams } from "next/navigation";
 
 
 
-export default function DashboardLayout({ chidren }: { chidren: React.ReactNode }) {
-  
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+
     const params = useParams();
     const pathname = params?.pathname || "";
     const isCoursePage = pathname.includes("courses");
@@ -21,7 +21,7 @@ export default function DashboardLayout({ chidren }: { chidren: React.ReactNode 
         <div className="dashboard__content">
             <div className={cn("dashboard__main")} style={{height: "100vh"}}>
                 <Navbar isCoursePage={isCoursePage} />
-                <main className="dashboard__body">{chidren}</main>
+                <main className="dashboard__body">{children}</main>
             </div>
         </div>
     </div>
