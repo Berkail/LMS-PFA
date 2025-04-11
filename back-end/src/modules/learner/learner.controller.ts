@@ -6,23 +6,27 @@ import {
   Patch,
   Param,
   Delete,
-  Req,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { LearnerService } from './learner.service';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
 import { AuthGuard, RolesGuard } from 'src/core/auth/guards';
 import { CurrentUser, Roles } from 'src/core/auth/decorators';
 import { UserRole } from '../user/enums/user-role.enum';
+import { UserSessionDto } from 'src/core/auth/dto/user-session.dto';
+import { CourseService } from '../course/course.service';
+import { CreateEnrollmentDto } from '../enrollment/dto/create-enrollment.dto';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.LEARNER)
 
 @Controller('learners')
 export class LearnerController {
-  constructor(private readonly learnerService: LearnerService) {}
+  constructor(
+    private readonly learnerService: LearnerService,
+  ) {}
 
   @Get()
   async findAll(@Paginate() query: PaginateQuery) {
@@ -30,14 +34,19 @@ export class LearnerController {
   }
 
   @Get('enrollments/')
-  async findEnrollments(@CurrentUser() learner, @Paginate() query: PaginateQuery) {
-    return await this.learnerService.findEnrollments(learner, query);
+  async findEnrollments(@CurrentUser() learner : UserSessionDto, @Paginate() query: PaginateQuery) {
+    return await this.learnerService.findEnrollments(learner.id, query);
   }
 
-  @Post('enrollments/:courseId')
-  async enroll(@CurrentUser() learner, @Param('courseId') courseId: string) {
+  @Get('enrollments/by-course')
+  async findEnrollment(@CurrentUser() learner : UserSessionDto, @Query('courseId') courseId: number) {
+    return await this.learnerService.findEnrollment(learner.id, courseId);
+  }
+
+  @Post('enrollments/')
+  async enroll(@CurrentUser() learner : UserSessionDto, @Body() createEnrollmentDto: CreateEnrollmentDto) {
     const enrollTime : Date = new Date();
-    return await this.learnerService.enroll(learner, +courseId, enrollTime);
+    return await this.learnerService.enroll(learner.id, createEnrollmentDto.courseId, enrollTime);
   }
 
   @Get(':id')
@@ -55,6 +64,11 @@ export class LearnerController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await this.learnerService.remove(+id);
+    await this.learnerService.remove(+id);
+  }
+
+  @Delete('enrollments')
+  async removeEnrollment(@CurrentUser() learner : UserSessionDto, @Query('courseId') courseId: number) {
+    return await this.learnerService.removeEnrollment(learner.id, courseId);
   }
 }

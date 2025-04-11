@@ -1,5 +1,4 @@
-import { Request } from 'express';
-import { Injectable} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,8 +15,7 @@ import {
 } from 'nestjs-paginate';
 import { EnrollmentService } from '../enrollment/enrollment.service';
 import { Enrollment } from '../enrollment/entities/enrollment.entity';
-import { SessionService } from 'src/core/session/session.service';
-import { CurrentUser } from 'src/core/auth/decorators';
+import { CourseService } from '../course/course.service';
 
 @Injectable()
 export class LearnerService extends UserService<Learner> {
@@ -26,7 +24,7 @@ export class LearnerService extends UserService<Learner> {
     @InjectRepository(Learner)
     protected readonly learnerRepo: Repository<Learner>,
     private readonly enrollmentService: EnrollmentService,
-    private readonly sessionService: SessionService,
+    private readonly courseService: CourseService,
   ) {
     super(learnerMapper, learnerRepo);
   }
@@ -65,13 +63,37 @@ export class LearnerService extends UserService<Learner> {
     return await super.remove(id);
   }
 
-  async findEnrollments(learner,  query: PaginateQuery) : Promise<Paginated<Enrollment>> 
-  {
-    return await this.enrollmentService.findEnrollmentsByLearner(query, learner.id);
+  async findEnrollments(
+    learnerId: number,
+    query: PaginateQuery,
+  ): Promise<Paginated<Enrollment>> {
+    return await this.enrollmentService.findByLearner(learnerId, query);
   }
 
-  async enroll(learner, courseId: number, enrollTime: Date) : Promise<Enrollment>{
-    const createdEnrollment = await this.enrollmentService.create(learner.id, courseId, enrollTime);
-    return createdEnrollment;
+  async findEnrollment(learnerId: number, courseId: number) {
+    await this.checkCourseExists(courseId);
+    return await this.enrollmentService.findByLearnerAndCourse(
+      learnerId,
+      courseId,
+    );
+  }
+
+  async enroll(
+    learnerId: number,
+    courseId: number,
+    enrollTime: Date,
+  ): Promise<Enrollment> {
+    await this.checkCourseExists(courseId);
+    return await this.enrollmentService.create(learnerId, courseId, enrollTime);
+  }
+
+  async removeEnrollment(learnerId: number, courseId: number) {
+    await this.checkCourseExists(courseId);
+    await this.enrollmentService.withdraw(learnerId, courseId);
+    return { message: 'Enrollment has been successfully removed.' };
+  }
+
+  private async checkCourseExists(courseId) {
+    await this.courseService.findById(courseId);
   }
 }

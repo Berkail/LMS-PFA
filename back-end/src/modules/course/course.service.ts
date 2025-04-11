@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -13,16 +14,13 @@ import {
   PaginateQuery,
   PaginationType,
 } from 'nestjs-paginate';
-import { Request } from 'express';
 import { Course } from './entities/course.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseMapper } from './mappers/course.mapper';
-import { InstructorService } from '../instructor/instructor.service';
-import { SessionService } from 'src/core/session/session.service';
-import { Instructor } from '../instructor/entities/instructor.entity';
 import { CourseElementService } from '../course-element/course-element.service';
 import { IMG_UPLOAD_DIR } from 'src/core/common/const/lms.const';
+import { EnrollmentService } from '../enrollment/enrollment.service';
 
 @Injectable()
 export class CourseService extends CourseElementService<Course> {
@@ -30,8 +28,7 @@ export class CourseService extends CourseElementService<Course> {
     private readonly courseMapper: CourseMapper,
     @InjectRepository(Course)
     protected readonly courseRepo: Repository<Course>,
-    private readonly instructorService: InstructorService,
-    private readonly sessionService: SessionService,
+    private readonly enrollmentService: EnrollmentService,
   ) {
     super(courseRepo);
   }
@@ -87,6 +84,18 @@ export class CourseService extends CourseElementService<Course> {
 
     const updatedCourse = this.courseRepo.merge(course, updateCourseDto);
     return await this.courseRepo.save(updatedCourse);
+  }
+
+  async findEnrollments(insturctor, courseId: number, query: PaginateQuery) {
+    // checks if course exists
+    const course : Course = await this.findById(courseId);
+    
+    // check if the current instructor is the creator of the course
+    if(course.instructorId !== insturctor.id){
+      throw new UnauthorizedException('Instructor must be the creator of the course to view enrollments');
+    }
+
+    return await this.enrollmentService.findByCourse(courseId, query);
   }
 
   async findById(id: number): Promise<Course> {

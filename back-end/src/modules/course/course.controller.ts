@@ -11,7 +11,6 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -21,8 +20,8 @@ import { UserRole } from '../user/enums/user-role.enum';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadService } from 'src/core/file-upload/file-upload.service';
-import { Instructor } from '../instructor/entities/instructor.entity';
 
+@UseGuards(AuthGuard)
 @Controller('courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
@@ -50,8 +49,19 @@ export class CourseController {
     return this.courseService.findAll(query);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.INSTRUCTOR)
+  @Get(':id/enrollments')
+  async findEnrollments(
+    @CurrentUser() instructor,
+    @Param('id') courseId: number,
+    @Paginate() query: PaginateQuery,
+  ) {
+    return this.courseService.findEnrollments(instructor, courseId, query);
+  }
+
   @Get(':id')
-  findById(@Param('id') id: string) {
+  async findById(@Param('id') id: string) {
     return this.courseService.findById(+id);
   }
 
@@ -64,7 +74,6 @@ export class CourseController {
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  
   @Patch(':id')
   async update(
     @Param('id') id: string,
