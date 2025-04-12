@@ -20,6 +20,9 @@ import { UserRole } from '../user/enums/user-role.enum';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadService } from 'src/core/file-upload/file-upload.service';
+import { UserSessionDto } from 'src/core/auth/dto/user-session.dto';
+import { MAX_IMG_SIZE } from 'src/core/common/const/lms.const';
+import { CourseDifficulty } from './enums/course-difficulty.enum';
 
 @UseGuards(AuthGuard)
 @Controller('courses')
@@ -33,15 +36,15 @@ export class CourseController {
     FileInterceptor('courseImg', {
       storage: FileUploadService.getImageStorage(),
       fileFilter: FileUploadService.getImageFilter(),
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: MAX_IMG_SIZE },
     }),
   )
   async create(
-    @CurrentUser() instructor,
+    @CurrentUser() instructor: UserSessionDto,
     @Body() createCourseDto: CreateCourseDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.courseService.create(instructor, createCourseDto, file);
+    return this.courseService.create(instructor.id, createCourseDto, file);
   }
 
   @Get()
@@ -49,15 +52,20 @@ export class CourseController {
     return this.courseService.findAll(query);
   }
 
+  @Get('difficulties')
+  getDifficulties() {
+    return Object.values(CourseDifficulty);
+  }
+
   @UseGuards(RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
   @Get(':id/enrollments')
   async findEnrollments(
-    @CurrentUser() instructor,
+    @CurrentUser() instructor: UserSessionDto,
     @Param('id') courseId: number,
     @Paginate() query: PaginateQuery,
   ) {
-    return this.courseService.findEnrollments(instructor, courseId, query);
+    return this.courseService.findEnrollments(instructor.id, courseId, query);
   }
 
   @Get(':id')
@@ -71,22 +79,31 @@ export class CourseController {
     FileInterceptor('courseImg', {
       storage: FileUploadService.getImageStorage(),
       fileFilter: FileUploadService.getImageFilter(),
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: MAX_IMG_SIZE },
     }),
   )
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id') courseId: string,
+    @CurrentUser() instructor: UserSessionDto,
     @Body() updateCourseDto: UpdateCourseDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.courseService.update(+id, updateCourseDto, file);
+    return this.courseService.update(
+      +courseId,
+      instructor.id,
+      updateCourseDto,
+      file,
+    );
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.courseService.remove(+id);
+  remove(
+    @Param('id') courseId: string,
+    @CurrentUser() insturctor: UserSessionDto,
+  ) {
+    return this.courseService.removeCourse(+courseId, insturctor.id);
   }
 }

@@ -16,7 +16,6 @@ import { AuthGuard, RolesGuard } from 'src/core/auth/guards';
 import { CurrentUser, Roles } from 'src/core/auth/decorators';
 import { UserRole } from '../user/enums/user-role.enum';
 import { UserSessionDto } from 'src/core/auth/dto/user-session.dto';
-import { CourseService } from '../course/course.service';
 import { CreateEnrollmentDto } from '../enrollment/dto/create-enrollment.dto';
 
 @UseGuards(AuthGuard, RolesGuard)

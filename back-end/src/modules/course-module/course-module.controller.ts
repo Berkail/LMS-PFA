@@ -12,16 +12,6 @@ export class CourseModuleController {
     return this.courseModuleService.create(createCourseModuleDto);
   }
 
-  @Get()
-  findAll() {
-    return this.courseModuleService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.courseModuleService.findOne(+id);
-  }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCourseModuleDto: UpdateCourseModuleDto) {
     return this.courseModuleService.update(+id, updateCourseModuleDto);

@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { CourseElement } from './entities/course-element.entity';
 import { Repository } from 'typeorm';
-import { CourseElementMapper } from './mappers/course-element.mapper';
 
 @Injectable()
 export abstract class CourseElementService<T extends CourseElement> {
@@ -21,7 +20,7 @@ export abstract class CourseElementService<T extends CourseElement> {
     }
     return courseElement;
   }
-  
+
   async publishById(id: number, publishDate: Date): Promise<void> {
     const courseElement = await this.findById(id);
     await this.publish(courseElement, publishDate);
@@ -37,13 +36,14 @@ export abstract class CourseElementService<T extends CourseElement> {
 
   async remove(id: number): Promise<void> {
     try {
-      const courseElement = await this.findById(id);
-      await this.repository.remove(courseElement);
+      const entity = await this.findById(id);
+      await this.beforeSoftRemove(entity);
+      await this.repository.softRemove(entity);
     } catch (error) {
-      console.error(`Failed to remove course element with ID ${id}:`, error);
-      throw new InternalServerErrorException(
-        'Could not delete course element.',
-      );
+      console.error(`Failed to remove entity with ID ${id}:`, error);
+      throw new InternalServerErrorException('Could not delete entity.');
     }
   }
+
+  protected async beforeSoftRemove(entity : T) {}
 }

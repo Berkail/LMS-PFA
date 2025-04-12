@@ -8,6 +8,7 @@ import {
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import {
+  FilterOperator,
   paginate,
   PaginateConfig,
   Paginated,
@@ -15,7 +16,7 @@ import {
   PaginationType,
 } from 'nestjs-paginate';
 import { Course } from './entities/course.entity';
-import { Repository } from 'typeorm';
+import { Repository, UnorderedBulkOperation } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseMapper } from './mappers/course.mapper';
 import { CourseElementService } from '../course-element/course-element.service';
@@ -37,6 +38,7 @@ export class CourseService extends CourseElementService<Course> {
     const config: PaginateConfig<Course> = {
       sortableColumns: ['id', 'createdAt', 'publishedAt'],
       searchableColumns: ['title', 'difficulty'],
+      filterableColumns: { instructorId: [FilterOperator.EQ] },
       defaultSortBy: [['createdAt', 'DESC']],
       paginationType: PaginationType.CURSOR,
       withDeleted: false,
@@ -48,7 +50,7 @@ export class CourseService extends CourseElementService<Course> {
   }
 
   async create(
-    instructor,
+    instructorId: number,
     createCourseDto: CreateCourseDto,
     file: Express.Multer.File,
   ): Promise<Course> {
@@ -60,7 +62,7 @@ export class CourseService extends CourseElementService<Course> {
 
       const course: Course = this.courseRepo.create();
       this.courseMapper.toEntity(course, createCourseDto);
-      course.instructorId = instructor.id;
+      course.instructorId = instructorId;
 
       return await this.courseRepo.save(course);
     } catch (error) {
@@ -69,14 +71,12 @@ export class CourseService extends CourseElementService<Course> {
   }
 
   async update(
-    id: number,
+    courseId: number,
+    insturctorId: number,
     updateCourseDto: UpdateCourseDto,
     file?: Express.Multer.File,
   ): Promise<Course> {
-    const course = await this.courseRepo.findOne({ where: { id } });
-    if (!course) {
-      throw new NotFoundException(`Course with id ${id} not found`);
-    }
+    const course: Course = await this.checkCourse(courseId, insturctorId);
 
     if (file) {
       updateCourseDto.pathToImg = `${IMG_UPLOAD_DIR}${file.filename}`;
@@ -86,15 +86,12 @@ export class CourseService extends CourseElementService<Course> {
     return await this.courseRepo.save(updatedCourse);
   }
 
-  async findEnrollments(insturctor, courseId: number, query: PaginateQuery) {
-    // checks if course exists
-    const course : Course = await this.findById(courseId);
-    
-    // check if the current instructor is the creator of the course
-    if(course.instructorId !== insturctor.id){
-      throw new UnauthorizedException('Instructor must be the creator of the course to view enrollments');
-    }
-
+  async findEnrollments(
+    insturctorId: number,
+    courseId: number,
+    query: PaginateQuery,
+  ) {
+    await this.checkCourse(courseId, insturctorId);
     return await this.enrollmentService.findByCourse(courseId, query);
   }
 
@@ -109,16 +106,41 @@ export class CourseService extends CourseElementService<Course> {
     }
   }
 
-  async remove(id: number): Promise<void> {
+  async removeCourse(courseId: number, instructorId: number): Promise<void> {
+    this.checkCourse(courseId, instructorId);
     try {
-      await super.remove(id);
+      await super.remove(courseId);
     } catch (error) {
       if (error instanceof InternalServerErrorException) {
-        throw new InternalServerErrorException(
-          'Could not delete course element.',
-        );
+        throw new InternalServerErrorException('Could not delete course.');
       }
       throw error;
     }
+  }
+
+  private async checkCourseExists(courseId: number): Promise<Course> {
+    return await this.findById(courseId);
+  }
+
+  private checkCourseOwnership(
+    course: Course,
+    instructorId: number,
+    customMessage?: string,
+  ): void {
+    if (course.instructorId !== instructorId) {
+      const errorMessage =
+        customMessage || 'instructor does not own the course';
+      throw new UnauthorizedException(errorMessage);
+    }
+  }
+
+  private async checkCourse(
+    courseId: number,
+    instructorId: number,
+    errorMessage?: string,
+  ): Promise<Course> {
+    const course = await this.checkCourseExists(courseId);
+    this.checkCourseOwnership(course, instructorId, errorMessage);
+    return course;
   }
 }

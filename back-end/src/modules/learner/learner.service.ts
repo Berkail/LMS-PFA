@@ -16,6 +16,7 @@ import {
 import { EnrollmentService } from '../enrollment/enrollment.service';
 import { Enrollment } from '../enrollment/entities/enrollment.entity';
 import { CourseService } from '../course/course.service';
+import { Course } from '../course/entities/course.entity';
 
 @Injectable()
 export class LearnerService extends UserService<Learner> {
@@ -93,7 +94,7 @@ export class LearnerService extends UserService<Learner> {
     return { message: 'Enrollment has been successfully removed.' };
   }
 
-  private async checkCourseExists(courseId) {
-    await this.courseService.findById(courseId);
+  private async checkCourseExists(courseId: number) : Promise<Course>{
+    return await this.courseService.findById(courseId);
   }
 }
