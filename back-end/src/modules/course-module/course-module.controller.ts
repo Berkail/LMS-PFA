@@ -70,4 +70,13 @@ export class CourseModuleController {
   ) {
     return await this.courseModuleService.remove(instructor.id, courseModuleId);
   }
+
+  @Patch(':courseModuleId/publish')
+  async publish(
+    @CurrentUser() instructor: UserSessionDto,
+    @Param('courseModuleId') courseModuleId: string,
+  ){
+    const publishTime : Date = new Date();
+    return await this.courseModuleService.publish(instructor.id, +courseModuleId, publishTime);
+  }
 }

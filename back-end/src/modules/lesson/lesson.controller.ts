@@ -34,7 +34,7 @@ export class LessonController {
     }),
   )
   @Patch(':lessonId')
-  update(
+  async update(
     @CurrentUser() instructor: UserSessionDto,
     @Param('lessonId') lessonId: string,
     @Body() updateLessonDto: UpdateLessonDto,
@@ -49,10 +49,19 @@ export class LessonController {
   }
 
   @Delete(':lessonId')
-  remove(
+  async remove(
     @CurrentUser() instructor: UserSessionDto,
     @Param('lessonId') lessonId: string,
   ) {
     return this.lessonService.remove(instructor.id, +lessonId);
+  }
+
+  @Patch(':lessonId/publish')
+  async publish(
+    @CurrentUser() instructor: UserSessionDto,
+    @Param('lessonId') lessonId: string,
+  ){
+    const publishTime : Date = new Date();
+    return await this.lessonService.publish(instructor.id, +lessonId, publishTime);
   }
 }

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -225,4 +226,44 @@ export class CourseService extends CourseElementService<Course> {
 
     return course;
   }
+
+  async publish(
+    instructorId: number,
+    courseId: number,
+    publishTime: Date,
+  ) {
+    const course = await this.validateInstructorCourseOwnership(
+      instructorId,
+      courseId,
+    );
+  
+    await this.publishByObj(course, publishTime);
+  
+    return { message: 'Course, its modules, and their lessons published successfully' };
+  }
+  
+  async publishByObj(course: Course, publishTime: Date) {
+    const courseWithRelations = await this.courseRepo.findOne({
+      where: { id: course.id },
+      relations: ['courseModules'],
+    });
+  
+    if (!courseWithRelations) {
+      throw new NotFoundException('Course not found.');
+    }
+  
+    if (courseWithRelations.publishedAt) {
+      throw new ConflictException('This course has already been published.');
+    }
+  
+    // Publish the course
+    courseWithRelations.publishedAt = publishTime;
+    await this.courseRepo.save(courseWithRelations);
+  
+    // Publish all course modules and their lessons
+    for (const courseModule of courseWithRelations.courseModules) {
+      await this.courseModuleService.publishByObj(courseModule, publishTime);
+    }
+  }
+  
 }

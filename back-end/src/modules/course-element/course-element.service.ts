@@ -21,16 +21,4 @@ export abstract class CourseElementService<T extends CourseElement> {
     return courseElement;
   }
 
-  async publishById(id: number, publishDate: Date): Promise<void> {
-    const courseElement = await this.findById(id);
-    await this.publish(courseElement, publishDate);
-  }
-
-  async publish(courseElement: T, publishDate: Date): Promise<T> {
-    if (courseElement.publishedAt) {
-      throw new BadRequestException('This element is already published.');
-    }
-    courseElement.publishedAt = publishDate;
-    return await this.repository.save(courseElement);
-  }
 }

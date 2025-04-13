@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -45,7 +46,7 @@ export class CourseModuleService extends CourseElementService<CourseModule> {
       throw new BadRequestException('A PDF file is required for the course lesson.');
     }
     await this.validateCourseModuleOwnership(instructorId, courseModuleId);
-    this.lessonService.create(courseModuleId, createLessonDto, file);
+    return await this.lessonService.create(courseModuleId, createLessonDto, file);
   }
 
   async update(
@@ -131,4 +132,41 @@ export class CourseModuleService extends CourseElementService<CourseModule> {
 
     return courseModule;
   }
+
+  async publish(instructorId: number, courseModuleId: number, publishTime: Date) {
+    const courseModule = await this.validateCourseModuleOwnership(instructorId, courseModuleId);
+  
+    await this.publishByObj(courseModule, publishTime);
+  
+    return { message: 'Course module and its lessons published successfully' };
+  }
+  
+  async publishByObj(courseModule: CourseModule, publishTime: Date) {
+    const courseModuleWithRelations = await this.courseModuleRepo.findOne({
+      where: { id: courseModule.id },
+      relations: ['lessons', 'course'],
+    });
+  
+    if (!courseModuleWithRelations) {
+      throw new NotFoundException('Course module not found.');
+    }
+  
+    if (!courseModuleWithRelations.course.publishedAt) {
+      throw new ConflictException(
+        'The associated course is not published. Please publish the course first.',
+      );
+    }
+  
+    if (courseModuleWithRelations.publishedAt) {
+      throw new ConflictException('This course module has already been published.');
+    }
+  
+    courseModuleWithRelations.publishedAt = publishTime;
+    await this.courseModuleRepo.save(courseModuleWithRelations);
+  
+    for (const lesson of courseModuleWithRelations.lessons) {
+      await this.lessonService.publishByObj(lesson, publishTime);
+    }
+  }
+  
 }

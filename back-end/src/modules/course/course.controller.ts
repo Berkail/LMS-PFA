@@ -58,6 +58,15 @@ export class CourseController {
     return await this.courseService.findCourseById(+courseId);
   }
 
+  @Patch(':courseId/publish')
+  async publish(
+    @CurrentUser() instructor: UserSessionDto,
+    @Param('courseId') courseId: string,
+  ){
+    const publishTime : Date = new Date();
+    return await this.courseService.publish(instructor.id, +courseId, publishTime);
+  }
+
   // -------------------------------------------------------------------
   // 🟢 CREATE
   // -------------------------------------------------------------------

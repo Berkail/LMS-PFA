@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -89,7 +90,6 @@ export class LessonService extends CourseElementService<Lesson> {
 
     return lesson;
   }
-
   async validateLessonOwnership(
     userId: number,
     lessonId: number,
@@ -100,7 +100,6 @@ export class LessonService extends CourseElementService<Lesson> {
       .innerJoin('courseModule.course', 'course')
       .where('lesson.id = :lessonId', { lessonId })
       .andWhere('course.instructorId = :userId', { userId })
-      .select('lesson.id')
       .getOne();
 
     if (!lesson) {
@@ -110,5 +109,40 @@ export class LessonService extends CourseElementService<Lesson> {
     }
 
     return lesson;
+  }
+
+  async publish(instructorId: number, lessonId: number, publishTime: Date) {
+    const lesson = await this.validateLessonOwnership(instructorId, lessonId);
+    await this.publishByObj(lesson, publishTime);
+
+    return { message: 'Lesson published successfully' };
+  }
+
+  async publishByObj(lesson: Lesson, publishTime: Date) {
+    const lessonWithCourseModule = await this.lessonRepo.findOne({
+      where: { id: lesson.id },
+      relations: ['courseModule'],
+    });
+
+    if (!lessonWithCourseModule || !lessonWithCourseModule.courseModule) {
+      throw new ConflictException(
+        'The associated course module was not found.',
+      );
+    }
+
+    if (!lessonWithCourseModule.courseModule.publishedAt) {
+      throw new ConflictException(
+        'The associated course module is not published. Please publish the course module first.',
+      );
+    }
+
+    if (lessonWithCourseModule.publishedAt) {
+      throw new ConflictException('This lesson has already been published.');
+    }
+
+    lessonWithCourseModule.publishedAt = publishTime;
+    await this.lessonRepo.save(lessonWithCourseModule);
+
+    return lessonWithCourseModule;
   }
 }
