@@ -1,6 +1,7 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateCourseElementDto {
+  @IsNotEmpty()
   @IsString()
   title: string;
 }

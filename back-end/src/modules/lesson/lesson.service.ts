@@ -1,4 +1,7 @@
 import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -9,52 +12,137 @@ import { Lesson } from './entities/lesson.entity';
 import { CourseElementService } from '../course-element/course-element.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PDF_UPLOAD_DIR } from 'src/core/common/const/lms.const';
+import { FileUploadService } from 'src/core/file-upload/file-upload.service';
 
 @Injectable()
 export class LessonService extends CourseElementService<Lesson> {
   constructor(
-    @InjectRepository(Lesson) protected lessonRepository: Repository<Lesson>,
+    @InjectRepository(Lesson) private readonly lessonRepo: Repository<Lesson>,
   ) {
-    super(lessonRepository);
+    super(lessonRepo);
   }
 
-  create(createLessonDto: CreateLessonDto) {
-    return 'This action adds a new lesson';
+  async create(
+    courseModuleId: number,
+    createLessonDto: CreateLessonDto,
+    file: Express.Multer.File,
+  ): Promise<Lesson> {
+    if (!file) {
+      throw new BadRequestException(
+        'A PDF file is required for the course material.',
+      );
+    }
+    let lesson = this.lessonRepo.create(createLessonDto);
+    lesson.courseModuleId = courseModuleId;
+    lesson.pathToPdf = `${PDF_UPLOAD_DIR}${file.filename}`;
+
+    return await this.lessonRepo.save(lesson);
   }
 
-  findAll() {
-    return `This action returns all lesson`;
-  }
+  async update(
+    instructorId: number,
+    lessonId: number,
+    updateLessonDto: UpdateLessonDto,
+    file?: Express.Multer.File,
+  ): Promise<Lesson> {
+    const lesson = await this.validateLessonOwnership(instructorId, lessonId);
 
-  async findById(id: number) {
-    try {
-      return await super.findById(id);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(`Lesson with ID ${id} not found.`);
+    const updatedLesson = this.lessonRepo.merge(lesson, updateLessonDto);
+
+    if (file) {
+      if (lesson.pathToPdf) {
+        await FileUploadService.delete(lesson.pathToPdf);
       }
-      throw error;
+
+      updatedLesson.pathToPdf = `${PDF_UPLOAD_DIR}${file.filename}`;
+    }
+
+    return await this.lessonRepo.save(updatedLesson);
+  }
+
+  async remove(InstructorId: number, lessonId: number) {
+    const lesson = await this.validateLessonOwnership(InstructorId, lessonId);
+    await this.removeByObj(lesson);
+    return { message: 'lesson deleted successfully' };
+  }
+
+  async removeByObj(lesson: Lesson) {
+    if (lesson.pathToPdf) {
+      await FileUploadService.delete(lesson.pathToPdf);
+    }
+
+    try {
+      await this.lessonRepo.softRemove(lesson);
+    } catch (error) {
+      throw new InternalServerErrorException(`Failed to remove lesson`);
     }
   }
 
-  update(id: number, updateLessonDto: UpdateLessonDto) {
-    return `This action updates a #${id} lesson`;
-  }
+  async ensureLessonExists(lessonId: number) {
+    const lesson = await this.lessonRepo.findOne({
+      where: { id: lessonId },
+    });
 
-  async remove(id: number): Promise<void> {
-    try {
-      await super.remove(id); // Call the base class method
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(`Lesson with ID ${id} not found.`);
-      }
-
-      console.error(`[LessonService] Failed to remove lesson ${id}:`, error);
-      throw new InternalServerErrorException('Could not delete the lesson.');
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${lessonId} not found.`);
     }
+
+    return lesson;
+  }
+  async validateLessonOwnership(
+    userId: number,
+    lessonId: number,
+  ): Promise<Lesson> {
+    const lesson = await this.lessonRepo
+      .createQueryBuilder('lesson')
+      .innerJoin('lesson.courseModule', 'courseModule')
+      .innerJoin('courseModule.course', 'course')
+      .where('lesson.id = :lessonId', { lessonId })
+      .andWhere('course.instructorId = :userId', { userId })
+      .getOne();
+
+    if (!lesson) {
+      throw new ForbiddenException(
+        `You do not have permission to modify this lesson.`,
+      );
+    }
+
+    return lesson;
   }
 
-  publish(courseElement: Lesson, publishDate: Date): Promise<void> {
-    return super.publish(courseElement, publishDate);
+  async publish(instructorId: number, lessonId: number, publishTime: Date) {
+    const lesson = await this.validateLessonOwnership(instructorId, lessonId);
+    await this.publishByObj(lesson, publishTime);
+
+    return { message: 'Lesson published successfully' };
+  }
+
+  async publishByObj(lesson: Lesson, publishTime: Date) {
+    const lessonWithCourseModule = await this.lessonRepo.findOne({
+      where: { id: lesson.id },
+      relations: ['courseModule'],
+    });
+
+    if (!lessonWithCourseModule || !lessonWithCourseModule.courseModule) {
+      throw new ConflictException(
+        'The associated course module was not found.',
+      );
+    }
+
+    if (!lessonWithCourseModule.courseModule.publishedAt) {
+      throw new ConflictException(
+        'The associated course module is not published. Please publish the course module first.',
+      );
+    }
+
+    if (lessonWithCourseModule.publishedAt) {
+      throw new ConflictException('This lesson has already been published.');
+    }
+
+    lessonWithCourseModule.publishedAt = publishTime;
+    await this.lessonRepo.save(lessonWithCourseModule);
+
+    return lessonWithCourseModule;
   }
 }

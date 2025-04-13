@@ -7,25 +7,39 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { LearnerService } from './learner.service';
-import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
-import { AuthGuard } from 'src/core/auth/guards';
+import { AuthGuard, RolesGuard } from 'src/core/auth/guards';
+import { CurrentUser, Roles } from 'src/core/auth/decorators';
+import { UserRole } from '../user/enums/user-role.enum';
+import { UserSessionDto } from 'src/core/auth/dto/user-session.dto';
+import { CreateEnrollmentDto } from '../enrollment/dto/create-enrollment.dto';
+
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(UserRole.LEARNER)
 
 @Controller('learners')
 export class LearnerController {
-  constructor(private readonly learnerService: LearnerService) {}
-
-  @Post()
-  async create(@Body() createLearnerDto: CreateLearnerDto) {
-    return await this.learnerService.create(createLearnerDto);
-  }
+  constructor(
+    private readonly learnerService: LearnerService,
+  ) {}
 
   @Get()
   async findAll(@Paginate() query: PaginateQuery) {
     return this.learnerService.findAll(query);
+  }
+
+  @Get('me/enrollments/')
+  async findEnrollments(@CurrentUser() learner : UserSessionDto, @Paginate() query: PaginateQuery) {
+    return await this.learnerService.findEnrollments(learner.id, query);
+  }
+
+  @Get('me/enrollments/by-course')
+  async findEnrollment(@CurrentUser() learner : UserSessionDto, @Query('courseId') courseId: number) {
+    return await this.learnerService.findEnrollment(learner.id, courseId);
   }
 
   @Get(':id')
@@ -43,6 +57,11 @@ export class LearnerController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await this.learnerService.remove(+id);
+    await this.learnerService.remove(+id);
+  }
+
+  @Delete('enrollments')
+  async removeEnrollment(@CurrentUser() learner : UserSessionDto, @Query('courseId') courseId: number) {
+    return await this.learnerService.removeEnrollment(learner.id, courseId);
   }
 }

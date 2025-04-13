@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +13,10 @@ import {
   PaginateQuery,
   PaginationType,
 } from 'nestjs-paginate';
+import { EnrollmentService } from '../enrollment/enrollment.service';
+import { Enrollment } from '../enrollment/entities/enrollment.entity';
+import { CourseService } from '../course/course.service';
+import { Course } from '../course/entities/course.entity';
 
 @Injectable()
 export class LearnerService extends UserService<Learner> {
@@ -20,6 +24,8 @@ export class LearnerService extends UserService<Learner> {
     protected readonly learnerMapper: LearnerMapper,
     @InjectRepository(Learner)
     protected readonly learnerRepo: Repository<Learner>,
+    private readonly enrollmentService: EnrollmentService,
+    private readonly courseService: CourseService,
   ) {
     super(learnerMapper, learnerRepo);
   }
@@ -56,5 +62,30 @@ export class LearnerService extends UserService<Learner> {
 
   async remove(id: number): Promise<boolean> {
     return await super.remove(id);
+  }
+
+  async findEnrollments(
+    learnerId: number,
+    query: PaginateQuery,
+  ): Promise<Paginated<Enrollment>> {
+    return await this.enrollmentService.findByLearner(learnerId, query);
+  }
+
+  async findEnrollment(learnerId: number, courseId: number) {
+    await this.checkCourseExists(courseId);
+    return await this.enrollmentService.findByCourseAndLearner(
+      learnerId,
+      courseId,
+    );
+  }
+
+  async removeEnrollment(learnerId: number, courseId: number) {
+    await this.checkCourseExists(courseId);
+    await this.enrollmentService.withdraw(learnerId, courseId);
+    return { message: 'Enrollment has been successfully removed.' };
+  }
+
+  private async checkCourseExists(courseId: number): Promise<Course> {
+    return await this.courseService.findById(courseId);
   }
 }
