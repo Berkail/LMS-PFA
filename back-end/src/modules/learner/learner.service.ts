@@ -73,19 +73,10 @@ export class LearnerService extends UserService<Learner> {
 
   async findEnrollment(learnerId: number, courseId: number) {
     await this.checkCourseExists(courseId);
-    return await this.enrollmentService.findByLearnerAndCourse(
+    return await this.enrollmentService.findByCourseAndLearner(
       learnerId,
       courseId,
     );
-  }
-
-  async enroll(
-    learnerId: number,
-    courseId: number,
-    enrollTime: Date,
-  ): Promise<Enrollment> {
-    await this.checkCourseExists(courseId);
-    return await this.enrollmentService.create(learnerId, courseId, enrollTime);
   }
 
   async removeEnrollment(learnerId: number, courseId: number) {
@@ -94,7 +85,7 @@ export class LearnerService extends UserService<Learner> {
     return { message: 'Enrollment has been successfully removed.' };
   }
 
-  private async checkCourseExists(courseId: number) : Promise<Course>{
+  private async checkCourseExists(courseId: number): Promise<Course> {
     return await this.courseService.findById(courseId);
   }
 }

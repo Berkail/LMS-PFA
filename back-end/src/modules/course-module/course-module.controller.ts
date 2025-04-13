@@ -1,24 +1,72 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+  Delete,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { CourseModuleService } from './course-module.service';
-import { CreateCourseModuleDto } from './dto/create-course-module.dto';
 import { UpdateCourseModuleDto } from './dto/update-course-module.dto';
+import { AuthGuard, RolesGuard } from 'src/core/auth/guards';
+import { CurrentUser, Roles } from 'src/core/auth/decorators';
+import { UserRole } from '../user/enums/user-role.enum';
+import { CreateLessonDto } from '../lesson/dto/create-lesson.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileUploadService } from 'src/core/file-upload/file-upload.service';
+import { MAX_PDF_SIZE } from 'src/core/common/const/lms.const';
 
-@Controller('course-module')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(UserRole.INSTRUCTOR)
+@Controller('course-modules')
 export class CourseModuleController {
   constructor(private readonly courseModuleService: CourseModuleService) {}
 
-  @Post()
-  create(@Body() createCourseModuleDto: CreateCourseModuleDto) {
-    return this.courseModuleService.create(createCourseModuleDto);
+  @UseInterceptors(
+    FileInterceptor('lessonPdf', {
+      storage: FileUploadService.getPDFStorage(),
+      fileFilter: FileUploadService.getPDFFilter(),
+      limits: { fileSize: MAX_PDF_SIZE },
+    }),
+  )
+  @Post(':courseModuleId/lessons')
+  async createLesson(
+    @CurrentUser() instructor,
+    @Param('courseModuleId') courseModuleId: number,
+    @Body() createLessonDto: CreateLessonDto,
+    @UploadedFile() file : Express.Multer.File,
+  ) {
+    return await this.courseModuleService.createLesson(
+      instructor.id,
+      courseModuleId,
+      createLessonDto,
+      file,
+    );
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseModuleDto: UpdateCourseModuleDto) {
-    return this.courseModuleService.update(+id, updateCourseModuleDto);
+  @Patch(':courseModuleId')
+  async updateCourseModule(
+    @CurrentUser() instructor,
+    @Param('courseModuleId') courseModuleId: number,
+    @Body() updateCourseModuleDto: UpdateCourseModuleDto,
+  ) {
+    return await this.courseModuleService.update(
+      instructor.id,
+      courseModuleId,
+      updateCourseModuleDto,
+    );
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.courseModuleService.remove(+id);
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.INSTRUCTOR)
+  @Delete(':courseModuleId')
+  async deleteCourseModule(
+    @CurrentUser() instructor,
+    @Param('courseModuleId') courseModuleId: number,
+  ) {
+    return await this.courseModuleService.remove(instructor.id, courseModuleId);
   }
 }

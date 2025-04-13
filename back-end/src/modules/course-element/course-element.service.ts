@@ -33,17 +33,4 @@ export abstract class CourseElementService<T extends CourseElement> {
     courseElement.publishedAt = publishDate;
     return await this.repository.save(courseElement);
   }
-
-  async remove(id: number): Promise<void> {
-    try {
-      const entity = await this.findById(id);
-      await this.beforeSoftRemove(entity);
-      await this.repository.softRemove(entity);
-    } catch (error) {
-      console.error(`Failed to remove entity with ID ${id}:`, error);
-      throw new InternalServerErrorException('Could not delete entity.');
-    }
-  }
-
-  protected async beforeSoftRemove(entity : T) {}
 }

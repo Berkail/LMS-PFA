@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  Req,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -23,13 +22,46 @@ import { FileUploadService } from 'src/core/file-upload/file-upload.service';
 import { UserSessionDto } from 'src/core/auth/dto/user-session.dto';
 import { MAX_IMG_SIZE } from 'src/core/common/const/lms.const';
 import { CourseDifficulty } from './enums/course-difficulty.enum';
+import { CreateCourseModuleDto } from '../course-module/dto/create-course-module.dto';
 
 @UseGuards(AuthGuard)
 @Controller('courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
+  // -------------------------------------------------------------------
+  // 🔵 STATIC ROUTES
+  // -------------------------------------------------------------------
+  @Get('difficulties')
+  getCourseDifficulties() {
+    return Object.values(CourseDifficulty);
+  }
+
+  @Get()
+  async findAllCourses(@Paginate() query: PaginateQuery) {
+    return await this.courseService.findAllCourses(query);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.INSTRUCTOR)
+  @Post(':id/course-modules')
+  async createCourseModule(
+    @CurrentUser() instructor,
+    @Param('id') courseId: number,
+    @Body() createCourseModuleDto: CreateCourseModuleDto,
+  ) {
+    return await this.courseService.createCourseModule(courseId, instructor.id, createCourseModuleDto);
+  }
+
+  @Get(':id')
+  async findCourseById(@Param('id') courseId: string) {
+    return await this.courseService.findCourseById(+courseId);
+  }
+
+  // -------------------------------------------------------------------
+  // 🟢 CREATE
+  // -------------------------------------------------------------------
+  @UseGuards(RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
   @Post()
   @UseInterceptors(
@@ -47,34 +79,41 @@ export class CourseController {
     return this.courseService.create(instructor.id, createCourseDto, file);
   }
 
-  @Get()
-  async findAll(@Paginate() query: PaginateQuery) {
-    return this.courseService.findAll(query);
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.LEARNER)
+  @Post(':id/enrollments')
+  async enrollLearner(
+    @Param('id') courseId: string,
+    @CurrentUser() learner: UserSessionDto,
+  ) {
+    const enrollTime = new Date();
+    return this.courseService.enrollLearner(+courseId, learner.id, enrollTime);
   }
 
-  @Get('difficulties')
-  getDifficulties() {
-    return Object.values(CourseDifficulty);
-  }
-
+  // -------------------------------------------------------------------
+  // 🔵 READ - Enrollment Routes
+  // -------------------------------------------------------------------
   @UseGuards(RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
   @Get(':id/enrollments')
-  async findEnrollments(
+  async findCourseEnrollments(
     @CurrentUser() instructor: UserSessionDto,
-    @Param('id') courseId: number,
+    @Param('id') courseId: string,
     @Paginate() query: PaginateQuery,
   ) {
-    return this.courseService.findEnrollments(instructor.id, courseId, query);
+    return this.courseService.findCourseEnrollments(
+      +courseId,
+      instructor.id,
+      query,
+    );
   }
 
-  @Get(':id')
-  async findById(@Param('id') id: string) {
-    return this.courseService.findById(+id);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
+  // -------------------------------------------------------------------
+  // 🟡 UPDATE
+  // -------------------------------------------------------------------
+  @UseGuards(RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
+  @Patch(':id')
   @UseInterceptors(
     FileInterceptor('courseImg', {
       storage: FileUploadService.getImageStorage(),
@@ -82,14 +121,13 @@ export class CourseController {
       limits: { fileSize: MAX_IMG_SIZE },
     }),
   )
-  @Patch(':id')
-  async update(
+  async updateCourse(
     @Param('id') courseId: string,
     @CurrentUser() instructor: UserSessionDto,
     @Body() updateCourseDto: UpdateCourseDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.courseService.update(
+    return this.courseService.updateCourse(
       +courseId,
       instructor.id,
       updateCourseDto,
@@ -97,13 +135,16 @@ export class CourseController {
     );
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  // -------------------------------------------------------------------
+  // 🔴 DELETE
+  // -------------------------------------------------------------------
+  @UseGuards(RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
   @Delete(':id')
-  remove(
+  async removeCourse(
     @Param('id') courseId: string,
-    @CurrentUser() insturctor: UserSessionDto,
+    @CurrentUser() instructor: UserSessionDto,
   ) {
-    return this.courseService.removeCourse(+courseId, insturctor.id);
+    return this.courseService.remove(+courseId, instructor.id);
   }
 }

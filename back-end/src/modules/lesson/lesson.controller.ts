@@ -6,43 +6,33 @@ import {
   Patch,
   Param,
   Delete,
+  UseInterceptors,
 } from '@nestjs/common';
 import { LessonService } from './lesson.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileUploadService } from 'src/core/file-upload/file-upload.service';
+import { MAX_PDF_SIZE } from 'src/core/common/const/lms.const';
 
-@Controller('lesson')
+@Controller('lessons')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
-  @Post()
-  create(@Body() createLessonDto: CreateLessonDto) {
-    return this.lessonService.create(createLessonDto);
+  @UseInterceptors(
+    FileInterceptor('lessonPdf', {
+      storage: FileUploadService.getPDFStorage(),
+      fileFilter: FileUploadService.getPDFFilter(),
+      limits: { fileSize: MAX_PDF_SIZE },
+    }),
+  )
+  @Patch(':lessonId')
+  update(@Param('lessonId') lessonId: string, @Body() updateLessonDto: UpdateLessonDto) {
+    return this.lessonService.update(+lessonId, updateLessonDto);
   }
 
-  @Get()
-  findAll() {
-    return this.lessonService.findAll();
-  }
-
-  @Get(':id')
-  findById(@Param('id') id: string) {
-    return this.lessonService.findById(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
-    return this.lessonService.update(+id, updateLessonDto);
-  }
-
-  @Patch(':id/publish')
-  publish(@Param('id') id: string) {
-    const publishDate: Date = new Date();
-    return this.lessonService.publishById(+id, publishDate);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.lessonService.remove(+id);
+  @Delete(':lessonId')
+  remove(@Param('lessonId') lessonId: string) {
+    return this.lessonService.remove(+lessonId);
   }
 }

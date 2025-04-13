@@ -9,7 +9,6 @@ import { CourseModule } from '../course/course.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Enrollment]),
-    CourseModule,
   ],
   controllers: [EnrollmentController],
   providers: [EnrollmentService],

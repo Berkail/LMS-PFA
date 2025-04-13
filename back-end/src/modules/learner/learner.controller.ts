@@ -32,20 +32,14 @@ export class LearnerController {
     return this.learnerService.findAll(query);
   }
 
-  @Get('enrollments/')
+  @Get('me/enrollments/')
   async findEnrollments(@CurrentUser() learner : UserSessionDto, @Paginate() query: PaginateQuery) {
     return await this.learnerService.findEnrollments(learner.id, query);
   }
 
-  @Get('enrollments/by-course')
+  @Get('me/enrollments/by-course')
   async findEnrollment(@CurrentUser() learner : UserSessionDto, @Query('courseId') courseId: number) {
     return await this.learnerService.findEnrollment(learner.id, courseId);
-  }
-
-  @Post('enrollments/')
-  async enroll(@CurrentUser() learner : UserSessionDto, @Body() createEnrollmentDto: CreateEnrollmentDto) {
-    const enrollTime : Date = new Date();
-    return await this.learnerService.enroll(learner.id, createEnrollmentDto.courseId, enrollTime);
   }
 
   @Get(':id')

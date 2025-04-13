@@ -12,6 +12,7 @@ import { CourseModule } from './modules/course/course.module';
 import { FileUploadModule } from './core/file-upload/file-upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { LessonModule } from './modules/lesson/lesson.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { join } from 'path';
     InstructorModule,
     CourseModule,
     FileUploadModule,
+    LessonModule,
   ],
   controllers: [AppController],
   providers: [AppService],

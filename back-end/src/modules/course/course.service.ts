@@ -1,12 +1,12 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Not, Repository } from 'typeorm';
 import {
   FilterOperator,
   paginate,
@@ -15,13 +15,18 @@ import {
   PaginateQuery,
   PaginationType,
 } from 'nestjs-paginate';
+
 import { Course } from './entities/course.entity';
-import { Repository, UnorderedBulkOperation } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
+import { CreateCourseDto } from './dto/create-course.dto';
+import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseMapper } from './mappers/course.mapper';
 import { CourseElementService } from '../course-element/course-element.service';
-import { IMG_UPLOAD_DIR } from 'src/core/common/const/lms.const';
 import { EnrollmentService } from '../enrollment/enrollment.service';
+import { Enrollment } from '../enrollment/entities/enrollment.entity';
+import { IMG_UPLOAD_DIR } from 'src/core/common/const/lms.const';
+import { CourseModuleService } from '../course-module/course-module.service';
+import { CreateCourseModuleDto } from '../course-module/dto/create-course-module.dto';
+import { UpdateCourseModuleDto } from '../course-module/dto/update-course-module.dto';
 
 @Injectable()
 export class CourseService extends CourseElementService<Course> {
@@ -30,25 +35,14 @@ export class CourseService extends CourseElementService<Course> {
     @InjectRepository(Course)
     protected readonly courseRepo: Repository<Course>,
     private readonly enrollmentService: EnrollmentService,
+    private readonly courseModuleService: CourseModuleService,
   ) {
     super(courseRepo);
   }
 
-  async findAll(query: PaginateQuery): Promise<Paginated<Course>> {
-    const config: PaginateConfig<Course> = {
-      sortableColumns: ['id', 'createdAt', 'publishedAt'],
-      searchableColumns: ['title', 'difficulty'],
-      filterableColumns: { instructorId: [FilterOperator.EQ] },
-      defaultSortBy: [['createdAt', 'DESC']],
-      paginationType: PaginationType.CURSOR,
-      withDeleted: false,
-      maxLimit: 25,
-      defaultLimit: 10,
-    };
-
-    return paginate(query, this.courseRepo, config);
-  }
-
+  // -------------------------------------------------------------------
+  // 🟢 CREATE
+  // -------------------------------------------------------------------
   async create(
     instructorId: number,
     createCourseDto: CreateCourseDto,
@@ -57,10 +51,10 @@ export class CourseService extends CourseElementService<Course> {
     if (!file) {
       throw new BadRequestException('Image file is required');
     }
+
     try {
       createCourseDto.pathToImg = `${IMG_UPLOAD_DIR}${file.filename}`;
-
-      const course: Course = this.courseRepo.create();
+      const course = this.courseRepo.create();
       this.courseMapper.toEntity(course, createCourseDto);
       course.instructorId = instructorId;
 
@@ -70,13 +64,70 @@ export class CourseService extends CourseElementService<Course> {
     }
   }
 
-  async update(
+  async createCourseModule(
     courseId: number,
-    insturctorId: number,
+    instructorId: number,
+    createCourseModuleDto: CreateCourseModuleDto,
+  ) {
+    await this.validateInstructorCourseOwnership(courseId, instructorId);
+    return await this.courseModuleService.create(
+      courseId,
+      createCourseModuleDto,
+    );
+  }
+
+  // -------------------------------------------------------------------
+  // 🔵 READ
+  // -------------------------------------------------------------------
+  async findAllCourses(query: PaginateQuery): Promise<Paginated<Course>> {
+    const config: PaginateConfig<Course> = {
+      sortableColumns: ['id', 'createdAt', 'publishedAt'],
+      searchableColumns: ['title', 'difficulty'],
+      filterableColumns: { instructorId: [FilterOperator.EQ] },
+      defaultSortBy: [['createdAt', 'DESC']],
+      paginationType: PaginationType.CURSOR,
+      withDeleted: false,
+      maxLimit: 25,
+      defaultLimit: 10,
+      relations: { courseModules: { lessons: true } },
+    };
+
+    return paginate(query, this.courseRepo, config);
+  }
+
+  async findCourseById(courseId: number): Promise<Course> {
+    try {
+      return await super.findById(courseId);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(`Course with id ${courseId} not found`);
+      }
+      throw error;
+    }
+  }
+
+  async findCourseEnrollments(
+    courseId: number,
+    instructorId: number,
+    query: PaginateQuery,
+  ) {
+    await this.validateInstructorCourseOwnership(courseId, instructorId);
+    return await this.enrollmentService.findByCourse(courseId, query);
+  }
+
+  // -------------------------------------------------------------------
+  // 🟡 UPDATE
+  // -------------------------------------------------------------------
+  async updateCourse(
+    courseId: number,
+    instructorId: number,
     updateCourseDto: UpdateCourseDto,
     file?: Express.Multer.File,
   ): Promise<Course> {
-    const course: Course = await this.checkCourse(courseId, insturctorId);
+    const course = await this.validateInstructorCourseOwnership(
+      courseId,
+      instructorId,
+    );
 
     if (file) {
       updateCourseDto.pathToImg = `${IMG_UPLOAD_DIR}${file.filename}`;
@@ -86,61 +137,78 @@ export class CourseService extends CourseElementService<Course> {
     return await this.courseRepo.save(updatedCourse);
   }
 
-  async findEnrollments(
-    insturctorId: number,
+  async updateCourseModule(
     courseId: number,
-    query: PaginateQuery,
+    instructorId: number,
+    courseModuleId: number,
+    updateCourseModuleDto: UpdateCourseModuleDto,
   ) {
-    await this.checkCourse(courseId, insturctorId);
-    return await this.enrollmentService.findByCourse(courseId, query);
+    await this.validateInstructorCourseOwnership(courseId, instructorId);
+    return await this.courseModuleService.update(
+      courseId,
+      courseModuleId,
+      updateCourseModuleDto,
+    );
   }
 
-  async findById(id: number): Promise<Course> {
-    try {
-      return await super.findById(id);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(`Course with id ${id} not found`);
-      }
-      throw error;
+  // -------------------------------------------------------------------
+  // 🔴 DELETE
+  // -------------------------------------------------------------------
+  async remove(courseId: number, instructorId: number): Promise<void> {
+    await this.validateInstructorCourseOwnership(courseId, instructorId);
+    const course: Course | null = await this.courseRepo.findOne({
+      where: { courseId } as any,
+    });
+    if (!course) {
+      throw new NotFoundException(`course with ID ${courseId} was not found`);
     }
+    course.courseModules.forEach((courseModule) => {
+      this.courseModuleService.removeByObj(courseModule);
+    });
+    this.courseRepo.softRemove(course);
   }
 
-  async removeCourse(courseId: number, instructorId: number): Promise<void> {
-    this.checkCourse(courseId, instructorId);
-    try {
-      await super.remove(courseId);
-    } catch (error) {
-      if (error instanceof InternalServerErrorException) {
-        throw new InternalServerErrorException('Could not delete course.');
-      }
-      throw error;
-    }
+  async deleteCourseModule(
+    courseId: number,
+    instructorId: number,
+    courseModuleId: number,
+  ) {
+    await this.validateInstructorCourseOwnership(courseId, instructorId);
+    return await this.courseModuleService.remove(courseId, courseModuleId);
   }
 
-  private async checkCourseExists(courseId: number): Promise<Course> {
-    return await this.findById(courseId);
+  // -------------------------------------------------------------------
+  // 🎯 ENROLLMENT ACTIONS
+  // -------------------------------------------------------------------
+  async enrollLearner(
+    courseId: number,
+    learnerId: number,
+    enrollTime: Date,
+  ): Promise<Enrollment> {
+    await this.ensureCourseExists(courseId);
+    return await this.enrollmentService.create(courseId, learnerId, enrollTime);
   }
 
-  private checkCourseOwnership(
-    course: Course,
+  // -------------------------------------------------------------------
+  // ⚙️ UTILITIES / VALIDATORS
+  // -------------------------------------------------------------------
+  private async ensureCourseExists(courseId: number): Promise<Course> {
+    return await this.findCourseById(courseId);
+  }
+
+  private async validateInstructorCourseOwnership(
+    courseId: number,
     instructorId: number,
     customMessage?: string,
-  ): void {
-    if (course.instructorId !== instructorId) {
-      const errorMessage =
-        customMessage || 'instructor does not own the course';
-      throw new UnauthorizedException(errorMessage);
-    }
-  }
-
-  private async checkCourse(
-    courseId: number,
-    instructorId: number,
-    errorMessage?: string,
   ): Promise<Course> {
-    const course = await this.checkCourseExists(courseId);
-    this.checkCourseOwnership(course, instructorId, errorMessage);
+    const course = await this.ensureCourseExists(courseId);
+
+    if (course.instructorId !== instructorId) {
+      throw new ForbiddenException(
+        customMessage || 'Instructor does not own this course',
+      );
+    }
+
     return course;
   }
 }

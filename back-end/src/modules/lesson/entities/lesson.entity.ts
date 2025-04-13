@@ -11,6 +11,6 @@ export class Lesson extends CourseElement {
   @JoinColumn({ name: 'course_module_id' })
   courseModule: CourseModule;
 
-  @Column({ name: 'couse_module_id' })
+  @Column({ name: 'course_module_id' })
   courseModuleId: number;
 }

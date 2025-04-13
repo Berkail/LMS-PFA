@@ -1,6 +1,6 @@
 import {
+  BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -9,21 +9,31 @@ import { Lesson } from './entities/lesson.entity';
 import { CourseElementService } from '../course-element/course-element.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PDF_UPLOAD_DIR } from 'src/core/common/const/lms.const';
 
 @Injectable()
 export class LessonService extends CourseElementService<Lesson> {
-  constructor(
-    @InjectRepository(Lesson) protected lessonRepository: Repository<Lesson>,
-  ) {
-    super(lessonRepository);
+  constructor(@InjectRepository(Lesson) private readonly lessonRepo : Repository<Lesson>){
+    super(lessonRepo)
   }
 
-  create(createLessonDto: CreateLessonDto) {
-    return 'This action adds a new lesson';
+  removeByObj(lesson: Lesson) {
+    throw new Error('Method not implemented.');
   }
 
-  findAll() {
-    return `This action returns all lesson`;
+  async create(
+    courseModuleId: number,
+    createLessonDto: CreateLessonDto,
+    file: Express.Multer.File,
+  ): Promise<Lesson> {
+    if(!file){
+      throw new BadRequestException('A PDF file is required for the course material.');
+    }
+    let lesson = this.lessonRepo.create(createLessonDto);
+    lesson.courseModuleId = courseModuleId;
+    lesson.pathToPdf = `${PDF_UPLOAD_DIR}${file.filename}`
+  
+    return await this.lessonRepo.save(lesson);
   }
 
   async findById(id: number) {
@@ -37,24 +47,29 @@ export class LessonService extends CourseElementService<Lesson> {
     }
   }
 
-  update(id: number, updateLessonDto: UpdateLessonDto) {
-    return `This action updates a #${id} lesson`;
+  async update(
+    id: number,
+    updateLessonDto: UpdateLessonDto,
+    file?: Express.Multer.File,
+  ): Promise<Lesson> {
+    const lesson = await this.lessonRepo.findOne({
+      where: { id },
+    });
+  
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${id} not found.`);
+    }
+  
+    const updatedLesson = this.lessonRepo.merge(lesson, updateLessonDto);
+  
+    if (file) {
+      updatedLesson.pathToPdf = `${PDF_UPLOAD_DIR}${file.filename}`;
+    }
+  
+    return await this.lessonRepo.save(updatedLesson);
   }
+  
 
   async remove(id: number): Promise<void> {
-    try {
-      await super.remove(id);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(`Lesson with ID ${id} not found.`);
-      }
-
-      console.error(`[LessonService] Failed to remove lesson ${id}:`, error);
-      throw new InternalServerErrorException('Could not delete the lesson.');
-    }
-  }
-
-  publish(courseElement: Lesson, publishDate: Date): Promise<Lesson> {
-    return super.publish(courseElement, publishDate);
   }
 }
