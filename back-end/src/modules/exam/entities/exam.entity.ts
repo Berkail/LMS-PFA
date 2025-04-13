@@ -5,7 +5,8 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     ManyToOne,
-    JoinColumn
+    JoinColumn,
+    OneToMany
 } from 'typeorm';
 import { Instructor } from '../../instructor/entities/instructor.entity';
 

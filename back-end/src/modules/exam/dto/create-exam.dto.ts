@@ -9,6 +9,8 @@ export class CreateExamDto {
   @IsNotEmpty()
   description: string;
 
+  
+
   @IsOptional()
   publishedAt?: Date;
 
