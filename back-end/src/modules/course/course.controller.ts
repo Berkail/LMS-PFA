@@ -141,7 +141,7 @@ export class CourseController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
   @Delete(':id')
-  async removeCourse(
+  async remove(
     @Param('id') courseId: string,
     @CurrentUser() instructor: UserSessionDto,
   ) {

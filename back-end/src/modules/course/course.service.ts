@@ -154,18 +154,32 @@ export class CourseService extends CourseElementService<Course> {
   // -------------------------------------------------------------------
   // 🔴 DELETE
   // -------------------------------------------------------------------
-  async remove(courseId: number, instructorId: number): Promise<void> {
+  async remove(courseId: number, instructorId: number) {
     await this.validateInstructorCourseOwnership(courseId, instructorId);
+
     const course: Course | null = await this.courseRepo.findOne({
-      where: { courseId } as any,
+      where: { id: courseId },
+      relations: ['courseModules'],
     });
+
     if (!course) {
-      throw new NotFoundException(`course with ID ${courseId} was not found`);
+      throw new NotFoundException(`Course with ID ${courseId} was not found`);
     }
-    course.courseModules.forEach((courseModule) => {
-      this.courseModuleService.removeByObj(courseModule);
-    });
-    this.courseRepo.softRemove(course);
+
+    for (const courseModule of course.courseModules) {
+      await this.courseModuleService.removeByObj(courseModule);
+    }
+
+    try {
+      await this.courseRepo.softRemove(course);
+      console.log(`Course ${courseId} and its modules have been soft deleted.`);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Failed to remove course ${courseId}: ${error.message}`,
+      );
+    }
+
+    return { message: 'course deleted successfully' };
   }
 
   async deleteCourseModule(

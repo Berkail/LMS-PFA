@@ -18,6 +18,7 @@ import { CreateLessonDto } from '../lesson/dto/create-lesson.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadService } from 'src/core/file-upload/file-upload.service';
 import { MAX_PDF_SIZE } from 'src/core/common/const/lms.const';
+import { UserSessionDto } from 'src/core/auth/dto/user-session.dto';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.INSTRUCTOR)
@@ -34,7 +35,7 @@ export class CourseModuleController {
   )
   @Post(':courseModuleId/lessons')
   async createLesson(
-    @CurrentUser() instructor,
+    @CurrentUser() instructor : UserSessionDto,
     @Param('courseModuleId') courseModuleId: number,
     @Body() createLessonDto: CreateLessonDto,
     @UploadedFile() file : Express.Multer.File,
@@ -49,7 +50,7 @@ export class CourseModuleController {
 
   @Patch(':courseModuleId')
   async updateCourseModule(
-    @CurrentUser() instructor,
+    @CurrentUser() instructor : UserSessionDto,
     @Param('courseModuleId') courseModuleId: number,
     @Body() updateCourseModuleDto: UpdateCourseModuleDto,
   ) {

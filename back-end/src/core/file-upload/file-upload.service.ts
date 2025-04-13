@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import { IMG_UPLOAD_DIR, PDF_UPLOAD_DIR } from '../common/const/lms.const';
+import { promises as fsPromises } from 'fs';
 
 @Injectable()
 export class FileUploadService {
@@ -55,5 +56,14 @@ export class FileUploadService {
       }
       cb(null, true);
     };
+  }
+
+  static async delete(filePath: string): Promise<void> {
+    try {
+      await fsPromises.access(filePath);
+      await fsPromises.unlink(filePath);
+    } catch (error) {
+      throw new InternalServerErrorException(`Failed to delete file: ${filePath}`);
+    }
   }
 }
