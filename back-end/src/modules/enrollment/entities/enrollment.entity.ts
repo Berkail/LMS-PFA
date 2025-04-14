@@ -32,8 +32,8 @@ export class Enrollment {
   @JoinColumn({ name: 'learner_id' })
   learner: Learner;
 
-  @CreateDateColumn({ name: 'enrolled_at', nullable: true })
-  enrolledAt?: Date;
+  @Column({ name: 'enrolled_at', nullable: true, type: 'timestamp' })
+  enrolledAt?: Date | null;
 
   @Column({
     type: 'enum',

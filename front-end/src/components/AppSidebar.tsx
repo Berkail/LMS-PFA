@@ -20,8 +20,10 @@ const AppSidebar = () => {
     const pathname = usePathname();
     const { toggleSidebar } = useSidebar();
 
+    const userType = pathname?.startsWith('/teacher') ? 'teacher' : 'student';
+
     const navLinks = {
-        students: [
+        student: [
           { icon: Search, label: "Search", href: '/student/search' },
             { icon: BookOpen, label: "Courses", href: '/student/courses' },
             { icon: ClipboardPenLine, label: "Assignments", href: '/student/assignments' },
@@ -35,7 +37,7 @@ const AppSidebar = () => {
         ]
     };
 
-    const currentNavLinks = navLinks['students'];
+    const currentNavLinks = navLinks[userType];
 
     return (
       <Sidebar
@@ -53,8 +55,17 @@ const AppSidebar = () => {
                 >
                   <div className='app-sidebar__logo-container group'>
                     <div className='app-sidebar__logo-wrapper'>
-                        <Image src='/logo.svg' alt='logo' width={25} height={20} className="app-sidebar__logo"/>
-                        <p className='app-sidebar__title'>Ehei_LMS</p>
+                <Image 
+                  src='/logo.svg' 
+                  alt='logo' 
+                  width={70} 
+                  height={50} 
+                  priority
+                  style={{
+                    maxWidth: '100%',
+                    height: 'auto'
+                  }}
+                />
                     </div>
                     <PanelLeft className='app-sidebar__collapse-icon' />
                   </div>

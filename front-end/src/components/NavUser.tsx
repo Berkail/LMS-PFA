@@ -28,6 +28,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
+import { useRouter } from "next/navigation" // Change this import
+
+
 export function NavUser({
   user,
   userLinks,
@@ -43,6 +46,34 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+
+  // ...existing code...
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('http://localhost/api/auth/logout', {
+        method: 'DELETE',  // Changed from POST to DELETE
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        }
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Logout failed');
+      }
+  
+      // Redirect to login page
+      router.push('/signin');
+      router.refresh();
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('Failed to logout. Please try again.');
+    }
+  };
+  
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -97,10 +128,13 @@ export function NavUser({
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
+            <DropdownMenuItem 
+    className="cursor-pointer"
+    onClick={handleLogout}
+  >
+    <LogOut />
+    Log out
+  </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

@@ -1,26 +1,156 @@
-import { Injectable } from '@nestjs/common';
-import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
+import {
+  FilterOperator,
+  paginate,
+  PaginateConfig,
+  Paginated,
+  PaginateQuery,
+  PaginationType,
+} from 'nestjs-paginate';
+import { Enrollment } from './entities/enrollment.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { EnrollmentStatus } from './enums/enrollement-status.enum';
 
 @Injectable()
 export class EnrollmentService {
-  create(createEnrollmentDto: CreateEnrollmentDto) {
-    return 'This action adds a new enrollment';
+  constructor(
+    @InjectRepository(Enrollment)
+    private readonly enrollmentRepo: Repository<Enrollment>,
+  ) {}
+
+  async create(courseId: number, learnerId: number, enrollTime: Date) {
+    let enrollment: Enrollment | null;
+  
+    // Check for existing enrollment status issues
+    enrollment = await this.checkEnrollmentStatus(courseId, learnerId);
+  
+    // Create a new enrollment if not found
+    if (!enrollment) {
+      enrollment = this.createEnrollment(courseId, learnerId);
+    }
+  
+    // Set enrollment date and save
+    enrollment.enrolledAt = enrollTime;
+    return this.enrollmentRepo.save(enrollment);
+  }
+  
+  private async checkEnrollmentStatus(courseId: number, learnerId: number): Promise<Enrollment | null> {
+    try {
+      const enrollment = await this.findByCourseAndLearner(courseId, learnerId);
+  
+      if (enrollment.status === EnrollmentStatus.EXPELLED) {
+        throw new ForbiddenException('Prohibited from accessing course');
+      }
+  
+      if (enrollment.enrolledAt !== null) {
+        throw new ConflictException('Cannot enroll in an already enrolled course');
+      }
+  
+      return enrollment;  // Return the existing enrollment if no issues
+  
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        return null;  // No enrollment found
+      } else {
+        throw error;  // Rethrow if unexpected error
+      }
+    }
+  }
+  
+  private createEnrollment(courseId: number, learnerId: number): Enrollment {
+    return this.enrollmentRepo.create({
+      courseId,
+      learnerId,
+      status: EnrollmentStatus.APPROVED,
+    });
+  }  
+
+  async findByCourseAndLearner(
+    courseId: number,
+    learnerId: number,
+  ): Promise<Enrollment> {
+    try {
+      const enrollment = await this.enrollmentRepo.findOneOrFail({
+        where: { courseId, learnerId },
+        relations: ['course'],
+      });
+      return enrollment;
+    } catch (error) {
+      throw new NotFoundException(
+        `Enrollment not found for learner ${learnerId} in course ${courseId}`,
+      );
+    }
   }
 
-  findAll() {
-    return `This action returns all enrollment`;
+  private async clearEnrollmentTimestamp(courseId: number, learnerId: number) {
+    const enrollment = await this.findByCourseAndLearner(courseId, learnerId);
+    enrollment.enrolledAt = null;
+    return this.enrollmentRepo.save(enrollment);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} enrollment`;
+  async withdraw(courseId: number, learnerId: number) {
+    const enrollement = await this.clearEnrollmentTimestamp(
+      courseId,
+      learnerId,
+    );
+    enrollement.status = EnrollmentStatus.WITHDRAWN;
+    await this.enrollmentRepo.save(enrollement);
   }
 
-  update(id: number, updateEnrollmentDto: UpdateEnrollmentDto) {
-    return `This action updates a #${id} enrollment`;
+  async expel(courseId: number, learnerId: number) {
+    const enrollement = await this.clearEnrollmentTimestamp(
+      courseId,
+      learnerId,
+    );
+    enrollement.status = EnrollmentStatus.EXPELLED;
+    await this.enrollmentRepo.save(enrollement);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} enrollment`;
+  async findBy(
+    query: PaginateQuery,
+    whereCondition: any,
+    relations: string[],
+  ): Promise<Paginated<Enrollment>> {
+    const config: PaginateConfig<Enrollment> = {
+      sortableColumns: ['courseId', 'learnerId', 'enrolledAt'],
+      searchableColumns: ['course.title'],
+      defaultSortBy: [
+        ['courseId', 'ASC'],
+        ['learnerId', 'DESC'],
+      ],
+      filterableColumns: {
+        courseId: [FilterOperator.EQ],
+      },
+      paginationType: PaginationType.CURSOR,
+      withDeleted: false,
+      maxLimit: 25,
+      defaultLimit: 10,
+      where: whereCondition,
+      relations: relations,
+    };
+
+    return paginate(query, this.enrollmentRepo, config);
+  }
+
+  async findByLearner(
+    learnerId: number,
+    query: PaginateQuery,
+  ): Promise<Paginated<Enrollment>> {
+    return this.findBy(query, { learnerId }, ['course', 'course.instructor']);
+  }
+
+  async findByCourse(
+    courseId: number,
+    query: PaginateQuery,
+  ): Promise<Paginated<Enrollment>> {
+    return this.findBy(query, { courseId }, ['learner']);
   }
 }

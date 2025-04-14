@@ -1,4 +1,5 @@
-import { IsString, IsEmail, IsNotEmpty } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { Match } from 'src/core/common/validators/match.validator';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -20,4 +21,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   plainPassword: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(8)
+  @Match('plainPassword', { message: 'Passwords do not match' })
+  confirmPlainPassword: string;
 }

@@ -6,7 +6,7 @@ import { Course } from 'src/modules/course/entities/course.entity';
 import { Enrollment } from 'src/modules/enrollment/entities/enrollment.entity';
 import { Instructor } from 'src/modules/instructor/entities/instructor.entity';
 import { Learner } from 'src/modules/learner/entities/learner.entity';
-import { Exam } from '../../modules/exam/entities/exam.entity';
+import { Exam } from 'src/modules/exam/entities/exam.entity';
 
 @Module({
   imports: [
