@@ -20,19 +20,7 @@ declare global {
     lastName?: string;
     username?: string;
     email: string;
-    publicMetadata: {
-      userType: "teacher" | "student";
-    };
-    privateMetadata: {
-      settings?: UserSettings;
-      paymentMethods?: Array<PaymentMethod>;
-      defaultPaymentMethodId?: string;
-      stripeCustomerId?: string;
-    };
-    unsafeMetadata: {
-      bio?: string;
-      urls?: string[];
-    };
+    userType: "teacher" | "student";
   }
 
   interface Course {

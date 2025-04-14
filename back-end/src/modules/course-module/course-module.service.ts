@@ -1,26 +1,168 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCourseModuleDto } from './dto/create-course-module.dto';
 import { UpdateCourseModuleDto } from './dto/update-course-module.dto';
+import { CourseElementService } from '../course-element/course-element.service';
+import { CourseModule } from './entities/course-module.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { LessonService } from '../lesson/lesson.service';
+import { CreateLessonDto } from '../lesson/dto/create-lesson.dto';
 
 @Injectable()
-export class CourseModuleService {
-  create(createCourseModuleDto: CreateCourseModuleDto) {
-    return 'This action adds a new courseModule';
+export class CourseModuleService extends CourseElementService<CourseModule> {
+  constructor(
+    @InjectRepository(CourseModule)
+    private readonly courseModuleRepo: Repository<CourseModule>,
+    private readonly lessonService: LessonService,
+  ) {
+    super(courseModuleRepo);
   }
 
-  findAll() {
-    return `This action returns all courseModule`;
+  async create(courseId: number, createCourseModuleDto: CreateCourseModuleDto) {
+    try {
+      let courseModule = this.repository.create(createCourseModuleDto);
+      courseModule.courseId = courseId;
+
+      return await this.repository.save(courseModule);
+    } catch (error) {
+      throw new InternalServerErrorException('Error creating course module');
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} courseModule`;
+  async createLesson(
+    instructorId: number,
+    courseModuleId: number,
+    createLessonDto: CreateLessonDto,
+  ) {
+    await this.validateCourseModuleOwnership(instructorId, courseModuleId);
+    return await this.lessonService.create(courseModuleId, createLessonDto);
   }
 
-  update(id: number, updateCourseModuleDto: UpdateCourseModuleDto) {
-    return `This action updates a #${id} courseModule`;
+  async update(
+    instructorId: number,
+    courseModuleId: number,
+    updateCourseModuleDto: UpdateCourseModuleDto,
+  ) {
+    const courseModule = await this.validateCourseModuleOwnership(
+      instructorId,
+      courseModuleId,
+    );
+    const updateCourseModule = this.courseModuleRepo.merge(
+      courseModule,
+      updateCourseModuleDto,
+    );
+    return await this.courseModuleRepo.save(updateCourseModule);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} courseModule`;
+  async remove(instructorId: number, courseModuleId: number) {
+    const courseModule = await this.validateCourseModuleOwnership(
+      instructorId,
+      courseModuleId,
+    );
+    await this.removeByObj(courseModule);
+    return { message: 'Course module deleted successfully' };
   }
+
+  async removeByObj(courseModule: CourseModule) {
+    try {
+      const moduleWithLessons = await this.courseModuleRepo.findOne({
+        where: { id: courseModule.id },
+        relations: ['lessons'],
+      });
+
+      if (!moduleWithLessons) {
+        throw new NotFoundException(
+          `CourseModule with ID ${courseModule.id} not found`,
+        );
+      }
+
+      for (const lesson of moduleWithLessons.lessons) {
+        await this.lessonService.removeByObj(lesson);
+      }
+
+      await this.courseModuleRepo.softRemove(courseModule);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error occurred while removing lessons or course module',
+      );
+    }
+  }
+
+  async ensureCourseModuleExists(
+    courseModuleId: number,
+  ): Promise<CourseModule> {
+    const courseModule = await this.courseModuleRepo.findOne({
+      where: { id: courseModuleId },
+    });
+
+    if (!courseModule) {
+      throw new NotFoundException(
+        `courseModule with ID ${courseModuleId} not found`,
+      );
+    }
+
+    return courseModule;
+  }
+
+  async validateCourseModuleOwnership(
+    userId: number,
+    courseModuleId: number,
+  ): Promise<CourseModule> {
+    const courseModule = await this.courseModuleRepo
+      .createQueryBuilder('module')
+      .innerJoin('module.course', 'course')
+      .where('module.id = :moduleId', { moduleId: courseModuleId })
+      .andWhere('course.instructorId = :userId', { userId })
+      .getOne();
+
+    if (!courseModule) {
+      throw new ForbiddenException(`Course module not found or access denied`);
+    }
+
+    return courseModule;
+  }
+
+  async publish(instructorId: number, courseModuleId: number, publishTime: Date) {
+    const courseModule = await this.validateCourseModuleOwnership(instructorId, courseModuleId);
+  
+    await this.publishByObj(courseModule, publishTime);
+  
+    return { message: 'Course module and its lessons published successfully' };
+  }
+  
+  async publishByObj(courseModule: CourseModule, publishTime: Date) {
+    const courseModuleWithRelations = await this.courseModuleRepo.findOne({
+      where: { id: courseModule.id },
+      relations: ['lessons', 'course'],
+    });
+  
+    if (!courseModuleWithRelations) {
+      throw new NotFoundException('Course module not found.');
+    }
+  
+    if (!courseModuleWithRelations.course.publishedAt) {
+      throw new ConflictException(
+        'The associated course is not published. Please publish the course first.',
+      );
+    }
+  
+    if (courseModuleWithRelations.publishedAt) {
+      throw new ConflictException('This course module has already been published.');
+    }
+  
+    courseModuleWithRelations.publishedAt = publishTime;
+    await this.courseModuleRepo.save(courseModuleWithRelations);
+  
+    for (const lesson of courseModuleWithRelations.lessons) {
+      await this.lessonService.publishByObj(lesson, publishTime);
+    }
+  }
+  
 }

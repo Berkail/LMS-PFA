@@ -1,4 +1,3 @@
-import { timestamp } from 'rxjs/operators';
 import {
   Column,
   CreateDateColumn,
@@ -12,8 +11,6 @@ export abstract class CourseElement {
   id: number;
   @Column()
   title: string;
-  @Column({ type: 'text', nullable: true })
-  description: string | null;
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at', nullable: true })

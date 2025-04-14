@@ -26,7 +26,7 @@ const dummyCourse = {
           title: "Introduction to React",
           type: "PDF",
           content: "/sample.pdf", // Place your PDF in the public folder
-          video: null
+          video: "https://www.youtube.com/embed/19g66ezsKAg"
         },
         {
           chapterId: "chapter2",
@@ -173,7 +173,7 @@ const Course = () => {
         <Card className="course__video">
           <CardContent className="course__video-container">
           <iframe 
-      src="https://www.youtube.com/embed/19g66ezsKAg"
+      src={currentChapter.video || undefined}
       title="Course Video"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowFullScreen 

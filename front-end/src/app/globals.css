@@ -96,6 +96,13 @@ input[type="color"] {
 }
 
 
+.dark input:-webkit-autofill {
+  box-shadow: 0 0 0px 1000px #1f2937 inset !important; /* bg-gray-800 */
+  -webkit-text-fill-color: white !important;
+  border: 1px solid #374151 !important; /* border-gray-700 */
+  border-radius: 0.375rem !important;
+}
+
 /*course-tabs-style*/
 
 .course-tab-bg{

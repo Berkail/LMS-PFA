@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react'
+import React, { useState } from 'react'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,14 +19,134 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 
+interface SignUpFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  plainPassword: string;
+  confirmPlainPassword: string;
+  birthdate?: string;
+}
+
 function SignUpComponent({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const signInUrl = "/signin";
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [passwordMatch, setPasswordMatch] = useState(true);
+
+  const validatePasswords = (password: string, confirmPassword: string) => {
+    return password === confirmPassword;
+  };
+
+  const handleStudentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const password = (form.querySelector('#studentPassword') as HTMLInputElement).value;
+    const confirmPassword = (form.querySelector('#studentConfirmPassword') as HTMLInputElement).value;
+  
+    if (!validatePasswords(password, confirmPassword)) {
+      setPasswordMatch(false);
+      setError("Passwords do not match");
+      return;
+    }
+  
+    setIsLoading(true);
+    setError(null);
+    setPasswordMatch(true);
+  
+  
+    const birthdateInput = (form.querySelector('#Birthday') as HTMLInputElement).value;
+    const birthdate = new Date(birthdateInput).toISOString();
+  
+    const formData: SignUpFormData = {
+      firstName: (form.querySelector('#studentFirstName') as HTMLInputElement).value,
+      lastName: (form.querySelector('#studentLastName') as HTMLInputElement).value,
+      username: (form.querySelector('#Username') as HTMLInputElement).value,
+      email: (form.querySelector('#studentEmail') as HTMLInputElement).value,
+      plainPassword: password,
+      confirmPlainPassword: password,
+      birthdate: birthdate, // Now sending as ISO string
+    };
+  
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASED_URL}auth/signup/learner`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+    
+      const data = await response.json();
+    
+      if (!response.ok) {
+        setError(data.message || 'Failed to create account');
+        setIsLoading(false);
+        return;
+      }
+    
+      window.location.href = signInUrl;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create account');
+      setIsLoading(false);
+    }
+  };
+
+  const handleTeacherSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const password = (form.querySelector('#teacherPassword') as HTMLInputElement).value;
+    const confirmPassword = (form.querySelector('#teacherConfirmPassword') as HTMLInputElement).value;
+
+    if (!validatePasswords(password, confirmPassword)) {
+      setPasswordMatch(false);
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setPasswordMatch(true);
+
+    const formData: SignUpFormData = {
+      firstName: (form.querySelector('#teacherFirstName') as HTMLInputElement).value,
+      lastName: (form.querySelector('#teacherLastName') as HTMLInputElement).value,
+      username: (form.querySelector('#Username') as HTMLInputElement).value,
+      email: (form.querySelector('#teacherEmail') as HTMLInputElement).value,
+      plainPassword: password,
+      confirmPlainPassword: password,
+    };
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASED_URL}auth/signup/instructor`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+    
+      const data = await response.json();
+    
+      if (!response.ok) {
+        setError(data.message || 'Failed to create account');
+        setIsLoading(false);
+        return;
+      }
+    
+      window.location.href = signInUrl;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create account');
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className={cn("flex flex-col gap-6  max-w-3xl mx-auto ", className)} {...props}>
+    <div className={cn("flex flex-col gap-6 max-w-3xl mx-auto", className)} {...props}>
       <Card className="w-full auth-card-bg-color">
         <CardHeader>
           <CardTitle className="text-2xl">Sign Up</CardTitle>
@@ -35,14 +155,19 @@ function SignUpComponent({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="student" className="w-full">
+          {error && (
+            <div className="mb-4 p-2 text-red-500 bg-red-100 rounded">
+              {error}
+            </div>
+          )}
+          <Tabs defaultValue="student" className="w-full dark">
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-customgreys-primarybg">
               <TabsTrigger value="student">As a Student</TabsTrigger>
               <TabsTrigger value="teacher">As a Teacher</TabsTrigger>
             </TabsList>
             
             <TabsContent value="student">
-              <form className="flex flex-col gap-6">
+              <form className="flex flex-col gap-6" onSubmit={handleStudentSubmit}>
                 <div className="grid gap-4">
                   <div className="flex gap-4">
                     <div className="flex-1 grid gap-2">
@@ -70,18 +195,25 @@ function SignUpComponent({
                     <Label htmlFor="studentPassword">Password</Label>
                     <Input id="studentPassword" className='auth-form-input' type="password" required />
                   </div>
-                  <div className="grid gap-2 ">
+                  <div className="grid gap-2">
                     <Label htmlFor="studentConfirmPassword">Confirm Password</Label>
-                    <Input id="studentConfirmPassword" className='auth-form-input' type="password" required />
+                    <Input 
+                      id="studentConfirmPassword" 
+                      className={cn('auth-form-input', !passwordMatch && 'border-red-500')} 
+                      type="password" 
+                      required 
+                    />
                   </div>
                 </div>
-                <Button type="submit" className="w-full auth-action">Create Student Account</Button>
+                <Button type="submit" className="w-full auth-action" disabled={isLoading}>
+                  {isLoading ? "Creating Account..." : "Create Student Account"}
+                </Button>
                 <Button variant="outline" className="w-full">Sign up with Google</Button>
               </form>
             </TabsContent>
 
             <TabsContent value="teacher">
-              <form className="flex flex-col gap-6">
+              <form className="flex flex-col gap-6" onSubmit={handleTeacherSubmit}>
                 <div className="grid gap-4">
                   <div className="flex gap-4">
                     <div className="flex-1 grid gap-2">
@@ -107,10 +239,17 @@ function SignUpComponent({
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="teacherConfirmPassword">Confirm Password</Label>
-                    <Input id="teacherConfirmPassword" className='auth-form-input' type="password" required />
+                    <Input 
+                      id="teacherConfirmPassword" 
+                      className={cn('auth-form-input', !passwordMatch && 'border-red-500')} 
+                      type="password" 
+                      required 
+                    />
                   </div>
                 </div>
-                <Button type="submit" className="w-full auth-action">Create Teacher Account</Button>
+                <Button type="submit" className="w-full auth-action" disabled={isLoading}>
+                  {isLoading ? "Creating Account..." : "Create Teacher Account"}
+                </Button>
                 <Button variant="outline" className="w-full">Sign up with Google</Button>
               </form>
             </TabsContent>
@@ -125,7 +264,7 @@ function SignUpComponent({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export default SignUpComponent;

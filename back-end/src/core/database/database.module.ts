@@ -8,6 +8,8 @@ import { Instructor } from 'src/modules/instructor/entities/instructor.entity';
 import { Learner } from 'src/modules/learner/entities/learner.entity';
 import { Exam } from '../../modules/exam/entities/exam.entity';
 
+import { Lesson } from 'src/modules/lesson/entities/lesson.entity';
+
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -24,6 +26,17 @@ import { Exam } from '../../modules/exam/entities/exam.entity';
         synchronize: process.env.NODE_ENV === 'development',
         logging: process.env.NODE_ENV === 'development',
         dropSchema: false,
+        entities: [
+          Learner,
+          Instructor,
+          Course,
+          CourseModule,
+          Enrollment,
+          Lesson,
+        ],
+        synchronize: process.env.NODE_ENV === 'development',
+        logging: process.env.NODE_ENV === 'development',
+        //dropSchema: true,
       }),
     }),
   ],
