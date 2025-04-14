@@ -87,44 +87,43 @@ const Courses = () => {
     const handleCreateCourse = async () => {
         try {
             if (!user) {
-                console.error('No user found');
+                console.error("No user found");
                 return;
             }
 
-            // Add more defensive checks
+            // Add default course data
             const courseData = {
                 teacherId: user.id,
                 teacherName: user.fullName || "Unknown Teacher",
+                title: "New Course",
+                description: "Course description",
+                image: "/placeholder.png",
+                category: "General",
+                status: "draft",
+                progress: 0,
             };
 
-            console.log('Creating course with data:', courseData);
+            console.log("Creating course with data:", courseData);
 
+            const result = await createCourse(courseData).unwrap();
+            console.log("Course created:", result);
 
+            if (!result || typeof result.courseId !== "string") {
+                throw new Error("Invalid course creation response: Missing or invalid courseId");
+            }
 
-
-             const result = await createCourse(courseData).unwrap();
-             console.log(result);
-             if (!result || typeof result.courseId !== 'string') {
-                 throw new Error('Invalid course creation response: Missing or invalid courseId');
-             }
-
-            // router.push(`/teacher/courses/${result.courseId}`, {
-            router.push(`/teacher/courses/${1}`, {
-                scroll: false,
-            });
+            // Redirect to the newly created course
+            router.push(`/teacher/courses/${result.courseId}`, { scroll: false });
         } catch (error) {
-            console.error('Detailed course creation error:', error);
+            console.error("Detailed course creation error:", error);
 
-            // More detailed error logging
             if (error instanceof Error) {
-                console.error('Error name:', error.name);
-                console.error('Error message:', error.message);
+                console.error("Error name:", error.name);
+                console.error("Error message:", error.message);
 
-                // Check if it's a fetch/network error
-                if (error.message.includes('<!DOCTYPE html>')) {
-                    console.error('Received HTML instead of JSON. Check your API endpoint.');
-                    // Optionally show a user-friendly error message
-                    alert('There was a problem creating the course. Please try again.');
+                if (error.message.includes("<!DOCTYPE html>")) {
+                    console.error("Received HTML instead of JSON. Check your API endpoint.");
+                    alert("There was a problem creating the course. Please try again.");
                 }
             }
         }
