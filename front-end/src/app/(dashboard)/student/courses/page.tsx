@@ -5,87 +5,150 @@ import CourseCard from "@/components/CourseCard";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useState, useMemo, useEffect } from "react";
-import Loading from "@/components/Loading";
 import { CourseSkeleton } from "@/components/skeletons/CourseSkeleton";
 
-const dummyCourses = [
-  {
-    courseId: "course1",
-    title: "Introduction to React",
-    description: "Learn the basics of React",
-    image: "/placeholder.png",
-    teacherName: "John Doe",
-    category: "Programming",
-    progress: 30,
-    sections: [
-      {
-        sectionId: "section1",
-        sectionTitle: "Getting Started",
-        chapters: [
-          { chapterId: "chapter1", title: "Introduction to React", type: "Text" },
-          { chapterId: "chapter2", title: "Setting Up Environment", type: "Text" }
-        ]
-      },
-      {
-        sectionId: "section2",
-        sectionTitle: "React Fundamentals",
-        chapters: [
-          { chapterId: "chapter3", title: "Components", type: "Text" },
-          { chapterId: "chapter4", title: "Props & State", type: "Text" }
-        ]
-      }
-    ]
-  },
-  {
-    courseId: "course2",
-    title: "Advanced JavaScript",
-    description: "Master JavaScript concepts",
-    image: "/placeholder.png",
-    teacherName: "Jane Smith",
-    category: "Programming",
-    progress: 70,
-  },
-];
+interface Instructor {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+interface Course {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  description: string | null;
+  pathToImg: string;
+  difficulty: string;
+  instructorId: number;
+  instructor: Instructor;
+}
+
+interface Enrollment {
+  courseId: number;
+  learnerId: number;
+  enrolledAt: string;
+  status: string;
+  course: Course;
+}
+
+interface EnrollmentResponse {
+  data: Enrollment[];
+  meta: {
+    itemsPerPage: number;
+    sortBy: [string, string][];
+  };
+  links: {
+    previous: string | null;
+    current: string;
+    next: string | null;
+  };
+}
+
+interface Lesson {
+  id: number;
+  title: string;
+  pathToUrlVid: string;
+  courseModuleId: number;
+}
+
+interface CourseModule {
+  id: number;
+  title: string;
+  order: number;
+  lessons: Lesson[];
+}
+
+interface CourseDetails {
+  id: number;
+  title: string;
+  courseModules: CourseModule[];
+}
+
+interface CourseDetailsResponse {
+  data: CourseDetails[];
+}
 
 const Courses = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
+  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      try {
+        const response = await fetch('http://localhost/api/learners/me/enrollments', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch enrolled courses');
+        }
+
+        const data: EnrollmentResponse = await response.json();
+        const courses = data.data.map(enrollment => enrollment.course);
+        setEnrolledCourses(courses);
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEnrolledCourses();
+  }, []);
 
   const filteredCourses = useMemo(() => {
-    return dummyCourses.filter((course) => {
+    return enrolledCourses.filter((course) => {
       const matchesSearch = course.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesCategory =
-        selectedCategory === "all" || course.category === selectedCategory;
+        selectedCategory === "all" || selectedCategory === "Programming";
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [enrolledCourses, searchTerm, selectedCategory]);
 
-  const handleGoToCourse = (course: any) => {
-    if (
-      course.sections &&
-      course.sections.length > 0 &&
-      course.sections[0].chapters.length > 0
-    ) {
-      const firstChapter = course.sections[0].chapters[0];
-      router.push(
-        `/student/courses/${course.courseId}/chapters/${firstChapter.chapterId}`
-      );
-    } else {
-      router.push(`/student/courses/${course.courseId}`);
+  const handleGoToCourse = async (course: Course) => {
+    try {
+      const response = await fetch('http://localhost/api/courses/', {
+        credentials: 'include'
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch course details');
+      }
+  
+      const courseDetails: CourseDetailsResponse = await response.json();
+      // Find the specific course from the response
+      const specificCourse = courseDetails.data.find(c => c.id === course.id);
+  
+      if (!specificCourse || !specificCourse.courseModules.length) {
+        throw new Error('Course or modules not found');
+      }
+  
+      const firstModule = specificCourse.courseModules[0];
+      const firstLesson = firstModule.lessons[0];
+  
+      if (firstLesson) {
+        router.push(`/student/courses/${course.id}/chapters/${firstLesson.id}`);
+      } else {
+        console.error('No lessons found in this course');
+      }
+    } catch (error) {
+      console.error('Error fetching course details:', error);
     }
   };
-  useEffect(() => {
-    // Simulate loading time
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000); // Set to 3.5 seconds
-
-    return () => clearTimeout(timer);
-  }, []);
 
   if (isLoading) {
     return (
@@ -96,8 +159,8 @@ const Courses = () => {
           onCategoryChange={setSelectedCategory}
         />
         <div className="user-courses__grid">
-          {filteredCourses.map((course) => (
-            <CourseSkeleton key={course.courseId} />
+          {Array(3).fill(0).map((_, index) => (
+            <CourseSkeleton key={index} />
           ))}
         </div>
       </div>
@@ -114,9 +177,16 @@ const Courses = () => {
       <div className="user-courses__grid">
         {filteredCourses.map((course) => (
           <CourseCard
-            key={course.courseId}
-            course={course}
-            onGoToCourse={handleGoToCourse}
+            key={course.id}
+            course={{
+              courseId: course.id.toString(),
+              title: course.title,
+              description: course.description || "No description available",
+              image: `/placeholder.png`, // Using placeholder until backend issue is fixed
+              teacherName: `${course.instructor.firstName} ${course.instructor.lastName}`,
+              category: "Programming"
+            }}
+            onGoToCourse={() => handleGoToCourse(course)}
           />
         ))}
       </div>
