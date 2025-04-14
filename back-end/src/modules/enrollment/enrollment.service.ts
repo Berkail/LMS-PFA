@@ -28,47 +28,51 @@ export class EnrollmentService {
 
   async create(courseId: number, learnerId: number, enrollTime: Date) {
     let enrollment: Enrollment | null;
-  
+
     enrollment = await this.checkEnrollmentStatus(courseId, learnerId);
-  
+
     if (!enrollment) {
       enrollment = this.createEnrollment(courseId, learnerId);
     }
-  
+
     enrollment.enrolledAt = enrollTime;
     return this.enrollmentRepo.save(enrollment);
   }
-  
-  private async checkEnrollmentStatus(courseId: number, learnerId: number): Promise<Enrollment | null> {
+
+  private async checkEnrollmentStatus(
+    courseId: number,
+    learnerId: number,
+  ): Promise<Enrollment | null> {
     try {
       const enrollment = await this.findByCourseAndLearner(courseId, learnerId);
-  
+
       if (enrollment.status === EnrollmentStatus.EXPELLED) {
         throw new ForbiddenException('Prohibited from accessing course');
       }
-  
+
       if (enrollment.enrolledAt !== null) {
-        throw new ConflictException('Cannot enroll in an already enrolled course');
+        throw new ConflictException(
+          'Cannot enroll in an already enrolled course',
+        );
       }
-  
+
       return enrollment;
-  
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return null; 
+        return null;
       } else {
         throw error;
       }
     }
   }
-  
+
   private createEnrollment(courseId: number, learnerId: number): Enrollment {
     return this.enrollmentRepo.create({
       courseId,
       learnerId,
       status: EnrollmentStatus.APPROVED,
     });
-  }  
+  }
 
   async findByCourseAndLearner(
     learnerId: number,
@@ -77,7 +81,7 @@ export class EnrollmentService {
     try {
       const enrollment = await this.enrollmentRepo.findOneOrFail({
         where: { courseId, learnerId },
-        relations: ['course'],
+        relations: ['course', 'course.courseModules', 'course.courseModules.lessons'],
       });
       return enrollment;
     } catch (error) {
@@ -113,8 +117,7 @@ export class EnrollmentService {
 
   async findBy(
     query: PaginateQuery,
-    whereCondition: any,
-    relations: string[],
+    queryBuilder: any,
   ): Promise<Paginated<Enrollment>> {
     const config: PaginateConfig<Enrollment> = {
       sortableColumns: ['courseId', 'learnerId', 'enrolledAt'],
@@ -130,24 +133,38 @@ export class EnrollmentService {
       withDeleted: false,
       maxLimit: 25,
       defaultLimit: 10,
-      where: whereCondition,
-      relations: relations,
     };
 
-    return paginate(query, this.enrollmentRepo, config);
+    return paginate(query, queryBuilder, config);
   }
 
   async findByLearner(
     learnerId: number,
     query: PaginateQuery,
   ): Promise<Paginated<Enrollment>> {
-    return this.findBy(query, { learnerId }, ['course', 'course.instructor']);
+    const queryBuilder = this.enrollmentRepo
+      .createQueryBuilder('enrollment')
+      .leftJoin('enrollment.course', 'course')
+      .leftJoin('course.instructor', 'instructor')
+      .select(['enrollment.courseId', 'enrollment.learnerId', 'enrollment.enrolledAt'])
+      .addSelect(['course.id', 'course.title', 'course.pathToImg'])
+      .addSelect(['instructor.id', 'instructor.username'])
+      .where('enrollment.learnerId = :learnerId', {learnerId})
+
+    return this.findBy(query, queryBuilder);
   }
 
   async findByCourse(
     courseId: number,
     query: PaginateQuery,
   ): Promise<Paginated<Enrollment>> {
-    return this.findBy(query, { courseId }, ['learner']);
+    const queryBuilder = this.enrollmentRepo
+      .createQueryBuilder('enrollment')
+      .leftJoin('enrollment.learner', 'learner')
+      .select(['enrollment.courseId', 'enrollment.learnerId', 'enrollment.enrolledAt'])
+      .addSelect(['learner.id', 'learner.username'])
+      .where('enrollment.courseId = :courseId', {courseId});
+  
+    return this.findBy(query, queryBuilder);
   }
 }
