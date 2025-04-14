@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 
-import { timestamp } from 'rxjs/operators';
-
-
-=======
->>>>>>> 032594f01536639c7c69194ce9d59ab84f446f06
 import {
   Column,
   CreateDateColumn,
