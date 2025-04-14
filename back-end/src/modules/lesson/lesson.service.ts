@@ -26,16 +26,9 @@ export class LessonService extends CourseElementService<Lesson> {
   async create(
     courseModuleId: number,
     createLessonDto: CreateLessonDto,
-    file: Express.Multer.File,
   ): Promise<Lesson> {
-    if (!file) {
-      throw new BadRequestException(
-        'A PDF file is required for the course material.',
-      );
-    }
     let lesson = this.lessonRepo.create(createLessonDto);
     lesson.courseModuleId = courseModuleId;
-    lesson.pathToPdf = `${PDF_UPLOAD_DIR}${file.filename}`;
 
     return await this.lessonRepo.save(lesson);
   }
@@ -44,19 +37,10 @@ export class LessonService extends CourseElementService<Lesson> {
     instructorId: number,
     lessonId: number,
     updateLessonDto: UpdateLessonDto,
-    file?: Express.Multer.File,
   ): Promise<Lesson> {
     const lesson = await this.validateLessonOwnership(instructorId, lessonId);
 
     const updatedLesson = this.lessonRepo.merge(lesson, updateLessonDto);
-
-    if (file) {
-      if (lesson.pathToPdf) {
-        await FileUploadService.delete(lesson.pathToPdf);
-      }
-
-      updatedLesson.pathToPdf = `${PDF_UPLOAD_DIR}${file.filename}`;
-    }
 
     return await this.lessonRepo.save(updatedLesson);
   }
@@ -68,10 +52,6 @@ export class LessonService extends CourseElementService<Lesson> {
   }
 
   async removeByObj(lesson: Lesson) {
-    if (lesson.pathToPdf) {
-      await FileUploadService.delete(lesson.pathToPdf);
-    }
-
     try {
       await this.lessonRepo.softRemove(lesson);
     } catch (error) {

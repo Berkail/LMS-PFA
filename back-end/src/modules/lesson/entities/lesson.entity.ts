@@ -4,8 +4,8 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity({ name: 'lessons' })
 export class Lesson extends CourseElement {
-  @Column({ name: 'path_to_pdf' })
-  pathToPdf: string;
+  @Column({ name: 'path_to_url_vid' })
+  pathToUrlVid: string;
 
   @ManyToOne(() => CourseModule, (courseModule) => courseModule.lessons)
   @JoinColumn({ name: 'course_module_id' })
