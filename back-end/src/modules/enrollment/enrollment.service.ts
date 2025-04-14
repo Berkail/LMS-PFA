@@ -29,15 +29,12 @@ export class EnrollmentService {
   async create(courseId: number, learnerId: number, enrollTime: Date) {
     let enrollment: Enrollment | null;
   
-    // Check for existing enrollment status issues
     enrollment = await this.checkEnrollmentStatus(courseId, learnerId);
   
-    // Create a new enrollment if not found
     if (!enrollment) {
       enrollment = this.createEnrollment(courseId, learnerId);
     }
   
-    // Set enrollment date and save
     enrollment.enrolledAt = enrollTime;
     return this.enrollmentRepo.save(enrollment);
   }
@@ -54,13 +51,13 @@ export class EnrollmentService {
         throw new ConflictException('Cannot enroll in an already enrolled course');
       }
   
-      return enrollment;  // Return the existing enrollment if no issues
+      return enrollment;
   
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return null;  // No enrollment found
+        return null; 
       } else {
-        throw error;  // Rethrow if unexpected error
+        throw error;
       }
     }
   }
@@ -74,8 +71,8 @@ export class EnrollmentService {
   }  
 
   async findByCourseAndLearner(
-    courseId: number,
     learnerId: number,
+    courseId: number,
   ): Promise<Enrollment> {
     try {
       const enrollment = await this.enrollmentRepo.findOneOrFail({

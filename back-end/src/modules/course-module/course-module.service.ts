@@ -40,13 +40,9 @@ export class CourseModuleService extends CourseElementService<CourseModule> {
     instructorId: number,
     courseModuleId: number,
     createLessonDto: CreateLessonDto,
-    file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('A PDF file is required for the course lesson.');
-    }
     await this.validateCourseModuleOwnership(instructorId, courseModuleId);
-    return await this.lessonService.create(courseModuleId, createLessonDto, file);
+    return await this.lessonService.create(courseModuleId, createLessonDto);
   }
 
   async update(

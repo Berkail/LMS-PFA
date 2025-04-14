@@ -19,6 +19,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadService } from 'src/core/file-upload/file-upload.service';
 import { MAX_PDF_SIZE } from 'src/core/common/const/lms.const';
 import { UserSessionDto } from 'src/core/auth/dto/user-session.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.INSTRUCTOR)
@@ -26,31 +27,26 @@ import { UserSessionDto } from 'src/core/auth/dto/user-session.dto';
 export class CourseModuleController {
   constructor(private readonly courseModuleService: CourseModuleService) {}
 
-  @UseInterceptors(
-    FileInterceptor('lessonPdf', {
-      storage: FileUploadService.getPDFStorage(),
-      fileFilter: FileUploadService.getPDFFilter(),
-      limits: { fileSize: MAX_PDF_SIZE },
-    }),
-  )
   @Post(':courseModuleId/lessons')
+  @ApiOperation({ summary: 'Create a new lesson for a course module' })
+  @ApiResponse({ status: 201, description: 'Lesson created successfully' })
   async createLesson(
-    @CurrentUser() instructor : UserSessionDto,
+    @CurrentUser() instructor: UserSessionDto,
     @Param('courseModuleId') courseModuleId: number,
     @Body() createLessonDto: CreateLessonDto,
-    @UploadedFile() file : Express.Multer.File,
   ) {
     return await this.courseModuleService.createLesson(
       instructor.id,
       courseModuleId,
       createLessonDto,
-      file,
     );
   }
 
   @Patch(':courseModuleId')
+  @ApiOperation({ summary: 'Update a course module' })
+  @ApiResponse({ status: 200, description: 'Course module updated successfully' })
   async updateCourseModule(
-    @CurrentUser() instructor : UserSessionDto,
+    @CurrentUser() instructor: UserSessionDto,
     @Param('courseModuleId') courseModuleId: number,
     @Body() updateCourseModuleDto: UpdateCourseModuleDto,
   ) {
@@ -64,6 +60,8 @@ export class CourseModuleController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.INSTRUCTOR)
   @Delete(':courseModuleId')
+  @ApiOperation({ summary: 'Delete a course module' })
+  @ApiResponse({ status: 200, description: 'Course module deleted successfully' })
   async deleteCourseModule(
     @CurrentUser() instructor,
     @Param('courseModuleId') courseModuleId: number,
@@ -72,11 +70,17 @@ export class CourseModuleController {
   }
 
   @Patch(':courseModuleId/publish')
+  @ApiOperation({ summary: 'Publish a course module' })
+  @ApiResponse({ status: 200, description: 'Course module published successfully' })
   async publish(
     @CurrentUser() instructor: UserSessionDto,
     @Param('courseModuleId') courseModuleId: string,
-  ){
-    const publishTime : Date = new Date();
-    return await this.courseModuleService.publish(instructor.id, +courseModuleId, publishTime);
+  ) {
+    const publishTime: Date = new Date();
+    return await this.courseModuleService.publish(
+      instructor.id,
+      +courseModuleId,
+      publishTime,
+    );
   }
 }

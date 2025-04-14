@@ -6,7 +6,11 @@ import { Course } from 'src/modules/course/entities/course.entity';
 import { Enrollment } from 'src/modules/enrollment/entities/enrollment.entity';
 import { Instructor } from 'src/modules/instructor/entities/instructor.entity';
 import { Learner } from 'src/modules/learner/entities/learner.entity';
-import { Exam } from 'src/modules/exam/entities/exam.entity';
+<<<<<<<<< Temporary merge branch 1
+import { Lesson } from 'src/modules/lesson/entities/lesson.entity';
+=========
+import { Exam } from '../../modules/exam/entities/exam.entity';
+>>>>>>>>> Temporary merge branch 2
 
 @Module({
   imports: [
@@ -20,10 +24,24 @@ import { Exam } from 'src/modules/exam/entities/exam.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
+<<<<<<<<< Temporary merge branch 1
+        entities: [
+          Learner,
+          Instructor,
+          Course,
+          CourseModule,
+          Enrollment,
+          Lesson,
+        ],
+        synchronize: process.env.NODE_ENV === 'development',
+        logging: process.env.NODE_ENV === 'development',
+        //dropSchema: true,
+=========
         entities: [Learner, Instructor, Course, CourseModule, Enrollment, Exam],
         synchronize: process.env.NODE_ENV === 'development',
         logging: process.env.NODE_ENV === 'development',
         dropSchema: false,
+>>>>>>>>> Temporary merge branch 2
       }),
     }),
   ],
