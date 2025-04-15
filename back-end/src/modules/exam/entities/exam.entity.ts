@@ -20,6 +20,7 @@ export class Exam {
 
     @Column({ type: 'text' })
     description: string;
+
     @Column({ nullable: true })
     pdfPath: string;
 
@@ -40,6 +41,6 @@ export class Exam {
     instructorId: number;
 
     @ManyToOne(() => Instructor, instructor => instructor.exams, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'instructorId' }) // Doit correspondre au nom du champ de la colonne
+    @JoinColumn({ name: 'instructorId' })
     instructor: Instructor;
 }
