@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useUpdateUserMutation } from "@/state/api";
 import React from "react";
 import { useForm } from "react-hook-form";
-import Header from "@/components/ui/Header";
+import Header from "@/components/Header";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 
