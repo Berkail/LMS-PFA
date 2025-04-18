@@ -1,12 +1,16 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
-
+import { Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { SessionService } from './core/session/session.service';
+import { ApiOperation } from '@nestjs/swagger';
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
+  constructor(private readonly sessionService: SessionService) {}
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @ApiOperation({
+    summary: 'Test api endpoint',
+    description: 'This endpoint is a simple test of endpoint connectivity',
+  })
+  sayHello() {
+    return 'Testing api enpoint';
   }
 }

@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BaseQueryApi, FetchArgs } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 
+
 const customBaseQuery = async (
     args: string | FetchArgs,
     api: BaseQueryApi,
@@ -64,11 +65,13 @@ const customBaseQuery = async (
   }
 };
 
+
 export const api = createApi({
-  baseQuery: customBaseQuery,
+  baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API_PREFIX }),
   reducerPath: "api",
-  tagTypes: ["Courses", "Users", "UserCourseProgress"],
+  tagTypes: ["courses", "Users", "UserCourseProgress"],
   endpoints: (build) => ({
+
     /*
     ===============
     USER CLERK
@@ -88,17 +91,18 @@ export const api = createApi({
     COURSES
     ===============
     */
+
     getCourses: build.query<Course[], { category?: string }>({
       query: ({ category }) => ({
         url: "courses",
         params: { category },
       }),
-      providesTags: ["Courses"],
+      providesTags: ["courses"],
     }),
 
     getCourse: build.query<Course, string>({
       query: (id) => `courses/${id}`,
-      providesTags: (result, error, id) => [{ type: "Courses", id }],
+      providesTags: (result, error, id) => [{ type: "courses", id }],
     }),
 
     createCourse: build.mutation<
@@ -236,16 +240,14 @@ export const api = createApi({
         }
       },
     }),
+
   }),
 });
 
 export const {
-  useUpdateUserMutation,
-  useCreateCourseMutation,
-  useUpdateCourseMutation,
-  useDeleteCourseMutation,
   useGetCoursesQuery,
   useGetCourseQuery,
+
   useGetUploadVideoUrlMutation,
   useGetTransactionsQuery,
   useCreateTransactionMutation,
@@ -253,4 +255,5 @@ export const {
   useGetUserEnrolledCoursesQuery,
   useGetUserCourseProgressQuery,
   useUpdateUserCourseProgressMutation,
+
 } = api;

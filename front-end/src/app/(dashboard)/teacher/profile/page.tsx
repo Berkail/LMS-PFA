@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -184,6 +185,7 @@ const Profile = () => {
           </CardContent>
         </Card>
       </div>
+
   )
 }
 

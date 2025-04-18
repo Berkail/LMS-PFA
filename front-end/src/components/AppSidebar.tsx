@@ -3,21 +3,30 @@ import Link from 'next/link'; // FIXED: Correct Link import
 import React from 'react';
 import { 
     Sidebar,
-  SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar 
+    SidebarContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarFooter, // ADD: Import SidebarFooter
+    useSidebar 
 } from '@/components/ui/sidebar';
-import { BookOpen, ChartColumn, ClipboardPenLine, PanelLeft, Settings, User } from 'lucide-react';
+import { BookOpen, ChartColumn, ClipboardPenLine, LibraryBig, PanelLeft, Search, Settings, User } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { NavUser } from './NavUser'; // Import NavUser component
 
 const AppSidebar = () => {
     const pathname = usePathname();
     const { toggleSidebar } = useSidebar();
 
+    const userType = pathname?.startsWith('/teacher') ? 'teacher' : 'student';
+
     const navLinks = {
-        students: [
+        student: [
+          { icon: Search, label: "Search", href: '/student/search' },
             { icon: BookOpen, label: "Courses", href: '/student/courses' },
             { icon: ClipboardPenLine, label: "Assignments", href: '/student/assignments' },
-            { icon: User, label: "Profile", href: '/student/profile' },
             { icon: ChartColumn, label: "Progress", href: '/student/progress' },
         ],
         teacher: [
@@ -28,11 +37,11 @@ const AppSidebar = () => {
         ]
     };
 
-    const currentNavLinks = navLinks['students'];
+    const currentNavLinks = navLinks[userType];
 
     return (
       <Sidebar
-        collapsible="icon" // FIXED: Changed to boolean
+        collapsible="icon"
         style={{ height: '100vh' }}
         className="bg-customgreys-primarybg border-none shadow-lg"
       >
@@ -46,8 +55,17 @@ const AppSidebar = () => {
                 >
                   <div className='app-sidebar__logo-container group'>
                     <div className='app-sidebar__logo-wrapper'>
-                        <Image src='/logo.svg' alt='logo' width={25} height={20} className="app-sidebar__logo"/>
-                        <p className='app-sidebar__title'>Ehei LMS</p>
+                <Image 
+                  src='/logo.svg' 
+                  alt='logo' 
+                  width={70} 
+                  height={50} 
+                  priority
+                  style={{
+                    maxWidth: '100%',
+                    height: 'auto'
+                  }}
+                />
                     </div>
                     <PanelLeft className='app-sidebar__collapse-icon' />
                   </div>
@@ -58,7 +76,7 @@ const AppSidebar = () => {
         <SidebarContent>
           <SidebarMenu className='app-sidebar__nav-menu'>
             {currentNavLinks.map((link) => {
-                const isActive = pathname && pathname.startsWith(link.href); // FIXED: Ensure pathname exists
+                const isActive = pathname && pathname.startsWith(link.href);
                 return (
                   <SidebarMenuItem 
                     key={link.href}
@@ -82,6 +100,21 @@ const AppSidebar = () => {
             })}
           </SidebarMenu>
         </SidebarContent>
+
+        {/* Add NavUser in SidebarFooter */}
+        <SidebarFooter>
+          <NavUser
+            user={{
+              name: 'Y. Taha ',
+              email: 'taha@gmail.com',
+              avatar: '/profile-pic.png',
+            }}
+            userLinks={{
+              profile: '/student/profile',
+              notifications: '/student/notification-settings',
+            }}
+          />
+        </SidebarFooter>
       </Sidebar>
     );
 };

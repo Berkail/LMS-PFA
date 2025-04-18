@@ -1,3 +1,4 @@
+
 import React from "react";
 
 const Header = ({ title, subtitle, rightElement }: HeaderProps) => {
@@ -13,3 +14,4 @@ const Header = ({ title, subtitle, rightElement }: HeaderProps) => {
 };
 
 export default Header;
+

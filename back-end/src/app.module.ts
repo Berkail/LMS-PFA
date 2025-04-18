@@ -4,6 +4,16 @@ import { AppService } from './app.service';
 import databaseConfig from './core/config/database.config';
 import { DatabaseModule } from './core/database/database.module';
 import { ConfigModule } from '@nestjs/config';
+import { SessionModule } from './core/session/session.module';
+import { LearnerModule } from './modules/learner/learner.module';
+import { InstructorModule } from './modules/instructor/instructor.module';
+import { AuthModule } from './core/auth/auth.module';
+import { CourseModule } from './modules/course/course.module';
+import { FileUploadModule } from './core/file-upload/file-upload.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { LessonModule } from './modules/lesson/lesson.module';
+import { ExamsModule } from './modules/exam/exam.module';
 
 @Module({
   imports: [
@@ -11,7 +21,20 @@ import { ConfigModule } from '@nestjs/config';
       load: [databaseConfig],
       isGlobal: true,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/api/uploads',
+    }),
+
+    AuthModule,
     DatabaseModule,
+    SessionModule,
+    LearnerModule,
+    InstructorModule,
+    CourseModule,
+    FileUploadModule,
+    LessonModule,
+    ExamsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
