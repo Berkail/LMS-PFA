@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import ChaptersSidebar from "./student/courses/[courseId]/ChaptersSidebar";
+import StoreProvider from "@/state/redux";
 
 
 
@@ -29,6 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   
 
   return (
+    <StoreProvider>
     <SidebarProvider>
     <div className="dashboard">
         <AppSidebar />
@@ -43,5 +45,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
     </div>
     </SidebarProvider>
+    </StoreProvider>
   );
 }

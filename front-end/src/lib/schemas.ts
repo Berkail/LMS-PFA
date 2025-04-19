@@ -43,6 +43,9 @@ export const notificationSettingsSchema = z.object({
   notificationFrequency: z.enum(["immediate", "daily", "weekly"]),
 });
 
+
+
 export type NotificationSettingsFormData = z.infer<
   typeof notificationSettingsSchema
 >;
+
