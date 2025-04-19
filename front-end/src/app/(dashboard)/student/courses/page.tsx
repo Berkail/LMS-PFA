@@ -15,8 +15,7 @@ const dummyCourses = [
     description: "Learn the basics of React",
     image: "/placeholder.png",
     teacherName: "John Doe",
-    category: "Programming",
-    progress: 30,
+    category: "Beginner",
     sections: [
       {
         sectionId: "section1",
@@ -35,15 +34,6 @@ const dummyCourses = [
         ]
       }
     ]
-  },
-  {
-    courseId: "course2",
-    title: "Advanced JavaScript",
-    description: "Master JavaScript concepts",
-    image: "/placeholder.png",
-    teacherName: "Jane Smith",
-    category: "Programming",
-    progress: 70,
   },
 ];
 

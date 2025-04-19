@@ -30,6 +30,7 @@ import { Button } from "./ui/button";
         <CardContent className="assignment-card__content">
           
   
+          <CardFooter className="assignment-card__footer flex justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="w-6 h-6">
               <AvatarImage alt={assignment.teacherName} />
@@ -42,9 +43,6 @@ import { Button } from "./ui/button";
               {assignment.teacherName}
             </p>
           </div>
-  
-          <CardFooter className="assignment-card__footer flex justify-between">
-            <div className="course-card__category">Pending</div>
             <Button className="hover:bg-white-50 hover:text-gray-800">Take assignment</Button>
           </CardFooter>
 

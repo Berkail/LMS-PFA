@@ -902,7 +902,7 @@ input[type="color"] {
 
 /* Assignment Card Styles */
 .assignment-card {
-  @apply flex flex-col w-full h-[200px] border-none bg-customgreys-primarybg overflow-hidden transition duration-200 rounded-lg;
+  @apply flex flex-col w-full h-[160px] border-none bg-customgreys-primarybg overflow-hidden transition duration-200 rounded-lg;
 }
 
 .assignment-card__header {
@@ -935,7 +935,7 @@ input[type="color"] {
 
 /* Course Card */
 .course-card {
-  @apply flex flex-col w-full h-[340px] xl:h-[380px] border-none bg-customgreys-primarybg overflow-hidden cursor-pointer hover:bg-white-100/10 transition duration-200;
+  @apply flex flex-col w-full h-[300px] xl:h-[300px] border-none bg-customgreys-primarybg overflow-hidden cursor-pointer hover:bg-white-100/10 transition duration-200;
 }
 
 .course-card__header {

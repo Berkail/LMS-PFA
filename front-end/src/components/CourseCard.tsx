@@ -17,7 +17,6 @@ type CourseCardProps = {
     image?: string;
     teacherName: string;
     category: string;
-    progress: number;
   };
   onGoToCourse: (course: any) => void;
 };
@@ -40,11 +39,6 @@ const CourseCard = ({ course , onGoToCourse }: CourseCardProps) => {
         <CardTitle className="course-card__title">
           {course.title}: {course.description}
         </CardTitle>
-
-        <div>
-          <p className="text-white-50 mb-2">Progress</p>
-        <Progress value={course.progress} color="bg-secondary-700" className="w-[100%] " />
-        </div>
         <CardFooter className="course-card__footer">
           <div className="course-card__category">{course.category}</div>
           <div className="flex items-center gap-2">
