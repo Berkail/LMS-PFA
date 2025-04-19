@@ -8,34 +8,66 @@ import { courseSchema } from "@/lib/schemas";
 import {
     centsToDollars,
     createCourseFormData,
-    uploadAllVideos,
 } from "@/lib/utils";
-import { openSectionModal, setSections } from "@/state";
-import {
-    useGetCourseQuery,
-    useUpdateCourseMutation,
-    useGetUploadVideoUrlMutation,
-} from "@/state/api";
-import { useAppDispatch, useAppSelector } from "@/state/redux";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import DroppableComponent from "./Droppable";
-import ChapterModal from "./ChapterModal";
-import SectionModal from "./SectionModal";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+// API base URL - adjust if needed
+const API_BASE_URL = 'http://localhost/api';
+
+// Type definitions
+interface CourseFormData {
+    courseTitle: string;
+    courseDescription: string;
+    courseCategory: string;
+    coursePrice: string;
+    courseStatus: boolean;
+}
+
+interface Section {
+    id: string;
+    title: string;
+    position: number;
+    chapters: Chapter[];
+}
+
+interface Chapter {
+    id: string;
+    title: string;
+    position: number;
+    videoUrl?: string;
+    content?: string;
+}
+
+interface Course {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    price: number;
+    status: string;
+    sections: Section[];
+}
 
 const CourseEditor = () => {
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;
-    const { data: course, isLoading, refetch } = useGetCourseQuery(id);
-    const [updateCourse] = useUpdateCourseMutation();
-    const [getUploadVideoUrl] = useGetUploadVideoUrlMutation();
 
-    const dispatch = useAppDispatch();
-    const { sections } = useAppSelector((state) => state.global.courseEditor);
+    const [course, setCourse] = useState<Course | null>(null);
+    const [sections, setSections] = useState<Section[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Modal states
+    const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
+    const [isChapterModalOpen, setIsChapterModalOpen] = useState(false);
+    const [selectedSectionIndex, setSelectedSectionIndex] = useState<number | null>(null);
+    const [selectedChapterIndex, setSelectedChapterIndex] = useState<number | null>(null);
 
     const methods = useForm<CourseFormData>({
         resolver: zodResolver(courseSchema),
@@ -48,6 +80,146 @@ const CourseEditor = () => {
         },
     });
 
+    // Helper function for API requests with auth headers
+    const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+        // Get authentication token - replace with your actual auth logic
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            ...options.headers
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}${url}`, {
+                ...options,
+                headers,
+                credentials: 'include', // Include cookies if your API uses cookie-based auth
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                const errorMessage = errorData?.message || 'Unknown error occurred';
+                throw new Error(`API Error (${response.status}): ${errorMessage}`);
+            }
+
+            return response;
+        } catch (err) {
+            console.error(`Error with ${options.method || 'GET'} request to ${url}:`, err);
+            throw err;
+        }
+    };
+
+    // Fetch course data
+    const fetchCourse = async () => {
+        setIsLoading(true);
+        try {
+            // For development, use mock data
+            if (process.env.NODE_ENV === 'development') {
+                // Mock course data
+                const mockCourse = {
+                    id: id,
+                    title: "Sample Course",
+                    description: "This is a sample course description",
+                    category: "technology",
+                    price: 2999, // in cents
+                    status: "Draft",
+                    sections: [
+                        {
+                            id: "section1",
+                            title: "Introduction",
+                            position: 0,
+                            chapters: [
+                                {
+                                    id: "chapter1",
+                                    title: "Getting Started",
+                                    position: 0,
+                                    videoUrl: "",
+                                    content: "Welcome to the course!"
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                setCourse(mockCourse);
+                setSections(mockCourse.sections);
+                setIsLoading(false);
+                return;
+            }
+
+            // Production code
+            const response = await fetchWithAuth(`/courses/${id}`);
+            const data = await response.json();
+            setCourse(data);
+            setSections(data.sections || []);
+        } catch (err) {
+            console.error('Error fetching course:', err);
+            setError('Failed to load course data');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Update course data
+    const updateCourse = async (formData: any) => {
+        try {
+            // For development, just log and return mock data
+            if (process.env.NODE_ENV === 'development') {
+                console.log('Would update course with:', formData);
+                return { success: true };
+            }
+
+            // Production code
+            const response = await fetchWithAuth(`/courses/${id}`, {
+                method: 'PUT', // or 'PATCH' depending on your API
+                body: JSON.stringify(formData),
+            });
+            return await response.json();
+        } catch (err) {
+            console.error('Error updating course:', err);
+            throw err;
+        }
+    };
+
+    // Upload videos
+    const uploadVideo = async (file: File, chapterId: string) => {
+        try {
+            // Mock function for development
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`Would upload video for chapter ${chapterId}:`, file.name);
+                return { url: `https://example.com/videos/${file.name}` };
+            }
+
+            // Get upload URL
+            const uploadUrlResponse = await fetchWithAuth('/courses/upload-video', {
+                method: 'POST',
+                body: JSON.stringify({ chapterId }),
+            });
+
+            const { uploadUrl, videoUrl } = await uploadUrlResponse.json();
+
+            // Upload the file to the provided URL
+            await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'Content-Type': file.type,
+                },
+            });
+
+            return { url: videoUrl };
+        } catch (error) {
+            console.error('Error uploading video:', error);
+            throw error;
+        }
+    };
+
+    useEffect(() => {
+        fetchCourse();
+    }, [id]);
+
     useEffect(() => {
         if (course) {
             methods.reset({
@@ -57,29 +229,112 @@ const CourseEditor = () => {
                 coursePrice: centsToDollars(course.price),
                 courseStatus: course.status === "Published",
             });
-            dispatch(setSections(course.sections || []));
         }
-    }, [course, methods]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [course, methods]);
 
     const onSubmit = async (data: CourseFormData) => {
+        setIsSubmitting(true);
         try {
-            const updatedSections = await uploadAllVideos(
-                sections,
-                id,
-                getUploadVideoUrl
-            );
+            // Create form data for the course update
+            const formData = {
+                title: data.courseTitle,
+                description: data.courseDescription,
+                category: data.courseCategory,
+                price: parseFloat(data.coursePrice) * 100, // convert to cents
+                status: data.courseStatus ? "Published" : "Draft",
+                sections: sections,
+            };
 
-            const formData = createCourseFormData(data, updatedSections);
+            // Update the course
+            await updateCourse(formData);
 
-            await updateCourse({
-                courseId: id,
-                formData,
-            }).unwrap();
+            // Refresh course data
+            await fetchCourse();
 
-            refetch();
+            // Show success message
+            alert("Course updated successfully!");
         } catch (error) {
             console.error("Failed to update course:", error);
+            setError("Failed to update course. Please try again.");
+        } finally {
+            setIsSubmitting(false);
         }
+    };
+
+    // Function to open section modal
+    const openSectionModal = (sectionIndex: number | null) => {
+        setSelectedSectionIndex(sectionIndex);
+        setIsSectionModalOpen(true);
+    };
+
+    // Function to handle section creation/edit
+    const handleSectionSave = (sectionData: { title: string }) => {
+        const updatedSections = [...sections];
+
+        if (selectedSectionIndex !== null) {
+            // Edit existing section
+            updatedSections[selectedSectionIndex] = {
+                ...updatedSections[selectedSectionIndex],
+                title: sectionData.title,
+            };
+        } else {
+            // Create new section
+            const newSection: Section = {
+                id: `section-${Date.now()}`, // Use a proper ID generation method in production
+                title: sectionData.title,
+                position: sections.length,
+                chapters: [],
+            };
+            updatedSections.push(newSection);
+        }
+
+        setSections(updatedSections);
+        setIsSectionModalOpen(false);
+    };
+
+    // Basic section component for display
+    const SectionItem = ({ section, index }: { section: Section, index: number }) => {
+        return (
+            <div className="bg-gray-800 p-4 rounded-md mb-4">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">{section.title}</h3>
+                    <div className="flex space-x-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openSectionModal(index)}
+                        >
+                            Edit
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-primary-700"
+                            onClick={() => {/* Open chapter modal */}}
+                        >
+                            <Plus className="mr-1 h-4 w-4" />
+                            Add Chapter
+                        </Button>
+                    </div>
+                </div>
+
+                {section.chapters.length > 0 ? (
+                    <div className="mt-2 space-y-2">
+                        {section.chapters.map((chapter, chapterIndex) => (
+                            <div
+                                key={chapter.id}
+                                className="bg-gray-700 p-2 rounded flex justify-between items-center"
+                            >
+                                <span>{chapter.title}</span>
+                                <Button size="sm" variant="ghost">Edit</Button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-gray-400 mt-2">No chapters yet</p>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -93,6 +348,12 @@ const CourseEditor = () => {
                     <span>Back to Courses</span>
                 </button>
             </div>
+
+            {error && (
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                    <p>{error}</p>
+                </div>
+            )}
 
             <Form {...methods}>
                 <form onSubmit={methods.handleSubmit(onSubmit)}>
@@ -116,8 +377,9 @@ const CourseEditor = () => {
                                 <Button
                                     type="submit"
                                     className="bg-primary-700 hover:bg-primary-600"
+                                    disabled={isSubmitting}
                                 >
-                                    {methods.watch("courseStatus")
+                                    {isSubmitting ? "Saving..." : methods.watch("courseStatus")
                                         ? "Update Published Course"
                                         : "Save Draft"}
                                 </Button>
@@ -182,9 +444,7 @@ const CourseEditor = () => {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() =>
-                                        dispatch(openSectionModal({ sectionIndex: null }))
-                                    }
+                                    onClick={() => openSectionModal(null)}
                                     className="border-none text-primary-700 group"
                                 >
                                     <Plus className="mr-1 h-4 w-4 text-primary-700 group-hover:white-100" />
@@ -197,7 +457,15 @@ const CourseEditor = () => {
                             {isLoading ? (
                                 <p>Loading course content...</p>
                             ) : sections.length > 0 ? (
-                                <DroppableComponent />
+                                <div className="space-y-4">
+                                    {sections.map((section, index) => (
+                                        <SectionItem
+                                            key={section.id}
+                                            section={section}
+                                            index={index}
+                                        />
+                                    ))}
+                                </div>
                             ) : (
                                 <p>No sections available</p>
                             )}
@@ -206,8 +474,26 @@ const CourseEditor = () => {
                 </form>
             </Form>
 
-            <ChapterModal />
-            <SectionModal />
+            {/* Simple Section Modal (Replace with your actual modal components) */}
+            {isSectionModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">
+                            {selectedSectionIndex !== null ? "Edit Section" : "Add Section"}
+                        </h2>
+                        <input
+                            type="text"
+                            className="w-full p-2 border border-gray-300 rounded mb-4"
+                            placeholder="Section Title"
+                            defaultValue={selectedSectionIndex !== null ? sections[selectedSectionIndex].title : ""}
+                        />
+                        <div className="flex justify-end space-x-2">
+                            <Button variant="outline" onClick={() => setIsSectionModalOpen(false)}>Cancel</Button>
+                            <Button onClick={() => handleSectionSave({ title: "New Section" })}>Save</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
