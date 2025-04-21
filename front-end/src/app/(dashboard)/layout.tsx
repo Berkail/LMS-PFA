@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       pathname
     );
     const [isLoading, setIsLoading] = useState(true);
-
+/** 
     useEffect(() => {
       const checkAuth = async () => {
         try {
@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   
       checkAuth();
     }, [router]);
-
+*/
     useEffect(() => {
       if (isCoursePage) {
         const match = pathname.match(/\/student\/courses\/([^\/]+)/);
