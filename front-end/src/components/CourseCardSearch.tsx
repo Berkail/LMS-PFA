@@ -9,8 +9,19 @@ interface Course {
   description: string;
   image: string;
   teacherName: string;
+  teacherId: string;
   category: string;
-  enrollments?: any[];
+  level: "Beginner" | "Advanced";
+  status: "Published" | "Draft";
+  sections?: {
+    sectionId: string;
+    sectionTitle: string;
+    chapters: {
+      chapterId: string;
+      title: string;
+      type: string;
+    }[];
+  }[];
 }
 
 interface CourseCardSearchProps {
@@ -22,7 +33,7 @@ interface CourseCardSearchProps {
 const CourseCardSearch: React.FC<CourseCardSearchProps> = ({
   course,
   isSelected,
-  onGoToCourse,  // Changed from onClick
+  onGoToCourse,
 }) => {
   return (
     <div
@@ -35,7 +46,8 @@ const CourseCardSearch: React.FC<CourseCardSearchProps> = ({
     >
       <div className="course-card-search__image-container">
         <Image
-          src={course.image || "/placeholder.png"}
+        /**src={course.image || "/placeholder.png"}*/
+          src={"/placeholder.png"}
           alt={course.title}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -47,17 +59,19 @@ const CourseCardSearch: React.FC<CourseCardSearchProps> = ({
         <div>
           <h2 className="course-card-search__title">{course.title}</h2>
           <p className="course-card-search__description">
-            {course.description}
+            {course.description || "No description available"}
           </p>
         </div>
         <div className="mt-2">
           <p className="course-card-search__teacher">By {course.teacherName}</p>
           <div className="course-card-search__footer">
-            <span className="text-primary-600">
-              {course.category}
+            <span className="text-primary-600 flex items-center gap-2">
+              <span className="px-2 py-1 text-xs rounded-full bg-primary-100 text-white-100">
+                {course.level}
+              </span>
             </span>
-            <span className="course-card-search__enrollment">
-              {course.enrollments?.length} Enroll
+            <span className="course-card-search__status">
+              {course.status}
             </span>
           </div>
         </div>

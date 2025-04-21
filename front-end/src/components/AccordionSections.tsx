@@ -1,6 +1,20 @@
 import React from 'react'
-import { Accordion , AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion'
 import { FileText } from 'lucide-react'
+
+interface Section {
+  sectionId: string;
+  sectionTitle: string;
+  chapters: {
+    chapterId: string;
+    title: string;
+    type: string;
+  }[];
+}
+
+interface AccordionSectionsProps {
+  sections: Section[];
+}
 
 const AccordionSections = ({ sections }: AccordionSectionsProps) => {
   return (
