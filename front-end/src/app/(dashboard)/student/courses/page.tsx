@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useState, useMemo, useEffect } from "react";
 import { CourseSkeleton } from "@/components/skeletons/CourseSkeleton";
+import { useSidebar } from "@/components/ui/sidebar";
 
 
 interface Instructor {

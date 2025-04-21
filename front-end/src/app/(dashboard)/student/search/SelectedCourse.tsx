@@ -37,16 +37,18 @@ const SelectedCourse = ({ course, handleEnrollNow }: SelectedCourseProps) => {
   return (
     <div className="selected-course-container">
       <div className="selected-course">
-        <div><div className="flex items-center gap-2 mb-3">
+        <div>
+          <div className="flex items-center gap-2 mb-3">
             <Avatar className="w-6 h-6">
               <AvatarImage src={course.image} alt={course.teacherName} />
               <AvatarFallback className="bg-secondary-700 text-black">
                 {course.teacherName[0]}
               </AvatarFallback>
             </Avatar>
-            <p className="text-sm text-customgreys-dirtyGrey">
-              {course.teacherName}
-            </p>
+            <div>
+              <p className="text-sm font-medium">{course.teacherName}</p>
+              <p className="text-xs text-muted-foreground">Instructor</p>
+            </div>
           </div>
           <h3 className="selected-course__title">{course.title}</h3>
           

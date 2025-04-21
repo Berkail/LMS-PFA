@@ -15,13 +15,43 @@ import { BookOpen, ChartColumn, ClipboardPenLine, LibraryBig, PanelLeft, Search,
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { NavUser } from './NavUser'; // Import NavUser component
+import { useEffect, useState } from 'react';
+
+
+interface User {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
 const AppSidebar = () => {
     const pathname = usePathname();
     const { toggleSidebar } = useSidebar();
+    const [user, setUser] = useState<User | null>(null);
 
     const userType = pathname?.startsWith('/teacher') ? 'teacher' : 'student';
 
+    useEffect(() => {
+      const fetchUser = async () => {
+          try {
+              const response = await fetch('http://localhost/api/learners/me', {
+                  credentials: 'include'
+              });
+              if (!response.ok) throw new Error('Failed to fetch user');
+              const data = await response.json();
+              setUser(data);
+          } catch (error) {
+              console.error('Error fetching user:', error);
+          }
+      };
+
+      fetchUser();
+  }, []);
+
+
+  const formatName = (firstName: string, lastName: string) => {
+    return `${lastName[0]}. ${firstName}`;
+};
     const navLinks = {
         student: [
           { icon: Search, label: "Search", href: '/student/search' },
@@ -114,10 +144,10 @@ const AppSidebar = () => {
         <SidebarFooter>
           <NavUser
             user={{
-              name: 'Y. Taha ',
-              email: 'taha@gmail.com',
+              name: user ? formatName(user.firstName, user.lastName) : 'Loading...',
+              email: user?.email || 'Loading...',
               avatar: '/profile-pic.png',
-            }}
+          }}
             userLinks={userLinks[userType]}
           />
         </SidebarFooter>

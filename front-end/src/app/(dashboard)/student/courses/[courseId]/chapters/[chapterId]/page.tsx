@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useParams } from "next/navigation";
 import { ProfileSkeleton } from "@/components/skeletons/ProfileSkeleton";
 import { CourseVideoSkeleton } from "@/components/skeletons/CourseVideoSkeleton";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface Instructor {
   id: number;
@@ -67,10 +68,11 @@ const Course = () => {
   const [userProgress, setUserProgress] = useState<any>(null);
   const [hasMarkedComplete, setHasMarkedComplete] = useState(false);
 
+
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await fetch('http://localhost/api/courses/', {
+        const response = await fetch(`http://localhost/api/learners/me/enrollments/by-course?courseId=${courseId}`, {
           credentials: 'include'
         });
 
@@ -79,16 +81,8 @@ const Course = () => {
         }
 
         const responseData = await response.json();
-        // Find the specific course from all courses
-        const specificCourse = responseData.data.find(
-          (course: Course) => course.id.toString() === courseId
-        );
-
-        if (!specificCourse) {
-          throw new Error('Course not found');
-        }
-
-        setCourse(specificCourse);
+        // Set the course from the enrollment data
+        setCourse(responseData.course);
       } catch (error) {
         console.error('Error fetching course:', error);
       } finally {

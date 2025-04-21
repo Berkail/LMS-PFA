@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -11,75 +11,84 @@ import {
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
-import Loading from "@/components/Loading";
 import { ChaptersSidebarSkeleton } from "@/components/skeletons/ChaptersSidebarSkeleton";
 
+interface Lesson {
+  id: number;
+  title: string;
+  pathToUrlVid: string;
+  publishedAt: string;
+  courseModuleId: number;
+}
 
+interface CourseModule {
+  id: number;
+  title: string;
+  order: number;
+  publishedAt: string;
+  lessons: Lesson[];
+}
 
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  courseModules: CourseModule[];
+}
+
+interface EnrollmentResponse {
+  courseId: number;
+  learnerId: number;
+  course: Course;
+}
 
 const ChaptersSidebar = () => {
   const router = useRouter();
   const { setOpen } = useSidebar();
-  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [courseData, setCourseData] = useState<Course | null>(null);
   
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const {toggleSidebar} = useSidebar();
 
-  // Get courseId and chapterId from the URL using regex
   const pathArray = window.location.pathname.split('/');
   const courseId = pathArray[pathArray.indexOf('courses') + 1];
-  const chapterId = pathArray[pathArray.indexOf('chapters') + 1];
+  const lessonId = pathArray[pathArray.indexOf('lessons') + 1];
 
   useEffect(() => {
-    setOpen(false);
-    // Simulate loading
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    toggleSidebar();
+  }, []);
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      try {
+        const response = await fetch(`http://localhost/api/learners/me/enrollments/by-course?courseId=${courseId}`);
+        const data: EnrollmentResponse = await response.json();
+        setCourseData(data.course);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching course data:', error);
+        setIsLoading(false);
+      }
+    };
 
+    fetchCourseData();
+  }, [courseId]);
 
-  /** 
-  const updateChapterProgress = (sectionId: string, chapterId: string, completed: boolean) => {
-    setUserProgress(prev => ({
-      ...prev,
-      sections: prev.sections.map(section => {
-        if (section.sectionId === sectionId) {
-          return {
-            ...section,
-            chapters: section.chapters.map(chapter => {
-              if (chapter.chapterId === chapterId) {
-                return { ...chapter, completed };
-              }
-              return chapter;
-            })
-          };
-        }
-        return section;
-      })
-    }));
-  };
-  */
-
-  if (isLoading){
-    return(
-      <ChaptersSidebarSkeleton />
-    );
+  if (isLoading || !courseData) {
+    return <ChaptersSidebarSkeleton />;
   }
-  if (!course || !userProgress) return <div>Error loading course content</div>;
 
-  // ... rest of the component code remains the same ...
-
-  const toggleSection = (sectionTitle: string) => {
-    setExpandedSections((prevSections) =>
-      prevSections.includes(sectionTitle)
-        ? prevSections.filter((title) => title !== sectionTitle)
-        : [...prevSections, sectionTitle]
+  const toggleModule = (moduleTitle: string) => {
+    setExpandedModules((prevModules) =>
+      prevModules.includes(moduleTitle)
+        ? prevModules.filter((title) => title !== moduleTitle)
+        : [...prevModules, moduleTitle]
     );
   };
 
-  const handleChapterClick = (sectionId: string, chapterId: string) => {
-    router.push(`/student/courses/${courseId}/chapters/${chapterId}`, {
+  const handleLessonClick = (moduleId: number, lessonId: number) => {
+    router.push(`/student/courses/${courseId}/chapters/${lessonId}`, {
       scroll: false,
     });
   };
@@ -87,71 +96,54 @@ const ChaptersSidebar = () => {
   return (
     <div ref={sidebarRef} className="chapters-sidebar">
       <div className="chapters-sidebar__header">
-        <h2 className="chapters-sidebar__title">{course.title}</h2>
+        <h2 className="chapters-sidebar__title">{courseData.title}</h2>
         <hr className="chapters-sidebar__divider" />
       </div>
-      {course.sections.map((section, index) => (
-        <Section
-          key={section.sectionId}
-          section={section}
+      {courseData.courseModules.map((module, index) => (
+        <CourseModule
+          key={module.id}
+          module={module}
           index={index}
-          sectionProgress={userProgress.sections.find(
-            (s) => s.sectionId === section.sectionId
-          )}
-          chapterId={chapterId as string}
+          lessonId={lessonId as string}
           courseId={courseId as string}
-          expandedSections={expandedSections}
-          toggleSection={toggleSection}
-          handleChapterClick={handleChapterClick}
-
-          /** 
-          updateChapterProgress={updateChapterProgress}
-          */
+          expandedModules={expandedModules}
+          toggleModule={toggleModule}
+          handleLessonClick={handleLessonClick}
         />
       ))}
     </div>
   );
 };
 
-const Section = ({
-  section,
+const CourseModule = ({
+  module,
   index,
-  sectionProgress,
-  chapterId,
+  lessonId,
   courseId,
-  expandedSections,
-  toggleSection,
-  handleChapterClick,
-  //updateChapterProgress,
+  expandedModules,
+  toggleModule,
+  handleLessonClick,
 }: {
-  section: any;
+  module: CourseModule;
   index: number;
-  sectionProgress: any;
-  chapterId: string;
+  lessonId: string;
   courseId: string;
-  expandedSections: string[];
-  toggleSection: (sectionTitle: string) => void;
-  handleChapterClick: (sectionId: string, chapterId: string) => void;
-  /**updateChapterProgress: (
-    sectionId: string,
-    chapterId: string,
-    completed: boolean
-  ) => void;*/
+  expandedModules: string[];
+  toggleModule: (moduleTitle: string) => void;
+  handleLessonClick: (moduleId: number, lessonId: number) => void;
 }) => {
-  const completedChapters =
-    sectionProgress?.chapters.filter((c: any) => c.completed).length || 0;
-  const totalChapters = section.chapters.length;
-  const isExpanded = expandedSections.includes(section.sectionTitle);
+  const totalLessons = module.lessons.length;
+  const isExpanded = expandedModules.includes(module.title);
 
   return (
     <div className="chapters-sidebar__section">
       <div
-        onClick={() => toggleSection(section.sectionTitle)}
+        onClick={() => toggleModule(module.title)}
         className="chapters-sidebar__section-header"
       >
         <div className="chapters-sidebar__section-title-wrapper">
           <p className="chapters-sidebar__section-number">
-            Section 0{index + 1}
+            Module {module.order}
           </p>
           {isExpanded ? (
             <ChevronUp className="chapters-sidebar__chevron" />
@@ -160,27 +152,24 @@ const Section = ({
           )}
         </div>
         <h3 className="chapters-sidebar__section-title">
-          {section.sectionTitle}
+          {module.title}
         </h3>
       </div>
       <hr className="chapters-sidebar__divider" />
 
       {isExpanded && (
         <div className="chapters-sidebar__section-content">
-          <ProgressVisuals
-            section={section}
-            sectionProgress={sectionProgress}
-            completedChapters={completedChapters}
-            totalChapters={totalChapters}
-          />
-          <ChaptersList
-            section={section}
-            sectionProgress={sectionProgress}
-            chapterId={chapterId}
-            courseId={courseId}
-            handleChapterClick={handleChapterClick}
-            //updateChapterProgress={updateChapterProgress}
-          />
+          <ul className="chapters-sidebar__chapters">
+            {module.lessons.map((lesson) => (
+              <LessonItem
+                key={lesson.id}
+                lesson={lesson}
+                moduleId={module.id}
+                currentLessonId={lessonId}
+                handleLessonClick={handleLessonClick}
+              />
+            ))}
+          </ul>
         </div>
       )}
       <hr className="chapters-sidebar__divider" />
@@ -188,168 +177,34 @@ const Section = ({
   );
 };
 
-const ProgressVisuals = ({
-  section,
-  sectionProgress,
-  completedChapters,
-  totalChapters,
+const LessonItem = ({
+  lesson,
+  moduleId,
+  currentLessonId,
+  handleLessonClick,
 }: {
-  section: any;
-  sectionProgress: any;
-  completedChapters: number;
-  totalChapters: number;
+  lesson: Lesson;
+  moduleId: number;
+  currentLessonId: string;
+  handleLessonClick: (moduleId: number, lessonId: number) => void;
 }) => {
-  return (
-    <>
-      <div className="chapters-sidebar__progress">
-        <div className="chapters-sidebar__progress-bars">
-          {section.chapters.map((chapter: any) => {
-            const isCompleted = sectionProgress?.chapters.find(
-              (c: any) => c.chapterId === chapter.chapterId
-            )?.completed;
-            return (
-              <div
-                key={chapter.chapterId}
-                className={cn(
-                  "chapters-sidebar__progress-bar",
-                  isCompleted && "chapters-sidebar__progress-bar--completed"
-                )}
-              ></div>
-            );
-          })}
-        </div>
-        <div className="chapters-sidebar__trophy">
-          <Trophy className="chapters-sidebar__trophy-icon" />
-        </div>
-      </div>
-      <p className="chapters-sidebar__progress-text">
-        {completedChapters}/{totalChapters} COMPLETED
-      </p>
-    </>
-  );
-};
-
-const ChaptersList = ({
-  section,
-  sectionProgress,
-  chapterId,
-  courseId,
-  handleChapterClick,
-  //updateChapterProgress,
-}: {
-  section: any;
-  sectionProgress: any;
-  chapterId: string;
-  courseId: string;
-  handleChapterClick: (sectionId: string, chapterId: string) => void;
-
-  /**updateChapterProgress: (
-    sectionId: string,
-    chapterId: string,
-    completed: boolean
-  ) => void;*/
-}) => {
-  return (
-    <ul className="chapters-sidebar__chapters">
-      {section.chapters.map((chapter: any, index: number) => (
-        <Chapter
-          key={chapter.chapterId}
-          chapter={chapter}
-          index={index}
-          sectionId={section.sectionId}
-          sectionProgress={sectionProgress}
-          chapterId={chapterId}
-          courseId={courseId}
-          handleChapterClick={handleChapterClick}
-
-          //updateChapterProgress={updateChapterProgress}
-        />
-      ))}
-    </ul>
-  );
-};
-
-const Chapter = ({
-  chapter,
-  index,
-  sectionId,
-  sectionProgress,
-  chapterId,
-  courseId,
-  handleChapterClick,
-  //updateChapterProgress,
-}: {
-  chapter: any;
-  index: number;
-  sectionId: string;
-  sectionProgress: any;
-  chapterId: string;
-  courseId: string;
-  handleChapterClick: (sectionId: string, chapterId: string) => void;
-  /**updateChapterProgress: (
-    sectionId: string,
-    chapterId: string,
-    completed: boolean
-  ) => void;*/
-}) => {
- /**const chapterProgress = sectionProgress?.chapters.find(
-    (c: any) => c.chapterId === chapter.chapterId
-  );
-  */
-  //const isCompleted = chapterProgress?.completed;
-  const isCurrentChapter = Boolean(chapterId) && String(chapterId) === String(chapter.chapterId);
-
-  /** 
-  const handleToggleComplete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-
-    //updateChapterProgress(sectionId, chapter.chapterId, !isCompleted);
-  };
-*/
-  console.log({
-    currentChapterId: chapterId,
-    thisChapterId: chapter.chapterId,
-    isCurrentChapter
-  });
+  const isCurrentLesson = Boolean(currentLessonId) && String(currentLessonId) === String(lesson.id);
 
   return (
     <li
       className={cn("chapters-sidebar__chapter", {
-        "chapters-sidebar__chapter--current": isCurrentChapter,
+        "chapters-sidebar__chapter--current": isCurrentLesson,
       })}
-      onClick={() => handleChapterClick(sectionId, chapter.chapterId)}
+      onClick={() => handleLessonClick(moduleId, lesson.id)}
     >
-
-      {/**isCompleted ? (
-        <div
-          className="chapters-sidebar__chapter-check"
-          onClick={handleToggleComplete}
-          title="Toggle completion status"
-        >
-          <CheckCircle className="chapters-sidebar__check-icon" />
-        </div>
-      ) : (
-        <div
-          className={cn("chapters-sidebar__chapter-number", {
-            "chapters-sidebar__chapter-number--current": isCurrentChapter,
-          })}
-        >
-          {index + 1}
-        </div>
-
-      )*/}
       <span
         className={cn("chapters-sidebar__chapter-title", {
-          //"chapters-sidebar__chapter-title--completed": isCompleted,
-          "chapters-sidebar__chapter-title--current": isCurrentChapter,
+          "chapters-sidebar__chapter-title--current": isCurrentLesson,
         })}
       >
-        {chapter.title}
+        {lesson.title}
       </span>
-      {chapter.type === "Text" && (
-        <FileText className="chapters-sidebar__text-icon" />
-      )}
+      <FileText className="chapters-sidebar__text-icon" />
     </li>
   );
 };

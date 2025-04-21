@@ -61,6 +61,10 @@ interface ApiCourse {
   difficulty: string;
   instructorId: number;
   courseModules: ApiCourseModule[];
+  instructor: {
+    id: number;
+    username: string;
+  }
 }
 
 interface ApiCourseModule {
@@ -103,8 +107,8 @@ const Search = () => {
     title: apiCourse.title,
     description: apiCourse.description || "",
     image: `http://localhost/${apiCourse.pathToImg}`,
-    teacherName: `Instructor ${apiCourse.instructorId}`,
-    teacherId: apiCourse.instructorId.toString(),
+    teacherName: apiCourse.instructor.username,
+    teacherId: apiCourse.instructor.id.toString(),
     category: "Programming",
     level: apiCourse.difficulty === "beginner" ? "Beginner" : "Advanced",
     status: apiCourse.publishedAt ? "Published" : "Draft",
