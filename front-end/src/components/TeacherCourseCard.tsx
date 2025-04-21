@@ -33,15 +33,11 @@ const TeacherCourseCard = ({
 
       <CardContent className="course-card-teacher__content">
         <div className="flex flex-col">
-          <CardTitle className="course-card-teacher__title">
+          <CardTitle className="course-card-teacher__title mb-5">
             {course.title}
           </CardTitle>
 
-          <CardDescription className="course-card-teacher__category">
-            {course.category}
-          </CardDescription>
-
-          <p className="text-sm mb-2">
+          <p className="text-sm mb-5">
             Status:{" "}
             <span
               className={cn(
