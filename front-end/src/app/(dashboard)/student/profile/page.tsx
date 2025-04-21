@@ -161,8 +161,10 @@ const Profile = () => {
         <CardContent className="p-6">
           <div className="flex items-center gap-6 mb-8">
             <Avatar className="h-24 w-24">
-              <AvatarImage src="/placeholder-avatar.jpg" />
-              <AvatarFallback>UN</AvatarFallback>
+              <AvatarImage/>
+              <AvatarFallback className="bg-secondary-700 rounded-lg text-3xl text-black">
+              {profileForm.getValues("lastName")?.[0]?.toUpperCase()}
+              </AvatarFallback>
             </Avatar>
           </div>
 

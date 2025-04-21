@@ -51,11 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setCourseId(null);
       }
     }, [isCoursePage, pathname]);
-  
-    if (isLoading) {
-      return <div>Loading...</div>; // Or your loading component
-    }
-    
+
   return (
     <StoreProvider>
     <SidebarProvider>
