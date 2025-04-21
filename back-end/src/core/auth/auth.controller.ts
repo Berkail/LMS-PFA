@@ -12,7 +12,10 @@ export class AuthController {
 
   @Post('signup/instructor')
   @ApiOperation({ summary: 'Sign up an instructor' })
-  @ApiResponse({ status: 201, description: 'Instructor signed up successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'Instructor signed up successfully',
+  })
   async signupInstructor(@Body() createInstructorDto: CreateInstructorDto) {
     const result = await this.authService.signupInstructor(createInstructorDto);
     return { message: 'Instructor signed up successfully', data: result };
@@ -33,7 +36,10 @@ export class AuthController {
     @Req() request: Request,
     @Body() credentials: LoginDto,
   ) {
-    const result = await this.authService.loginAsInstructor(request, credentials);
+    const result = await this.authService.loginAsInstructor(
+      request,
+      credentials,
+    );
     return { message: 'Login successful', data: result };
   }
 
@@ -48,7 +54,10 @@ export class AuthController {
   @Delete('logout')
   @ApiOperation({ summary: 'Logout the user' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
-  async logout(@Req() request: Request, @Res() response: Response) {
+  async logout(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     try {
       await this.authService.logout(request, response);
       return { message: 'Logout successful' };
