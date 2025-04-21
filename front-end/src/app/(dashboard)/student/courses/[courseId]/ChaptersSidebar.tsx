@@ -80,25 +80,7 @@ const ChaptersSidebar = () => {
     }, 1000);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const updateChapterProgress = (sectionId: string, chapterId: string, completed: boolean) => {
-    setUserProgress(prev => ({
-      ...prev,
-      sections: prev.sections.map(section => {
-        if (section.sectionId === sectionId) {
-          return {
-            ...section,
-            chapters: section.chapters.map(chapter => {
-              if (chapter.chapterId === chapterId) {
-                return { ...chapter, completed };
-              }
-              return chapter;
-            })
-          };
-        }
-        return section;
-      })
-    }));
-  };
+
 
   if (isLoading){
     return(
@@ -142,7 +124,6 @@ const ChaptersSidebar = () => {
           expandedSections={expandedSections}
           toggleSection={toggleSection}
           handleChapterClick={handleChapterClick}
-          updateChapterProgress={updateChapterProgress}
         />
       ))}
     </div>
@@ -158,7 +139,6 @@ const Section = ({
   expandedSections,
   toggleSection,
   handleChapterClick,
-  updateChapterProgress,
 }: {
   section: any;
   index: number;
@@ -168,11 +148,6 @@ const Section = ({
   expandedSections: string[];
   toggleSection: (sectionTitle: string) => void;
   handleChapterClick: (sectionId: string, chapterId: string) => void;
-  updateChapterProgress: (
-    sectionId: string,
-    chapterId: string,
-    completed: boolean
-  ) => void;
 }) => {
   const completedChapters =
     sectionProgress?.chapters.filter((c: any) => c.completed).length || 0;
@@ -215,7 +190,6 @@ const Section = ({
             chapterId={chapterId}
             courseId={courseId}
             handleChapterClick={handleChapterClick}
-            updateChapterProgress={updateChapterProgress}
           />
         </div>
       )}
@@ -271,18 +245,13 @@ const ChaptersList = ({
   chapterId,
   courseId,
   handleChapterClick,
-  updateChapterProgress,
 }: {
   section: any;
   sectionProgress: any;
   chapterId: string;
   courseId: string;
   handleChapterClick: (sectionId: string, chapterId: string) => void;
-  updateChapterProgress: (
-    sectionId: string,
-    chapterId: string,
-    completed: boolean
-  ) => void;
+  
 }) => {
   return (
     <ul className="chapters-sidebar__chapters">
@@ -296,7 +265,6 @@ const ChaptersList = ({
           chapterId={chapterId}
           courseId={courseId}
           handleChapterClick={handleChapterClick}
-          updateChapterProgress={updateChapterProgress}
         />
       ))}
     </ul>
@@ -311,7 +279,6 @@ const Chapter = ({
   chapterId,
   courseId,
   handleChapterClick,
-  updateChapterProgress,
 }: {
   chapter: any;
   index: number;
@@ -320,11 +287,7 @@ const Chapter = ({
   chapterId: string;
   courseId: string;
   handleChapterClick: (sectionId: string, chapterId: string) => void;
-  updateChapterProgress: (
-    sectionId: string,
-    chapterId: string,
-    completed: boolean
-  ) => void;
+ 
 }) => {
   const chapterProgress = sectionProgress?.chapters.find(
     (c: any) => c.chapterId === chapter.chapterId
@@ -335,7 +298,6 @@ const Chapter = ({
   const handleToggleComplete = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    updateChapterProgress(sectionId, chapter.chapterId, !isCompleted);
   };
 
   return (
@@ -345,15 +307,7 @@ const Chapter = ({
       })}
       onClick={() => handleChapterClick(sectionId, chapter.chapterId)}
     >
-      {isCompleted ? (
-        <div
-          className="chapters-sidebar__chapter-check"
-          onClick={handleToggleComplete}
-          title="Toggle completion status"
-        >
-          <CheckCircle className="chapters-sidebar__check-icon" />
-        </div>
-      ) : (
+      
         <div
           className={cn("chapters-sidebar__chapter-number", {
             "chapters-sidebar__chapter-number--current": isCurrentChapter,
@@ -361,10 +315,9 @@ const Chapter = ({
         >
           {index + 1}
         </div>
-      )}
+      
       <span
         className={cn("chapters-sidebar__chapter-title", {
-          "chapters-sidebar__chapter-title--completed": isCompleted,
           "chapters-sidebar__chapter-title--current": isCurrentChapter,
         })}
       >

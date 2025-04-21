@@ -26,10 +26,6 @@ const NonDashboardNavBar = () => {
            </div>
         </div>
         <div className="nondashboard-navbar__actions">
-            <button className="nondashboard-navbar__notification-button">
-                <span className="nondashboard-navbar__notification-indicator"></span>
-                <Bell className="nondashboard-navbar__notification-icon"></Bell>
-            </button>
 
                 <Link href="/signin" className="nondashboard-navbar__auth-button--login">Login</Link>
                 <Link href="/signup" className="nondashboard-navbar__auth-button--signup">Signup</Link>
