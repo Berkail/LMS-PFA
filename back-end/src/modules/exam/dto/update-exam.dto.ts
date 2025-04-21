@@ -5,9 +5,7 @@ import { Express } from 'express';
 
 export class UpdateExamDto extends PartialType(CreateExamDto) {
 
-    @IsNotEmpty()
-    @IsInt()
-    id: number;
+    
 
     @IsOptional()
     @IsString()

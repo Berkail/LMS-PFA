@@ -9,11 +9,11 @@ import { LearnerModule } from './modules/learner/learner.module';
 import { InstructorModule } from './modules/instructor/instructor.module';
 import { AuthModule } from './core/auth/auth.module';
 import { CourseModule } from './modules/course/course.module';
+import { ExamsModule } from './modules/exam/exam.module';
 import { FileUploadModule } from './core/file-upload/file-upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { LessonModule } from './modules/lesson/lesson.module';
-import { ExamsModule } from './modules/exam/exam.module';
 
 @Module({
   imports: [
@@ -32,9 +32,9 @@ import { ExamsModule } from './modules/exam/exam.module';
     LearnerModule,
     InstructorModule,
     CourseModule,
+    ExamsModule,
     FileUploadModule,
     LessonModule,
-    ExamsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

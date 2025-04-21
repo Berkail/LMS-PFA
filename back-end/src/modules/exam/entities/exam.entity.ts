@@ -37,6 +37,9 @@ export class Exam {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @Column({ default: false })
+    isPublished: boolean;
+
     @Column()
     instructorId: number;
 
