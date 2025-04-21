@@ -24,6 +24,7 @@ import { MAX_IMG_SIZE } from 'src/core/common/const/lms.const';
 import { CourseDifficulty } from './enums/course-difficulty.enum';
 import { CreateCourseModuleDto } from '../course-module/dto/create-course-module.dto';
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { Instructor } from '../instructor/entities/instructor.entity';
 
 @ApiTags('courses')
 @UseGuards(AuthGuard)
@@ -68,8 +69,8 @@ export class CourseController {
   @ApiOperation({ summary: 'Create a module inside a course' })
   @ApiParam({ name: 'courseId', type: Number })
   async createCourseModule(
-    @CurrentUser() instructor: UserSessionDto,
     @Param('courseId') courseId: number,
+    @CurrentUser() instructor: UserSessionDto,
     @Body() createCourseModuleDto: CreateCourseModuleDto,
   ) {
     return await this.courseService.createCourseModule(courseId, instructor.id, createCourseModuleDto);
@@ -101,8 +102,8 @@ export class CourseController {
   @ApiOperation({ summary: 'Get enrollments for a course' })
   @ApiParam({ name: 'courseId', type: Number })
   async findCourseEnrollments(
-    @CurrentUser() instructor: UserSessionDto,
     @Param('courseId') courseId: string,
+    @CurrentUser() instructor: UserSessionDto,
     @Paginate() query: PaginateQuery,
   ) {
     return this.courseService.findCourseEnrollments(+courseId, instructor.id, query);
@@ -138,11 +139,11 @@ export class CourseController {
   @ApiOperation({ summary: 'Publish a course' })
   @ApiParam({ name: 'courseId', type: Number })
   async publish(
-    @CurrentUser() instructor: UserSessionDto,
     @Param('courseId') courseId: string,
+    @CurrentUser() instructor: UserSessionDto,
   ) {
     const publishTime: Date = new Date();
-    return await this.courseService.publish(instructor.id, +courseId, publishTime);
+    return await this.courseService.publish(+courseId, instructor.id, publishTime);
   }
 
   @UseGuards(RolesGuard)
