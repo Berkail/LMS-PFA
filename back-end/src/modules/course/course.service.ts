@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   FilterOperator,
   paginate,
@@ -81,6 +81,20 @@ export class CourseService extends CourseElementService<Course> {
   // 🔵 READ
   // -------------------------------------------------------------------
   async findAllCourses(query: PaginateQuery): Promise<Paginated<Course>> {
+    const queryBuilder = this.courseRepo
+      .createQueryBuilder('course')
+      .leftJoin('course.courseModules', 'courseModule')
+      .leftJoin('courseModule.lessons', 'lesson')
+      .leftJoin('course.instructor', 'instructor')
+      .select('course')
+      .addSelect([
+        'courseModule.id',
+        'courseModule.title',
+        'courseModule.order',
+      ])
+      .addSelect(['lesson.id', 'lesson.title'])
+      .addSelect(['instructor.id', 'instructor.username']);
+
     const config: PaginateConfig<Course> = {
       sortableColumns: ['id', 'createdAt', 'publishedAt'],
       searchableColumns: ['title', 'difficulty'],
@@ -90,21 +104,28 @@ export class CourseService extends CourseElementService<Course> {
       withDeleted: false,
       maxLimit: 25,
       defaultLimit: 10,
-      relations: { courseModules: { lessons: true } },
     };
 
-    return paginate(query, this.courseRepo, config);
+    return paginate(query, queryBuilder, config);
   }
 
   async findCourseById(courseId: number): Promise<Course> {
-    try {
-      return await super.findById(courseId);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(`Course with id ${courseId} not found`);
-      }
-      throw error;
+    const course = await this.courseRepo
+      .createQueryBuilder('course')
+      .leftJoin('course.courseModules', 'courseModule')
+      .leftJoin('courseModule.lessons', 'lesson')
+      .leftJoin('course.instructor', 'instructor')
+      .select('course')
+      .addSelect('courseModule')
+      .addSelect('lesson')
+      .addSelect(['instructor.id', 'instructor.username'])
+      .where('course.id = :courseId', { courseId })
+      .getOne();
+
+    if (!course) {
+      throw new NotFoundException(`course with ID ${courseId} not found`);
     }
+    return course;
   }
 
   async findCourseEnrollments(
@@ -227,43 +248,43 @@ export class CourseService extends CourseElementService<Course> {
     return course;
   }
 
-  async publish(
-    instructorId: number,
-    courseId: number,
-    publishTime: Date,
-  ) {
+  async publish(courseId: number, instructorId: number, publishTime: Date) {
     const course = await this.validateInstructorCourseOwnership(
-      instructorId,
       courseId,
+      instructorId,
     );
-  
+
     await this.publishByObj(course, publishTime);
-  
-    return { message: 'Course, its modules, and their lessons published successfully' };
+
+    return {
+      message: 'Course, its modules, and their lessons published successfully',
+    };
   }
-  
+
   async publishByObj(course: Course, publishTime: Date) {
     const courseWithRelations = await this.courseRepo.findOne({
       where: { id: course.id },
       relations: ['courseModules'],
     });
-  
+
     if (!courseWithRelations) {
       throw new NotFoundException('Course not found.');
     }
-  
+
     if (courseWithRelations.publishedAt) {
       throw new ConflictException('This course has already been published.');
     }
-  
+
     // Publish the course
     courseWithRelations.publishedAt = publishTime;
     await this.courseRepo.save(courseWithRelations);
-  
+
     // Publish all course modules and their lessons
     for (const courseModule of courseWithRelations.courseModules) {
       await this.courseModuleService.publishByObj(courseModule, publishTime);
     }
   }
-  
+}
+function getOne() {
+  throw new Error('Function not implemented.');
 }
