@@ -9,34 +9,64 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ProfileSkeleton } from "@/components/skeletons/ProfileSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/router";
 
-const dummyAssignment = {
-    assignmentId: "assignment1",
-    title: "React Fundamentals Quiz",
-    courseTitle: "Introduction to React",
-    dueDate: "2025-04-10",
-    teacherName: "John Doe",
-    teacherTitle: "Senior React Developer",
-    pdfUrl: "/sample.pdf", // Place your PDF in the public folder
-    status: "pending", // pending, submitted, graded
-    maxPoints: 100,
-    instructions: "Please complete all questions. You have 60 minutes to finish this assignment."
-  };
 
-  const Assignment = () => {
-    const params = useParams();
-    const { assignmentId } = params;
-    
-    const [isLoading, setIsLoading] = useState(true);
-    const [assignment, setAssignment] = useState(dummyAssignment);
+interface Assignment {
+  id: number;
+  title: string;
+  description: string;
+  pdfPath: string;
+  pdfName: string;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  instructorId: number;
+}
+
+const Assignment = () => {
+  const params = useParams();
+  const assignmentId = params?.assignmentId;
   
-    useEffect(() => {
-      // Simulate loading
-      setTimeout(() => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [assignment, setAssignment] = useState<Assignment>();
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      if (!assignmentId) return;
+  
+      try {
+        const response = await fetch(`http://localhost/api/exams/${assignmentId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch assignment');
+        }
+        const data = await response.json();
+        console.log('API Response:', data); // Debug log
+  
+        // Check if data exists and handle different response structures
+        const assignment = data.data || data;
+        if (!assignment) {
+          throw new Error('No assignment found');
+        }
+  
+        // If assignment is an array, take first item, otherwise use as is
+        setAssignment(Array.isArray(assignment) ? assignment[0] : assignment);
         setIsLoading(false);
-      }, 1000);
-    }, []);
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+        setError(error instanceof Error ? error.message : 'Failed to fetch');
+        setIsLoading(false);
+      }
+    };
   
+    fetchAssignments();
+  }, [assignmentId]);
+  
+  // ...rest of the component remains the same
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
     if (isLoading){
       return (
         <div>
@@ -51,22 +81,22 @@ const dummyAssignment = {
         <div className="assignment__container">
           <div className="assignment__breadcrumb">
             <div className="assignment__path">
-              {assignment.courseTitle} /{" "}
+              {assignment?.title} /{" "}
               <span className="assignment__current">
-                {assignment.title}
+              {assignment?.title}
               </span>
             </div>
-            <h2 className="assignment__title">{assignment.title}</h2>
+            <h2 className="assignment__title">{assignment?.title}</h2>
             <div className="assignment__header">
               <div className="assignment__instructor">
                 <Avatar className="assignment__avatar">
-                  <AvatarImage alt={assignment.teacherName} />
+                  <AvatarImage alt="Instructor" />
                   <AvatarFallback className="assignment__avatar-fallback">
-                    {assignment.teacherName[0]}
+                    {assignment?.id}
                   </AvatarFallback>
                 </Avatar>
                 <span className="assignment__instructor-name">
-                  {assignment.teacherName}
+                Instructor
                 </span>
               </div>
             </div>
@@ -76,24 +106,21 @@ const dummyAssignment = {
             <CardHeader className="">
                 <div className="flex justify-between">
                     <div className="">
-              <CardTitle>Assignment Details</CardTitle>
+              <CardTitle className="mb-2">Assignment Details</CardTitle>
               <CardDescription className="text-primary-200">
-                Due Date: {assignment.dueDate} | Max Points: {assignment.maxPoints}
+                Created At: {assignment?.createdAt}
               </CardDescription>
               </div>
-              <Button className="bg-primary text-white-50 hover:bg-white-50 hover:text-gray-800" onClick={() => alert("Download PDF")}>
-                Mark as completed
-                </Button>
                 </div>
             </CardHeader>
             <CardContent>
               <div className="assignment__instructions mb-5">
-                <h4>Instructions:</h4>
-                <p>{assignment.instructions}</p>
+                <h4>Description:</h4>
+                <p>{assignment?.description}</p>
               </div>
               <div className="assignment__pdf">
                 <iframe
-                  src={assignment.pdfUrl}
+                  src={`http://localhost/api/${assignment?.pdfPath}`}
                   className="w-full h-[800px]"
                   title="Assignment PDF"
                 />
@@ -127,10 +154,11 @@ const dummyAssignment = {
                     View feedback after submission
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent>{/* Add feedback display component here 
                   {assignment.status === 'pending' && (
                     <p>No feedback available yet</p>
                   )}
+                    */}
                 </CardContent>
               </Card>
             </TabsContent>

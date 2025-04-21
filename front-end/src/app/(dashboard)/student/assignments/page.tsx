@@ -8,76 +8,68 @@ import { useState, useMemo, useEffect } from "react";
 import Loading from "@/components/Loading";
 import { AssignmentSkeleton } from "@/components/skeletons/AssignmentSkeleton";
 
-const dummyAssignments = [
-  {
-    assignmentId: "assignment1",
-    title: "React Fundamentals Quiz",
-    courseTitle: "Introduction to React",
-    description: "Complete the quiz about React basics",
-    dueDate: "2025-04-10",
-    teacherName: "John Doe",
-    teacherTitle: "Senior React Developer",
-    pdfUrl: "/assignments/react-quiz.pdf",
-    status: "pending",
-    maxPoints: 100,
-    instructions: "Please complete all questions. You have 60 minutes to finish this assignment."
-  },
-  {
-    assignmentId: "assignment2",
-    title: "JavaScript Project",
-    courseTitle: "Advanced JavaScript",
-    description: "Build a simple JavaScript application",
-    dueDate: "2025-04-15",
-    teacherName: "Jane Smith",
-    teacherTitle: "JavaScript Expert",
-    pdfUrl: "/assignments/javascript-project.pdf",
-    status: "pending",
-    maxPoints: 100,
-    instructions: "Build a JavaScript application following the provided specifications."
-  },
-];
+interface Assignment {
+  id: number;
+  title: string;
+  description: string;
+  pdfPath: string;
+  pdfName: string;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  instructorId: number;
+}
 
 const Assignments = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+
+
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const response = await fetch('http://localhost/api/exams');
+        const data = await response.json();
+        setAssignments(data.data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, []);
 
   const filteredAssignments = useMemo(() => {
-    return dummyAssignments.filter((assignment) => {
+    return assignments.filter((assignment) => {
       const matchesSearch = assignment.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       return matchesSearch;
     });
-  }, [searchTerm]);
+  }, [searchTerm, assignments]);
 
-  const handleGoToAssignment = (assignment: any) => {
-    router.push(`/student/assignments/${assignment.assignmentId}`);
+  const handleGoToAssignment = (assignment: Assignment) => {
+    router.push(`/student/assignments/${assignment.id}`);
   };
 
-  useEffect(() => {
-    
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000); // Increased to 3.5 seconds
-  
-    return () => clearTimeout(timer);
-  }, []);
-
-    if (isLoading) {
-      return (
+  if (isLoading) {
+    return (
       <div className="user-assignments">
-      <Header 
-        title="Assignments to take" 
-        subtitle="View your pending assignments" 
-      />
-      <div className="user-courses__grid">
-          {filteredAssignments.map((assignment) => (
-            <AssignmentSkeleton key={assignment.assignmentId}/>
+        <Header 
+          title="Assignments to take" 
+          subtitle="View your pending assignments" 
+        />
+        <div className="user-courses__grid">
+          {[1, 2, 3].map((index) => (
+            <AssignmentSkeleton key={index}/>
           ))}
+        </div>
       </div>
-    </div>
-      );
+    );
     }
 
   return (
@@ -87,9 +79,9 @@ const Assignments = () => {
         subtitle="View your pending assignments" 
       />
       <div className="user-courses__grid">
-        {filteredAssignments.map((assignment) => (
+        {filteredAssignments.map((assignment:Assignment) => (
           <AssignmentCard
-            key={assignment.assignmentId}
+            key={assignment.id}
             assignment={assignment}
             onGoToCourse={() => handleGoToAssignment(assignment)}
           />

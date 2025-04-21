@@ -84,14 +84,14 @@ function SignUpComponent({
       const data = await response.json();
     
       if (!response.ok) {
-        setError(data.message || 'Failed to create account');
+        setError('Failed to create account');
         setIsLoading(false);
         return;
       }
     
       window.location.href = signInUrl;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
+      setError('Failed to create account');
       setIsLoading(false);
     }
   };
@@ -133,14 +133,14 @@ function SignUpComponent({
       const data = await response.json();
     
       if (!response.ok) {
-        setError(data.message || 'Failed to create account');
+        setError('Failed to create account');
         setIsLoading(false);
         return;
       }
     
       window.location.href = signInUrl;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
+      setError('Failed to create account');
       setIsLoading(false);
     }
   };

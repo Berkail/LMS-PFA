@@ -4,16 +4,22 @@ import {
     CardContent,
     CardTitle,
     CardFooter,
+    CardDescription,
   } from "@/components/ui/card";
   import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
    
   type AssignmentCardProps = {
     assignment: {
-      assignmentId: string;
+      id: number;
       title: string;
-      description?: string;
-      teacherName: string;
+      description: string;
+      pdfPath: string;
+      pdfName: string;
+      publishedAt: string | null;
+      createdAt: string;
+      updatedAt: string;
+      instructorId: number;
     };
     onGoToCourse: (assignment: any) => void;
   };
@@ -21,31 +27,32 @@ import { Button } from "./ui/button";
   
   const AssignmentCard = ({ assignment , onGoToCourse }: AssignmentCardProps) => {
     return (
-      <Card className="assignment-card group" onClick={() => onGoToCourse(assignment)}>
+      <Card className="assignment-card group">
         <CardHeader className="assignment-card__header">
         <CardTitle className="assignment-card__title">
-            {assignment.title}: {assignment.description}
+            {assignment.title}
           </CardTitle>
+          <CardDescription className="assignment-card__description">
+          {assignment.description}
+          </CardDescription>
         </CardHeader>
         <CardContent className="assignment-card__content">
           
   
+          <CardFooter className="assignment-card__footer flex justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="w-6 h-6">
-              <AvatarImage alt={assignment.teacherName} />
+              <AvatarImage alt={"Instructor Image"} />
               <AvatarFallback className="bg-secondary-700 text-black">
-                {assignment.teacherName[0]}
+                I
               </AvatarFallback>
             </Avatar>
   
             <p className="text-sm text-customgreys-dirtyGrey">
-              {assignment.teacherName}
+            Intructor
             </p>
           </div>
-  
-          <CardFooter className="assignment-card__footer flex justify-between">
-            <div className="course-card__category">Pending</div>
-            <Button className="hover:bg-white-50 hover:text-gray-800">Take assignment</Button>
+            <Button className="hover:bg-white-50 hover:text-gray-800" onClick={() => onGoToCourse(assignment)}>Take assignment</Button>
           </CardFooter>
 
         </CardContent>

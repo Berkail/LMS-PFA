@@ -8,6 +8,15 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
 import { Progress } from "./ui/progress";
+
+interface CourseModule {
+  id: number;
+  title: string;
+  lessons: {
+    id: number;
+    title: string;
+  }[];
+}
  
 type CourseCardProps = {
   course: {
@@ -17,15 +26,26 @@ type CourseCardProps = {
     image?: string;
     teacherName: string;
     category: string;
-    progress: number;
+    courseModules?: CourseModule[];
   };
-  onGoToCourse: (course: any) => void;
+  onGoToCourse: (course: {
+    id: number;
+    title: string;
+    courseModules?: CourseModule[];
+  }) => void;
 };
 
+const CourseCard = ({ course, onGoToCourse }: CourseCardProps) => {
+  const handleClick = () => {
+    onGoToCourse({
+      id: parseInt(course.courseId),
+      title: course.title,
+      courseModules: course.courseModules
+    });
+  };
 
-const CourseCard = ({ course , onGoToCourse }: CourseCardProps) => {
   return (
-    <Card className="course-card group" onClick={() => onGoToCourse(course)}>
+    <Card className="course-card group" onClick={handleClick}>
       <CardHeader className="course-card__header">
         <Image
           src={course.image || "/placeholder.png"}
@@ -38,27 +58,27 @@ const CourseCard = ({ course , onGoToCourse }: CourseCardProps) => {
       </CardHeader>
       <CardContent className="course-card__content">
         <CardTitle className="course-card__title">
-          {course.title}: {course.description}
+          {course.title}
+          {course.description && (
+            <span className="text-sm text-muted-foreground block mt-2">
+              {course.description}
+            </span>
+          )}
         </CardTitle>
 
-        <div>
-          <p className="text-white-50 mb-2">Progress</p>
-        <Progress value={course.progress} color="bg-secondary-700" className="w-[100%] " />
-        </div>
         <CardFooter className="course-card__footer">
           <div className="course-card__category">{course.category}</div>
           <div className="flex items-center gap-2">
-          <Avatar className="w-6 h-6">
-            <AvatarImage alt={course.teacherName} />
-            <AvatarFallback className="bg-secondary-700 text-black">
-              {course.teacherName[0]}
-            </AvatarFallback>
-          </Avatar>
-
-          <p className="text-sm text-customgreys-dirtyGrey">
-            {course.teacherName}
-          </p>
-        </div>
+            <Avatar className="w-6 h-6">
+              <AvatarImage alt={course.teacherName} />
+              <AvatarFallback className="bg-secondary-700 text-black">
+                {course.teacherName[0]}
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-sm text-customgreys-dirtyGrey">
+              {course.teacherName}
+            </p>
+          </div>
         </CardFooter>
       </CardContent>
     </Card>

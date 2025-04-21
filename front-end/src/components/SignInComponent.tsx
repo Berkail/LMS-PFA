@@ -60,7 +60,7 @@ function SignInComponent({
       const data = await response.json();
     
       if (!response.ok) {
-        setError(data.message || 'Login failed');
+        setError('Login failed');
         setIsLoading(false);
         return;
       }
@@ -71,7 +71,7 @@ function SignInComponent({
         window.location.href = '/teacher/profile';
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError('Login failed');
       setIsLoading(false);
     }
   };
