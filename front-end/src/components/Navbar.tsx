@@ -12,7 +12,7 @@ import { usePathname } from "next/navigation"
 
 const Navbar = ({ isCoursePage }: { isCoursePage: boolean }) => {
     const pathname = usePathname()
-    const isSearchPage = pathname === '/student/search'
+    const isSearchPage = pathname === '/student/search' 
   return (
     <nav className="dashboard-navbar">
         <div className="dashboard-navbar__container">

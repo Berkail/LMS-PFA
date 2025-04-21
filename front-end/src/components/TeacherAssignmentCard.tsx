@@ -7,6 +7,7 @@ import {
   } from "@/components/ui/card";
   import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
+import { Pencil, Trash2 } from "lucide-react";
    
   type AssignmentCardProps = {
     assignment: {
@@ -19,7 +20,7 @@ import { Button } from "./ui/button";
   };
   
   
-  const AssignmentCard = ({ assignment , onGoToCourse }: AssignmentCardProps) => {
+  const TeacherAssignmentCard = ({ assignment , onGoToCourse }: AssignmentCardProps) => {
     return (
       <Card className="assignment-card group" onClick={() => onGoToCourse(assignment)}>
         <CardHeader className="assignment-card__header">
@@ -30,7 +31,6 @@ import { Button } from "./ui/button";
         <CardContent className="assignment-card__content">
           
   
-          <CardFooter className="assignment-card__footer flex justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="w-6 h-6">
               <AvatarImage alt={assignment.teacherName} />
@@ -43,7 +43,26 @@ import { Button } from "./ui/button";
               {assignment.teacherName}
             </p>
           </div>
-            <Button className="hover:bg-white-50 hover:text-gray-800">Take assignment</Button>
+  
+          <CardFooter className="assignment-card__footer flex justify-between">
+          <div className="flex gap-3">
+              <div>
+                <Button
+                  className="course-card-teacher__edit-button"
+                >
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+              </div>
+              <div>
+                <Button
+                  className="course-card-teacher__delete-button"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
+            </div>
           </CardFooter>
 
         </CardContent>
@@ -51,4 +70,4 @@ import { Button } from "./ui/button";
     );
   };
   
-  export default AssignmentCard;
+  export default TeacherAssignmentCard;

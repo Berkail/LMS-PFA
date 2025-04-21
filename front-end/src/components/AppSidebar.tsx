@@ -32,10 +32,19 @@ const AppSidebar = () => {
         teacher: [
             { icon: BookOpen, label: "Courses", href: '/teacher/courses' },
             { icon: ClipboardPenLine, label: "Assignments", href: '/teacher/assignments' },
-            { icon: ChartColumn, label: "Profile", href: '/teacher/progress' },
-            { icon: Settings, label: "Settings", href: '/teacher/settings' },
         ]
     };
+
+    const userLinks = {
+      student: {
+          profile: '/student/profile',
+          notifications: '/student/notification-settings',
+      },
+      teacher: {
+          profile: '/teacher/profile',
+          notifications: '/teacher/notification-settings',
+      }
+  };
 
     const currentNavLinks = navLinks[userType];
 
@@ -109,10 +118,7 @@ const AppSidebar = () => {
               email: 'taha@gmail.com',
               avatar: '/profile-pic.png',
             }}
-            userLinks={{
-              profile: '/student/profile',
-              notifications: '/student/notification-settings',
-            }}
+            userLinks={userLinks[userType]}
           />
         </SidebarFooter>
       </Sidebar>

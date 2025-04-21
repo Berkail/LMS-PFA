@@ -6,16 +6,15 @@ import Header from "@/components/Header";
 import React, { useState, useMemo, useEffect } from "react";
 import CourseCardSearch from "@/components/CourseCardSearch";
 import SelectedCourse from "./SelectedCourse";
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
-import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { CourseSkeleton } from "@/components/skeletons/CourseSkeleton";
 
-interface SelectedCourseProps {
-  course: Course | null;  // Changed this line to allow null
-  handleEnrollNow: (courseId: string) => void;
-}
-
-// Define Course type
 interface Course {
   courseId: string;
   title: string;
@@ -37,64 +36,115 @@ interface Course {
   }[];
 }
 
-const dummyCourses: Course[] = [
-  {
-    courseId: "course1",
-    title: "Introduction to React",
-    description: "Learn the basics of React",
-    image: "/placeholder.png",
-    teacherName: "John Doe",
-    teacherId: "teacher1",
-    category: "Programming",
-    level: "Beginner" as "Beginner",
-    status: "Published" as "Published",
-    sections: [
-      {
-        sectionId: "section1",
-        sectionTitle: "Getting Started",
-        chapters: [
-          { chapterId: "chapter1", title: "Introduction to React", type: "Text" },
-          { chapterId: "chapter2", title: "Setting Up Environment", type: "Text" }
-        ]
-      },
-      {
-        sectionId: "section2",
-        sectionTitle: "React Fundamentals",
-        chapters: [
-          { chapterId: "chapter3", title: "Components", type: "Text" },
-          { chapterId: "chapter4", title: "Props & State", type: "Text" }
-        ]
-      }
-    ]
-  },
-  {
-    courseId: "course2",
-    title: "Advanced JavaScript",
-    description: "Master JavaScript concepts",
-    image: "/placeholder.png",
-    teacherName: "Jane Smith",
-    teacherId: "teacher2",
-    category: "Programming",
-    level: "Advanced" as "Advanced",
-    status: "Draft" as "Draft",
-  },
-];
+interface CourseResponse {
+  data: ApiCourse[];
+  meta: {
+    itemsPerPage: number;
+    sortBy: [string, string][];
+  };
+  links: {
+    previous: string | null;
+    current: string;
+    next: string | null;
+  };
+}
+
+interface ApiCourse {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  description: string | null;
+  pathToImg: string;
+  difficulty: string;
+  instructorId: number;
+  courseModules: ApiCourseModule[];
+}
+
+interface ApiCourseModule {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  order: number;
+  courseId: number;
+  lessons: ApiLesson[];
+}
+
+interface ApiLesson {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  pathToUrlVid: string;
+  courseModuleId: number;
+}
 
 const Search = () => {
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get("id");
   
+  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
 
+  const transformApiCourse = (apiCourse: ApiCourse): Course => ({
+    courseId: apiCourse.id.toString(),
+    title: apiCourse.title,
+    description: apiCourse.description || "",
+    image: `http://localhost/${apiCourse.pathToImg}`,
+    teacherName: `Instructor ${apiCourse.instructorId}`,
+    teacherId: apiCourse.instructorId.toString(),
+    category: "Programming",
+    level: apiCourse.difficulty === "beginner" ? "Beginner" : "Advanced",
+    status: apiCourse.publishedAt ? "Published" : "Draft",
+    sections: apiCourse.courseModules.map(module => ({
+      sectionId: module.id.toString(),
+      sectionTitle: module.title,
+      chapters: module.lessons.map(lesson => ({
+        chapterId: lesson.id.toString(),
+        title: lesson.title,
+        type: "Video"
+      }))
+    }))
+  });
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch('http://localhost/api/courses', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch courses');
+        }
+
+        const courseData: CourseResponse = await response.json();
+        const transformedCourses = courseData.data.map(transformApiCourse);
+        setCourses(transformedCourses);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
   const filteredCourses = useMemo(() => {
-    return dummyCourses.filter((course) => {
+    return courses.filter((course) => {
       const matchesSearch = course.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
@@ -102,65 +152,42 @@ const Search = () => {
         selectedCategory === "all" || course.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
-
-
-  const handleCourseSelect = (course: Course) => {
-    setIsDialogOpen(true);
-    setSelectedCourse(course);
-    router.push(`/student/search?id=${course.courseId}`);
-  };
-
-  const handleEnrollNow = (courseId: string) => {
-    router.push(`/signup`);
-  };
-
+  }, [courses, searchTerm, selectedCategory]);
 
   useEffect(() => {
-    try {
-      if (id) {
-        const course = dummyCourses.find((course) => course.courseId === id);
-        setSelectedCourse(course || dummyCourses[0]);
-      } else {
-        setSelectedCourse(dummyCourses[0]);
-      }
-    } catch (error) {
-      console.error("Error setting selected course:", error);
+    if (id && courses.length > 0) {
+      const course = courses.find((course) => course.courseId === id);
+      setSelectedCourse(course || courses[0]);
     }
-    // Add a longer delay before setting isLoading to false
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000); // Increased to 3.5 seconds
-  
-    return () => clearTimeout(timer);
-  }, [id]);
+  }, [id, courses]);
 
-    if (isLoading) {
-      return (
-        <div className="user-courses">
-          <Header 
-            title="Search for courses" 
-            subtitle="find new courses to gain more skills" 
-          />
-          <Toolbar
-            onSearch={setSearchTerm}
-            onCategoryChange={setSelectedCategory}
-          />
-          <h2>Loading courses...</h2>
-          <div className="user-courses__grid">
-            {filteredCourses.map((course) => (
-              <CourseSkeleton key={course.courseId} />
-            ))}
-          </div>
-        </div>
-      );
+  const handleCourseSelect = (course: Course) => {
+    setSelectedCourse(course);
+    setIsDialogOpen(true);
+  };
+
+  const handleEnrollNow = async (courseId: string) => {
+    try {
+      const response = await fetch(`http://localhost/api/courses/${courseId}/enrollments`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to enroll in course');
+      }
+  
+      router.push(`/student/courses/${courseId}`);
+    } catch (error) {
+      console.error('Error enrolling in course:', error);
     }
+  };
 
   return (
     <div className="user-courses">
       <Header 
         title="Search for courses" 
-        subtitle="find new courses to gain more skills" 
+        subtitle="Find new courses to gain more skills" 
       />
       <Toolbar
         onSearch={setSearchTerm}
@@ -168,30 +195,35 @@ const Search = () => {
       />
       <h2>{filteredCourses.length} available courses</h2>
       <div className="user-courses__grid">
-        {filteredCourses.map((course) => (
-          <CourseCardSearch
-            key={course.courseId}
-            course={course}
-            isSelected={selectedCourse?.courseId === course.courseId}
-            onGoToCourse={() => handleCourseSelect(course)}
-          />
-        ))}
+        {isLoading ? (
+          Array(6).fill(0).map((_, index) => (
+            <CourseSkeleton key={index} />
+          ))
+        ) : filteredCourses.length === 0 ? (
+          <p className="text-muted-foreground">No courses found</p>
+        ) : (
+          filteredCourses.map((course) => (
+            <CourseCardSearch
+              key={course.courseId}
+              course={course}
+              isSelected={selectedCourse?.courseId === course.courseId}
+              onGoToCourse={() => handleCourseSelect(course)}
+            />
+          ))
+        )}
       </div>
-      
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-
-        <DialogTitle></DialogTitle>
-        <DialogDescription></DialogDescription>
-  <DialogContent className="search__selected-course">
-  <SelectedCourse
-    course={selectedCourse}
-    handleEnrollNow={handleEnrollNow}
-  />
-  </DialogContent>
-</Dialog>
-      
-      
+        <DialogContent className="search__selected-course">
+          <DialogHeader>
+            <DialogTitle></DialogTitle>
+          </DialogHeader>
+          <SelectedCourse
+            course={selectedCourse}
+            handleEnrollNow={handleEnrollNow}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

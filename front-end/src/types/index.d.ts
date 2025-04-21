@@ -23,6 +23,7 @@ declare global {
     userType: "teacher" | "student";
   }
 
+  /** 
   interface Course {
     courseId: string;
     teacherId: string;
@@ -39,7 +40,7 @@ declare global {
       userId: string;
     }>;
   }
-
+*/
   interface Transaction {
     userId: string;
     transactionId: string;
@@ -194,6 +195,27 @@ declare global {
     coursePrice: string;
     courseStatus: boolean;
   }
+
+
+interface Course {
+  courseId: string;
+  teacherId: string;
+  teacherName: string;
+  title: string;
+  description: string;
+  image: string;
+  category: string;
+  status: "draft" | "published";
+  level: "Beginner" | "Intermediate" | "Advanced";
+  sections: any[];
+  enrollments?: { length: number }[];
 }
 
+interface TeacherCourseCardProps {
+  course: Course;
+  onEdit: (course: Course) => void;
+  onDelete: (course: Course) => void;
+  isOwner: boolean;
+}
+}
 export {};

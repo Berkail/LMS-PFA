@@ -14,55 +14,13 @@ import { useSidebar } from "@/components/ui/sidebar";
 import Loading from "@/components/Loading";
 import { ChaptersSidebarSkeleton } from "@/components/skeletons/ChaptersSidebarSkeleton";
 
-// Add dummy data at the top of the file
-const dummyCourse = {
-  courseId: "course1",
-  title: "Introduction to React",
-  sections: [
-    {
-      sectionId: "section1",
-      sectionTitle: "Getting Started",
-      chapters: [
-        { chapterId: "chapter1", title: "Introduction to React", type: "Text" },
-        { chapterId: "chapter2", title: "Setting Up Environment", type: "Text" }
-      ]
-    },
-    {
-      sectionId: "section2",
-      sectionTitle: "React Fundamentals",
-      chapters: [
-        { chapterId: "chapter3", title: "Components", type: "Text" },
-        { chapterId: "chapter4", title: "Props & State", type: "Text" }
-      ]
-    }
-  ]
-};
 
-const dummyProgress = {
-  sections: [
-    {
-      sectionId: "section1",
-      chapters: [
-        { chapterId: "chapter1", completed: true },
-        { chapterId: "chapter2", completed: false }
-      ]
-    },
-    {
-      sectionId: "section2",
-      chapters: [
-        { chapterId: "chapter3", completed: false },
-        { chapterId: "chapter4", completed: false }
-      ]
-    }
-  ]
-};
+
 
 const ChaptersSidebar = () => {
   const router = useRouter();
   const { setOpen } = useSidebar();
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
-  const [course, setCourse] = useState(dummyCourse);
-  const [userProgress, setUserProgress] = useState(dummyProgress);
   const [isLoading, setIsLoading] = useState(true);
   
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -80,6 +38,8 @@ const ChaptersSidebar = () => {
     }, 1000);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+
+  /** 
   const updateChapterProgress = (sectionId: string, chapterId: string, completed: boolean) => {
     setUserProgress(prev => ({
       ...prev,
@@ -99,6 +59,7 @@ const ChaptersSidebar = () => {
       })
     }));
   };
+  */
 
   if (isLoading){
     return(
@@ -142,7 +103,10 @@ const ChaptersSidebar = () => {
           expandedSections={expandedSections}
           toggleSection={toggleSection}
           handleChapterClick={handleChapterClick}
+
+          /** 
           updateChapterProgress={updateChapterProgress}
+          */
         />
       ))}
     </div>
@@ -158,7 +122,7 @@ const Section = ({
   expandedSections,
   toggleSection,
   handleChapterClick,
-  updateChapterProgress,
+  //updateChapterProgress,
 }: {
   section: any;
   index: number;
@@ -168,11 +132,11 @@ const Section = ({
   expandedSections: string[];
   toggleSection: (sectionTitle: string) => void;
   handleChapterClick: (sectionId: string, chapterId: string) => void;
-  updateChapterProgress: (
+  /**updateChapterProgress: (
     sectionId: string,
     chapterId: string,
     completed: boolean
-  ) => void;
+  ) => void;*/
 }) => {
   const completedChapters =
     sectionProgress?.chapters.filter((c: any) => c.completed).length || 0;
@@ -215,7 +179,7 @@ const Section = ({
             chapterId={chapterId}
             courseId={courseId}
             handleChapterClick={handleChapterClick}
-            updateChapterProgress={updateChapterProgress}
+            //updateChapterProgress={updateChapterProgress}
           />
         </div>
       )}
@@ -271,18 +235,19 @@ const ChaptersList = ({
   chapterId,
   courseId,
   handleChapterClick,
-  updateChapterProgress,
+  //updateChapterProgress,
 }: {
   section: any;
   sectionProgress: any;
   chapterId: string;
   courseId: string;
   handleChapterClick: (sectionId: string, chapterId: string) => void;
-  updateChapterProgress: (
+
+  /**updateChapterProgress: (
     sectionId: string,
     chapterId: string,
     completed: boolean
-  ) => void;
+  ) => void;*/
 }) => {
   return (
     <ul className="chapters-sidebar__chapters">
@@ -296,7 +261,8 @@ const ChaptersList = ({
           chapterId={chapterId}
           courseId={courseId}
           handleChapterClick={handleChapterClick}
-          updateChapterProgress={updateChapterProgress}
+
+          //updateChapterProgress={updateChapterProgress}
         />
       ))}
     </ul>
@@ -311,7 +277,7 @@ const Chapter = ({
   chapterId,
   courseId,
   handleChapterClick,
-  updateChapterProgress,
+  //updateChapterProgress,
 }: {
   chapter: any;
   index: number;
@@ -320,23 +286,32 @@ const Chapter = ({
   chapterId: string;
   courseId: string;
   handleChapterClick: (sectionId: string, chapterId: string) => void;
-  updateChapterProgress: (
+  /**updateChapterProgress: (
     sectionId: string,
     chapterId: string,
     completed: boolean
-  ) => void;
+  ) => void;*/
 }) => {
-  const chapterProgress = sectionProgress?.chapters.find(
+ /**const chapterProgress = sectionProgress?.chapters.find(
     (c: any) => c.chapterId === chapter.chapterId
   );
-  const isCompleted = chapterProgress?.completed;
-  const isCurrentChapter = chapterId === chapter.chapterId;
+  */
+  //const isCompleted = chapterProgress?.completed;
+  const isCurrentChapter = Boolean(chapterId) && String(chapterId) === String(chapter.chapterId);
 
+  /** 
   const handleToggleComplete = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    updateChapterProgress(sectionId, chapter.chapterId, !isCompleted);
+
+    //updateChapterProgress(sectionId, chapter.chapterId, !isCompleted);
   };
+*/
+  console.log({
+    currentChapterId: chapterId,
+    thisChapterId: chapter.chapterId,
+    isCurrentChapter
+  });
 
   return (
     <li
@@ -345,7 +320,8 @@ const Chapter = ({
       })}
       onClick={() => handleChapterClick(sectionId, chapter.chapterId)}
     >
-      {isCompleted ? (
+
+      {/**isCompleted ? (
         <div
           className="chapters-sidebar__chapter-check"
           onClick={handleToggleComplete}
@@ -361,10 +337,11 @@ const Chapter = ({
         >
           {index + 1}
         </div>
-      )}
+
+      )*/}
       <span
         className={cn("chapters-sidebar__chapter-title", {
-          "chapters-sidebar__chapter-title--completed": isCompleted,
+          //"chapters-sidebar__chapter-title--completed": isCompleted,
           "chapters-sidebar__chapter-title--current": isCurrentChapter,
         })}
       >

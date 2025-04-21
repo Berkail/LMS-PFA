@@ -76,14 +76,11 @@ const dummyAssignment = {
             <CardHeader className="">
                 <div className="flex justify-between">
                     <div className="">
-              <CardTitle>Assignment Details</CardTitle>
+              <CardTitle className="mb-2">Assignment Details</CardTitle>
               <CardDescription className="text-primary-200">
-                Due Date: {assignment.dueDate} | Max Points: {assignment.maxPoints}
+                Due Date: {assignment.dueDate}
               </CardDescription>
               </div>
-              <Button className="bg-primary text-white-50 hover:bg-white-50 hover:text-gray-800" onClick={() => alert("Download PDF")}>
-                Mark as completed
-                </Button>
                 </div>
             </CardHeader>
             <CardContent>
