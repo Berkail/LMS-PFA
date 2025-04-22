@@ -86,8 +86,8 @@ const Courses = () => {
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
       const matchesSearch = course.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
       return matchesSearch;
     });
   }, [courses, searchTerm]);
@@ -107,8 +107,7 @@ const Courses = () => {
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          throw new Error(errorData?.message || 'Failed to delete course');
+          throw new Error('Failed to delete course');
         }
 
         // Remove the deleted course from the state
@@ -129,35 +128,35 @@ const Courses = () => {
   }
 
   return (
-    <div className="teacher-courses">
-      <Header
-        title="Courses"
-        subtitle="Browse your courses"
-        rightElement={
-          <Button
-            onClick={handleCreateCourse}
-            className="teacher-courses__header"
-          >
-            Create Course
-          </Button>
-        }
-      />
-      <Toolbar
-        onSearch={setSearchTerm}
-        onCategoryChange={setSelectedCategory}
-      />
-      <div className="teacher-courses__grid">
-        {filteredCourses.map((course) => (
-          <TeacherCourseCard
-            key={course.id}
-            course={course}
-            onEdit={() => handleEdit(course)}
-            onDelete={() => handleDelete(course)}
-            isOwner={course.instructorId === 1} // You might want to get the actual instructor ID from auth
-          />
-        ))}
+      <div className="teacher-courses">
+        <Header
+            title="Courses"
+            subtitle="Browse your courses"
+            rightElement={
+              <Button
+                  onClick={handleCreateCourse}
+                  className="teacher-courses__header"
+              >
+                Create Course
+              </Button>
+            }
+        />
+        <Toolbar
+            onSearch={setSearchTerm}
+            onCategoryChange={setSelectedCategory}
+        />
+        <div className="teacher-courses__grid">
+          {filteredCourses.map((course) => (
+              <TeacherCourseCard
+                  key={course.id}
+                  course={course}
+                  onEdit={() => handleEdit(course)}
+                  onDelete={() => handleDelete(course)}
+                  isOwner={course.instructorId === 1} // You might want to get the actual instructor ID from auth
+              />
+          ))}
+        </div>
       </div>
-    </div>
   );
 };
 

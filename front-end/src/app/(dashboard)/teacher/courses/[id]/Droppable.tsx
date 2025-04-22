@@ -12,6 +12,8 @@ import {
   openChapterModal,
 } from "@/state";
 
+
+
 export default function DroppableComponent() {
   const dispatch = useAppDispatch();
   const { sections } = useAppSelector((state) => state.global.courseEditor);
