@@ -26,62 +26,6 @@ import DroppableComponent from "./Droppable";
 import ChapterModal from "./ChapterModal";
 import SectionModal from "./SectionModal";
 
-// Define the type for the section data
-interface SectionData {
-  title: string;
-  description: string;
-  [key: string]: any; // For any additional properties
-}
-
-// Define the type for API response
-interface SectionResponse {
-  id: string;
-  title: string;
-  description: string;
-  [key: string]: any; // For any additional properties
-}
-
-// Define the type for your Section object based on error message
-interface Section {
-  sectionId: string;
-  sectionTitle: string;
-  // Add other required properties from your Section type
-  chapters: any[];
-  // Any other required properties
-}
-
-// Add this function to handle the API call with proper types
-const addSectionToAPI = async (courseModuleId: string, sectionData: SectionData): Promise<SectionResponse> => {
-  try {
-    const response = await fetch(
-        `http://localhost/api/api/course-modules/${courseModuleId}/lessons`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(sectionData),
-        }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to add section');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error adding section:', error);
-    throw error;
-  }
-};
-
-// First, let's extend the open modal action to accept onSubmit
-// You might need to update this in your state file as well
-interface OpenSectionModalPayload {
-  sectionIndex: number | null;
-  onSave?: (sectionData: SectionData) => Promise<boolean>;
-}
-
 const CourseEditor = () => {
   const router = useRouter();
   const params = useParams();
@@ -137,46 +81,6 @@ const CourseEditor = () => {
       console.error("Failed to update course:", error);
     }
   };
-
-  // Add this function to handle opening the modal with API integration
-  const handleAddSectionClick = () => {
-    // Since we only have sectionIndex in the openSectionModal action,
-    // we'll need to update our SectionModal component to handle the API call directly
-    dispatch(openSectionModal({ sectionIndex: null }));
-  };
-
-  // Function to handle section submission from modal
-  const handleSectionSubmit = async (sectionData: SectionData) => {
-    try {
-      // Call the API endpoint
-      const newSection = await addSectionToAPI(id, {
-        title: sectionData.title,
-        description: sectionData.description || "",
-      });
-
-      // Transform API response to match your Section type
-      const formattedSection: Section = {
-        sectionId: newSection.id,
-        sectionTitle: newSection.title,
-        // Add other required properties
-        chapters: [],
-        // Any other required properties with appropriate default values
-      };
-
-      // Update local state with the new section
-      dispatch(setSections([...sections, formattedSection]));
-
-      // Refetch course data to ensure everything is in sync
-      refetch();
-
-      return true; // Indicate success
-    } catch (error) {
-      console.error("Failed to add section:", error);
-      return false; // Indicate failure
-    }
-  };
-
-  // Pass handleSectionSubmit to SectionModal as a prop or through context
 
   return (
       <div>
@@ -270,7 +174,9 @@ const CourseEditor = () => {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={handleAddSectionClick}
+                      onClick={() =>
+                          dispatch(openSectionModal({ sectionIndex: null }))
+                      }
                       className="border-none text-primary-700 group"
                   >
                     <Plus className="mr-1 h-4 w-4 text-primary-700 group-hover:white-100" />
@@ -293,8 +199,7 @@ const CourseEditor = () => {
         </Form>
 
         <ChapterModal />
-        {/* Pass the submission handler to the SectionModal */}
-        <SectionModal onSubmit={handleSectionSubmit} />
+        <SectionModal />
       </div>
   );
 };

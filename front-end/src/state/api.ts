@@ -1,5 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BaseQueryApi, FetchArgs } from "@reduxjs/toolkit/query";
+import { User } from "@clerk/nextjs/server";
+import { Clerk } from "@clerk/clerk-js";
 import { toast } from "sonner";
 
 const customBaseQuery = async (
@@ -8,12 +10,9 @@ const customBaseQuery = async (
     extraOptions: any
 ) => {
   const baseQuery = fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001',
-    credentials: 'include', // Include credentials for cookies if you're using cookie-based auth
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
     prepareHeaders: async (headers) => {
-      // Replace this with your own authentication method
-      // For example, if you're using JWT stored in localStorage:
-      const token = localStorage.getItem('authToken');
+      const token = await window.Clerk?.session?.getToken();
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
@@ -36,16 +35,16 @@ const customBaseQuery = async (
     const isMutationRequest =
         (args as FetchArgs).method && (args as FetchArgs).method !== "GET";
 
-    if (isMutationRequest && result.data) {
+    if (isMutationRequest) {
       const successMessage = result.data?.message;
       if (successMessage) toast.success(successMessage);
     }
 
-    if (result.data?.data) {
+    if (result.data) {
       result.data = result.data.data;
     } else if (
         result.error?.status === 204 ||
-        result.meta?.response?.status === 204
+        result.meta?.response?.status === 24
     ) {
       return { data: null };
     }
@@ -55,8 +54,6 @@ const customBaseQuery = async (
     const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
 
-    console.error("API request failed:", errorMessage);
-    toast.error(`Connection error: ${errorMessage}`);
     return { error: { status: "FETCH_ERROR", error: errorMessage } };
   }
 };
@@ -68,12 +65,12 @@ export const api = createApi({
   endpoints: (build) => ({
     /*
     ===============
-    USERS
+    USER CLERK
     ===============
     */
-    updateUser: build.mutation({
+    updateUser: build.mutation<User, Partial<User> & { userId: string }>({
       query: ({ userId, ...updatedUser }) => ({
-        url: `users/${userId}`,
+        url: `users/clerk/${userId}`,
         method: "PUT",
         body: updatedUser,
       }),
@@ -85,20 +82,23 @@ export const api = createApi({
     COURSES
     ===============
     */
-    getCourses: build.query({
-      query: ({ category } = {}) => ({
+    getCourses: build.query<Course[], { category?: string }>({
+      query: ({ category }) => ({
         url: "courses",
-        params: category ? { category } : undefined,
+        params: { category },
       }),
       providesTags: ["Courses"],
     }),
 
-    getCourse: build.query({
+    getCourse: build.query<Course, string>({
       query: (id) => `courses/${id}`,
       providesTags: (result, error, id) => [{ type: "Courses", id }],
     }),
 
-    createCourse: build.mutation({
+    createCourse: build.mutation<
+        Course,
+        { teacherId: string; teacherName: string }
+    >({
       query: (body) => ({
         url: `courses`,
         method: "POST",
@@ -107,7 +107,10 @@ export const api = createApi({
       invalidatesTags: ["Courses"],
     }),
 
-    updateCourse: build.mutation({
+    updateCourse: build.mutation<
+        Course,
+        { courseId: string; formData: FormData }
+    >({
       query: ({ courseId, formData }) => ({
         url: `courses/${courseId}`,
         method: "PUT",
@@ -118,7 +121,7 @@ export const api = createApi({
       ],
     }),
 
-    deleteCourse: build.mutation({
+    deleteCourse: build.mutation<{ message: string }, string>({
       query: (courseId) => ({
         url: `courses/${courseId}`,
         method: "DELETE",
@@ -126,7 +129,16 @@ export const api = createApi({
       invalidatesTags: ["Courses"],
     }),
 
-    getUploadVideoUrl: build.mutation({
+    getUploadVideoUrl: build.mutation<
+        { uploadUrl: string; videoUrl: string },
+        {
+          courseId: string;
+          chapterId: string;
+          sectionId: string;
+          fileName: string;
+          fileType: string;
+        }
+    >({
       query: ({ courseId, sectionId, chapterId, fileName, fileType }) => ({
         url: `courses/${courseId}/sections/${sectionId}/chapters/${chapterId}/get-upload-url`,
         method: "POST",
@@ -139,19 +151,20 @@ export const api = createApi({
     TRANSACTIONS
     ===============
     */
-    getTransactions: build.query({
+    getTransactions: build.query<Transaction[], string>({
       query: (userId) => `transactions?userId=${userId}`,
     }),
-
-    createStripePaymentIntent: build.mutation({
+    createStripePaymentIntent: build.mutation<
+        { clientSecret: string },
+        { amount: number }
+    >({
       query: ({ amount }) => ({
         url: `/transactions/stripe/payment-intent`,
         method: "POST",
         body: { amount },
       }),
     }),
-
-    createTransaction: build.mutation({
+    createTransaction: build.mutation<Transaction, Partial<Transaction>>({
       query: (transaction) => ({
         url: "transactions",
         method: "POST",
@@ -164,18 +177,30 @@ export const api = createApi({
     USER COURSE PROGRESS
     ===============
     */
-    getUserEnrolledCourses: build.query({
+    getUserEnrolledCourses: build.query<Course[], string>({
       query: (userId) => `users/course-progress/${userId}/enrolled-courses`,
       providesTags: ["Courses", "UserCourseProgress"],
     }),
 
-    getUserCourseProgress: build.query({
+    getUserCourseProgress: build.query<
+        UserCourseProgress,
+        { userId: string; courseId: string }
+    >({
       query: ({ userId, courseId }) =>
           `users/course-progress/${userId}/courses/${courseId}`,
       providesTags: ["UserCourseProgress"],
     }),
 
-    updateUserCourseProgress: build.mutation({
+    updateUserCourseProgress: build.mutation<
+        UserCourseProgress,
+        {
+          userId: string;
+          courseId: string;
+          progressData: {
+            sections: SectionProgress[];
+          };
+        }
+    >({
       query: ({ userId, courseId, progressData }) => ({
         url: `users/course-progress/${userId}/courses/${courseId}`,
         method: "PUT",
