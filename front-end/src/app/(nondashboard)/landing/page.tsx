@@ -47,7 +47,7 @@ export default function LandingPage() {
              <div className="landing__hero-content">
                <h1 className="landing__title">Stay Hungry, Stay Foolish</h1>
                <p className="landing__description">
-               Embracing Steve Jobs' timeless wisdom, we value curiosity and bold thinking. Our platform encourages students to question, explore, and never settle.
+               Embracing Steve Jobs timeless wisdom, we value curiosity and bold thinking. Our platform encourages students to question, explore, and never settle.
                </p>
                <div className="landing__cta">
                  <Link href="/signup">

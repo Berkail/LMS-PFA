@@ -1,18 +1,19 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BaseQueryApi, FetchArgs } from "@reduxjs/toolkit/query";
-import { User } from "@clerk/nextjs/server";
-import { Clerk } from "@clerk/clerk-js";
 import { toast } from "sonner";
 
 const customBaseQuery = async (
-  args: string | FetchArgs,
-  api: BaseQueryApi,
-  extraOptions: any
+    args: string | FetchArgs,
+    api: BaseQueryApi,
+    extraOptions: any
 ) => {
   const baseQuery = fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001',
+    credentials: 'include', // Include credentials for cookies if you're using cookie-based auth
     prepareHeaders: async (headers) => {
-      const token = await window.Clerk?.session?.getToken();
+      // Replace this with your own authentication method
+      // For example, if you're using JWT stored in localStorage:
+      const token = localStorage.getItem('authToken');
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
@@ -26,25 +27,25 @@ const customBaseQuery = async (
     if (result.error) {
       const errorData = result.error.data;
       const errorMessage =
-        errorData?.message ||
-        result.error.status.toString() ||
-        "An error occurred";
+          errorData?.message ||
+          result.error.status.toString() ||
+          "An error occurred";
       toast.error(`Error: ${errorMessage}`);
     }
 
     const isMutationRequest =
-      (args as FetchArgs).method && (args as FetchArgs).method !== "GET";
+        (args as FetchArgs).method && (args as FetchArgs).method !== "GET";
 
-    if (isMutationRequest) {
+    if (isMutationRequest && result.data) {
       const successMessage = result.data?.message;
       if (successMessage) toast.success(successMessage);
     }
 
-    if (result.data) {
+    if (result.data?.data) {
       result.data = result.data.data;
     } else if (
-      result.error?.status === 204 ||
-      result.meta?.response?.status === 24
+        result.error?.status === 204 ||
+        result.meta?.response?.status === 204
     ) {
       return { data: null };
     }
@@ -52,8 +53,10 @@ const customBaseQuery = async (
     return result;
   } catch (error: unknown) {
     const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+        error instanceof Error ? error.message : "Unknown error";
 
+    console.error("API request failed:", errorMessage);
+    toast.error(`Connection error: ${errorMessage}`);
     return { error: { status: "FETCH_ERROR", error: errorMessage } };
   }
 };
@@ -63,42 +66,39 @@ export const api = createApi({
   reducerPath: "api",
   tagTypes: ["Courses", "Users", "UserCourseProgress"],
   endpoints: (build) => ({
-    /* 
+    /*
     ===============
-    USER CLERK
-    =============== 
+    USERS
+    ===============
     */
-    updateUser: build.mutation<User, Partial<User> & { userId: string }>({
+    updateUser: build.mutation({
       query: ({ userId, ...updatedUser }) => ({
-        url: `users/clerk/${userId}`,
+        url: `users/${userId}`,
         method: "PUT",
         body: updatedUser,
       }),
       invalidatesTags: ["Users"],
     }),
 
-    /* 
+    /*
     ===============
     COURSES
-    =============== 
+    ===============
     */
-    getCourses: build.query<Course[], { category?: string }>({
-      query: ({ category }) => ({
+    getCourses: build.query({
+      query: ({ category } = {}) => ({
         url: "courses",
-        params: { category },
+        params: category ? { category } : undefined,
       }),
       providesTags: ["Courses"],
     }),
 
-    getCourse: build.query<Course, string>({
+    getCourse: build.query({
       query: (id) => `courses/${id}`,
       providesTags: (result, error, id) => [{ type: "Courses", id }],
     }),
 
-    createCourse: build.mutation<
-      Course,
-      { teacherId: string; teacherName: string }
-    >({
+    createCourse: build.mutation({
       query: (body) => ({
         url: `courses`,
         method: "POST",
@@ -107,10 +107,7 @@ export const api = createApi({
       invalidatesTags: ["Courses"],
     }),
 
-    updateCourse: build.mutation<
-      Course,
-      { courseId: string; formData: FormData }
-    >({
+    updateCourse: build.mutation({
       query: ({ courseId, formData }) => ({
         url: `courses/${courseId}`,
         method: "PUT",
@@ -121,7 +118,7 @@ export const api = createApi({
       ],
     }),
 
-    deleteCourse: build.mutation<{ message: string }, string>({
+    deleteCourse: build.mutation({
       query: (courseId) => ({
         url: `courses/${courseId}`,
         method: "DELETE",
@@ -129,16 +126,7 @@ export const api = createApi({
       invalidatesTags: ["Courses"],
     }),
 
-    getUploadVideoUrl: build.mutation<
-      { uploadUrl: string; videoUrl: string },
-      {
-        courseId: string;
-        chapterId: string;
-        sectionId: string;
-        fileName: string;
-        fileType: string;
-      }
-    >({
+    getUploadVideoUrl: build.mutation({
       query: ({ courseId, sectionId, chapterId, fileName, fileType }) => ({
         url: `courses/${courseId}/sections/${sectionId}/chapters/${chapterId}/get-upload-url`,
         method: "POST",
@@ -146,25 +134,24 @@ export const api = createApi({
       }),
     }),
 
-    /* 
+    /*
     ===============
     TRANSACTIONS
-    =============== 
+    ===============
     */
-    getTransactions: build.query<Transaction[], string>({
+    getTransactions: build.query({
       query: (userId) => `transactions?userId=${userId}`,
     }),
-    createStripePaymentIntent: build.mutation<
-      { clientSecret: string },
-      { amount: number }
-    >({
+
+    createStripePaymentIntent: build.mutation({
       query: ({ amount }) => ({
         url: `/transactions/stripe/payment-intent`,
         method: "POST",
         body: { amount },
       }),
     }),
-    createTransaction: build.mutation<Transaction, Partial<Transaction>>({
+
+    createTransaction: build.mutation({
       query: (transaction) => ({
         url: "transactions",
         method: "POST",
@@ -172,35 +159,23 @@ export const api = createApi({
       }),
     }),
 
-    /* 
+    /*
     ===============
     USER COURSE PROGRESS
-    =============== 
+    ===============
     */
-    getUserEnrolledCourses: build.query<Course[], string>({
+    getUserEnrolledCourses: build.query({
       query: (userId) => `users/course-progress/${userId}/enrolled-courses`,
       providesTags: ["Courses", "UserCourseProgress"],
     }),
 
-    getUserCourseProgress: build.query<
-      UserCourseProgress,
-      { userId: string; courseId: string }
-    >({
+    getUserCourseProgress: build.query({
       query: ({ userId, courseId }) =>
-        `users/course-progress/${userId}/courses/${courseId}`,
+          `users/course-progress/${userId}/courses/${courseId}`,
       providesTags: ["UserCourseProgress"],
     }),
 
-    updateUserCourseProgress: build.mutation<
-      UserCourseProgress,
-      {
-        userId: string;
-        courseId: string;
-        progressData: {
-          sections: SectionProgress[];
-        };
-      }
-    >({
+    updateUserCourseProgress: build.mutation({
       query: ({ userId, courseId, progressData }) => ({
         url: `users/course-progress/${userId}/courses/${courseId}`,
         method: "PUT",
@@ -208,20 +183,20 @@ export const api = createApi({
       }),
       invalidatesTags: ["UserCourseProgress"],
       async onQueryStarted(
-        { userId, courseId, progressData },
-        { dispatch, queryFulfilled }
+          { userId, courseId, progressData },
+          { dispatch, queryFulfilled }
       ) {
         const patchResult = dispatch(
-          api.util.updateQueryData(
-            "getUserCourseProgress",
-            { userId, courseId },
-            (draft) => {
-              Object.assign(draft, {
-                ...draft,
-                sections: progressData.sections,
-              });
-            }
-          )
+            api.util.updateQueryData(
+                "getUserCourseProgress",
+                { userId, courseId },
+                (draft) => {
+                  Object.assign(draft, {
+                    ...draft,
+                    sections: progressData.sections,
+                  });
+                }
+            )
         );
         try {
           await queryFulfilled;

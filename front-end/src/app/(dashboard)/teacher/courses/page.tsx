@@ -107,7 +107,8 @@ const Courses = () => {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to delete course');
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.message || 'Failed to delete course');
         }
 
         // Remove the deleted course from the state
