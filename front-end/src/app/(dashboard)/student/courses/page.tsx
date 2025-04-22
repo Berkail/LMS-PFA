@@ -184,7 +184,7 @@ const Courses = () => {
               courseId: course.id.toString(),
               title: course.title,
               description: course.description || "No description available",
-              image: `/placeholder.png`, // Using placeholder until backend issue is fixed
+              image: course.pathToImg,
               teacherName: `${course.instructor.firstName} ${course.instructor.lastName}`,
               category: "Programming"
             }}

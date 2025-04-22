@@ -106,7 +106,7 @@ const Search = () => {
     courseId: apiCourse.id.toString(),
     title: apiCourse.title,
     description: apiCourse.description || "",
-    image: `http://localhost/${apiCourse.pathToImg}`,
+    image: `http://localhost/api/${apiCourse.pathToImg}`,
     teacherName: apiCourse.instructor.username,
     teacherId: apiCourse.instructor.id.toString(),
     category: "Programming",

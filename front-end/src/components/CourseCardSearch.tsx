@@ -30,11 +30,13 @@ interface CourseCardSearchProps {
   onGoToCourse: () => void;  // Changed from onClick to match parent component
 }
 
+
 const CourseCardSearch: React.FC<CourseCardSearchProps> = ({
   course,
   isSelected,
   onGoToCourse,
 }) => {
+  console.log(course.image);
   return (
     <div
       onClick={onGoToCourse}
@@ -45,14 +47,13 @@ const CourseCardSearch: React.FC<CourseCardSearchProps> = ({
       }`}
     >
       <div className="course-card-search__image-container">
-        <Image
-        /**src={course.image || "/placeholder.png"}*/
-          src={"/placeholder.png"}
-          alt={course.title}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="course-card-search__image"
-          priority
+        <div 
+          className="course-card__image"
+          style={{ 
+            backgroundImage: `url(${course.image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
         />
       </div>
       <div className="course-card-search__content">
