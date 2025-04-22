@@ -34,19 +34,24 @@ const AppSidebar = () => {
     useEffect(() => {
       const fetchUser = async () => {
           try {
-              const response = await fetch('http://localhost/api/learners/me', {
+              const endpoint = userType === 'teacher' 
+                ? 'http://localhost/api/instructors/me'
+                : 'http://localhost/api/learners/me';
+                
+              const response = await fetch(endpoint, {
                   credentials: 'include'
               });
-              if (!response.ok) throw new Error('Failed to fetch user');
+              
+              if (!response.ok) throw new Error(`Failed to fetch ${userType} data`);
               const data = await response.json();
               setUser(data);
           } catch (error) {
-              console.error('Error fetching user:', error);
+              console.error(`Error fetching ${userType} data:`, error);
           }
       };
 
       fetchUser();
-  }, []);
+    }, [userType]);
 
 
   const formatName = (firstName: string, lastName: string) => {
