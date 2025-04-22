@@ -120,26 +120,7 @@ const Courses = () => {
   };
 
   const handleCreateCourse = () => {
-<<<<<<< Updated upstream
-    const newCourseId = "create-new-cours";
-    const newCourse: Course = {
-      courseId: newCourseId,
-      teacherId: "teacher1",
-      teacherName: "John Doe",
-      title: "",
-      description: "",
-      image: "/placeholder.png",
-      category: "",
-      status: "draft",
-      level: "Beginner",
-      sections: []
-    };
-    
-    console.log("Creating new course:", newCourse);
-    router.push(`/teacher/courses/${newCourseId}`);
-=======
     router.push('/teacher/courses/create');
->>>>>>> Stashed changes
   };
 
   if (loading) {
