@@ -65,7 +65,7 @@ const Courses = () => {
   };
 
   const handleCreateCourse = () => {
-    const newCourseId = `course${dummyCourses.length + 1}`;
+    const newCourseId = "create-new-cours";
     const newCourse: Course = {
       courseId: newCourseId,
       teacherId: "teacher1",
