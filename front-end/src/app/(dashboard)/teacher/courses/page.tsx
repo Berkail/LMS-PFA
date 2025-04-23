@@ -139,6 +139,74 @@ const Courses = () => {
     }
   }
 
+  const handleUpdate = async (course: Course) => {
+    try {
+      // Update course details
+      const courseResponse = await fetch(`http://localhost/api/courses/${course.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: course.title,
+          description: course.description,
+          difficulty: course.difficulty,
+          pathToImg: course.pathToImg,
+        }),
+      });
+  
+      if (!courseResponse.ok) {
+        throw new Error('Failed to update course');
+      }
+  
+      // Update course modules (sections)
+      for (const module of course.courseModules) {
+        const moduleResponse = await fetch(`http://localhost/api/course-modules/${module.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            title: module.title,
+            order: module.order,
+          }),
+        });
+  
+        if (!moduleResponse.ok) {
+          throw new Error(`Failed to update module ${module.id}`);
+        }
+  
+        // Update lessons (chapters) for each module
+        for (const lesson of module.lessons) {
+          const lessonResponse = await fetch(`http://localhost/api/lessons/${lesson.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              title: lesson.title,
+            }),
+          });
+  
+          if (!lessonResponse.ok) {
+            throw new Error(`Failed to update lesson ${lesson.id}`);
+          }
+        }
+      }
+  
+      // Update the local state with the new course data
+      setCourses(courses.map(c => c.id === course.id ? course : c));
+      alert('Course updated successfully!');
+    } catch (error) {
+      console.error('Error updating course:', error);
+      alert('Failed to update the course. Please try again.');
+    }
+  };
+
+  
   const handleCreateCourse = () => {
     router.push('/teacher/courses/create');
   };

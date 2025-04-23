@@ -210,14 +210,13 @@ const CourseEditor = () => {
     }
   
     try {
-
       let imagePath = data.courseImg;
-    if (data.courseImg instanceof File) {
-      // You'll need to implement file upload logic here
-      // For now, we'll use a placeholder or the existing path
-      imagePath = course?.pathToImg || ''; // Use existing path if available
-    }
-      // First, update the course data with PATCH
+      if (data.courseImg instanceof File) {
+        // Handle file upload if needed
+        imagePath = course?.pathToImg || '';
+      }
+  
+      // Update course data
       const response = await fetch(`http://localhost/api/courses/${courseId}`, {
         method: 'PATCH',
         headers: {
@@ -228,47 +227,66 @@ const CourseEditor = () => {
           title: data.title,
           description: data.description,
           difficulty: data.difficulty,
-          pathToImg: imagePath, // Changed from courseImg to pathToImg
+          pathToImg: imagePath,
         }),
       });
   
-      const responseData = await response.json();
-      console.log('Update Course Response:', responseData);
-        
       if (!response.ok) {
-        const errorMessage = responseData.message || 'Failed to update course';
-        throw new Error(errorMessage);
+        throw new Error('Failed to update course');
       }
   
-      // Then create/update all sections (course modules)
+      // Update sections/modules and their lessons
       for (const section of sections) {
-        let courseModule;
-        
-        if (!section.id) {
-          // Create new course module
-          courseModule = await createCourseModule(courseId, section.title, section.order);
-          console.log('Created new module:', courseModule);
-        }
+        if (section.id) {
+          // Update existing module
+          await fetch(`http://localhost/api/course-modules/${section.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              title: section.title,
+              order: section.order,
+            }),
+          });
   
-        // Create/update chapters (lessons) for this module
-        const moduleId = courseModule?.id || section.id;
-        for (const chapter of section.chapters || []) {
-          if (!chapter.id) {
-            // Create new lesson
-            const newLesson = await createLesson(moduleId, chapter.title, chapter.videoUrl || '');
-            console.log('Created new lesson:', newLesson);
+          // Update existing chapters/lessons
+          for (const chapter of section.chapters || []) {
+            if (chapter.id) {
+              await fetch(`http://localhost/api/lessons/${chapter.id}`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                  title: chapter.title,
+                  pathToUrlVid: chapter.videoUrl,
+                }),
+              });
+            }
+          }
+        } else {
+          // Handle new sections and chapters if needed
+          const newModule = await createCourseModule(courseId, section.title, section.order);
+          
+          for (const chapter of section.chapters || []) {
+            if (!chapter.id) {
+              await createLesson(newModule.id, chapter.title, chapter.videoUrl || '');
+            }
           }
         }
       }
   
-      toast.success('Course saved successfully');
+      toast.success('Course updated successfully');
       router.push('/teacher/courses');
     } catch (error) {
-      console.error('Error saving course:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save course');
+      console.error('Error updating course:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update course');
     }
   };
-
+  
   return (
     <div>
       <div className="flex items-center gap-5 mb-5">

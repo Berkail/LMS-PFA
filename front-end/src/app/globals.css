@@ -909,7 +909,7 @@ input[type="color"] {
 
 /* Assignment Card Styles */
 .teacher-assignment-card {
-  @apply flex flex-col w-full h-[190px] border-none bg-customgreys-primarybg overflow-hidden transition duration-200 rounded-lg;
+  @apply flex flex-col w-full h-[160px] border-none bg-customgreys-primarybg overflow-hidden transition duration-200 rounded-lg;
 }
 
 .assignment-card {
