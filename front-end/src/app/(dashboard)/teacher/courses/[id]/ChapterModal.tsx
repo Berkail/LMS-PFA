@@ -1,165 +1,134 @@
 import { CustomFormField } from "@/components/CustomFormField";
 import CustomModal from "@/components/CustomModal";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { ChapterFormData, chapterSchema } from "@/lib/schemas";
-import { addChapter, closeChapterModal, editChapter } from "@/state";
+import { Form } from "@/components/ui/form";
+import { addChapter, closeChapterModal, updateChapter } from "@/state";
 import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+
+// Define the schema
+const chapterSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().optional(),
+  videoUrl: z.string().optional(),
+});
+
+type ChapterFormData = z.infer<typeof chapterSchema>;
 
 const ChapterModal = () => {
   const dispatch = useAppDispatch();
-  const {
-    isChapterModalOpen,
-    selectedSectionIndex,
-    selectedChapterIndex,
-    sections,
-  } = useAppSelector((state) => state.global.courseEditor);
-
-  const chapter: Chapter | undefined =
-    selectedSectionIndex !== null && selectedChapterIndex !== null
-      ? sections[selectedSectionIndex].chapters[selectedChapterIndex]
-      : undefined;
+  const { isOpen, sectionIndex, chapterIndex, editChapter } = useAppSelector(
+    (state) => state.global.courseEditor.chapterModal
+  );
 
   const methods = useForm<ChapterFormData>({
     resolver: zodResolver(chapterSchema),
     defaultValues: {
       title: "",
       content: "",
-      video: "",
+      videoUrl: "",
     },
   });
 
   useEffect(() => {
-    if (chapter) {
+    if (editChapter) {
       methods.reset({
-        title: chapter.title,
-        content: chapter.content,
-        video: chapter.video || "",
+        title: editChapter.title,
+        content: editChapter.content || "",
+        videoUrl: editChapter.videoUrl || "",
       });
     } else {
       methods.reset({
         title: "",
         content: "",
-        video: "",
+        videoUrl: "",
       });
     }
-  }, [chapter, methods]);
+  }, [editChapter, methods]);
 
-  const onClose = () => {
-    dispatch(closeChapterModal());
-  };
-
-  const onSubmit = (data: ChapterFormData) => {
-    if (selectedSectionIndex === null) return;
-
-    const newChapter: Chapter = {
-      chapterId: chapter?.chapterId || uuidv4(),
-      title: data.title,
-      content: data.content,
-      type: data.video ? "Video" : "Text",
-      video: data.video,
-    };
-
-    if (selectedChapterIndex === null) {
-      dispatch(
-        addChapter({
-          sectionIndex: selectedSectionIndex,
-          chapter: newChapter,
-        })
-      );
-    } else {
-      dispatch(
-        editChapter({
-          sectionIndex: selectedSectionIndex,
-          chapterIndex: selectedChapterIndex,
-          chapter: newChapter,
-        })
-      );
+  const onSubmit = async (data: ChapterFormData) => {
+    if (typeof sectionIndex !== 'number') {
+      toast.error("Invalid section");
+      return;
     }
 
-    toast.success(
-      `Chapter added/updated successfully but you need to save the course to apply the changes`
-    );
-    onClose();
+    try {
+      const newChapter = {
+        id: editChapter?.id || Date.now(),
+        title: data.title,
+        content: data.content || "",
+        videoUrl: data.videoUrl || "",
+        sectionId: sectionIndex,
+      };
+
+      if (chapterIndex === null) {
+        await dispatch(addChapter({
+          sectionIndex,
+          chapter: newChapter,
+        }));
+        toast.success("Chapter added successfully");
+      } else {
+        await dispatch(updateChapter({
+          sectionIndex,
+          chapterIndex,
+          chapter: newChapter,
+        }));
+        toast.success("Chapter updated successfully");
+      }
+
+      dispatch(closeChapterModal());
+    } catch (error) {
+      toast.error("Failed to save chapter");
+      console.error(error);
+    }
   };
 
   return (
-    <CustomModal isOpen={isChapterModalOpen} onClose={onClose}>
-      <div className="chapter-modal">
-        <div className="chapter-modal__header">
-          <h2 className="chapter-modal__title">Add/Edit Chapter</h2>
-          <button onClick={onClose} className="chapter-modal__close">
-            <X className="w-6 h-6" />
-          </button>
+    <CustomModal isOpen={isOpen} onClose={() => dispatch(closeChapterModal())}>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">
+            {editChapter ? 'Edit Chapter' : 'Add Chapter'}
+          </h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => dispatch(closeChapterModal())}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
         <Form {...methods}>
-          <form
-            onSubmit={methods.handleSubmit(onSubmit)}
-            className="chapter-modal__form"
-          >
+          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
             <CustomFormField
               name="title"
               label="Chapter Title"
+              type="text"
               placeholder="Write chapter title here"
             />
-
             <CustomFormField
-              name="content"
-              label="Chapter Content"
-              type="textarea"
-              placeholder="Write chapter content here"
+              name="videoUrl"
+              label="Video URL"
+              type="text"
+              placeholder="Enter video URL (e.g., YouTube, Vimeo)"
             />
 
-<FormField
-  control={methods.control}
-  name="video"
-  render={({ field: { onChange, value } }) => (
-    <FormItem>
-      <FormLabel className="text-customgreys-dirtyGrey text-sm">
-        Chapter Video URL
-      </FormLabel>
-      <FormControl>
-        <div>
-          <Input
-            type="url"
-            placeholder="Enter video URL (e.g., YouTube, Vimeo)"
-            value={typeof value === "string" ? value : ""}
-            onChange={(e) => onChange(e.target.value)}
-            className="bg-customgreys-darkGrey py-2"
-          />
-          {value && typeof value === "string" && (
-            <div className="my-2 text-sm text-gray-600">
-              Current video URL: {value}
-            </div>
-          )}
-        </div>
-      </FormControl>
-      <FormMessage className="text-red-400" />
-    </FormItem>
-              )}
-            />
-
-            <div className="chapter-modal__actions">
-              <Button type="button" variant="outline" onClick={onClose}>
+            <div className="flex justify-end gap-2 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => dispatch(closeChapterModal())}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="bg-primary-700">
-                Save
+              <Button type="submit" className="bg-primary-700 text-white">
+                {editChapter ? 'Update' : 'Create'} Chapter
               </Button>
             </div>
           </form>

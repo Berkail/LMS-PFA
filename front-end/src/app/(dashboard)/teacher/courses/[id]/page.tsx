@@ -4,7 +4,6 @@ import { CustomFormField } from "@/components/CustomFormField";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { courseSchema } from "@/lib/schemas";
 import {
   centsToDollars,
   createCourseFormData,
@@ -20,19 +19,71 @@ import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import DroppableComponent from "./Droppable";
 import ChapterModal from "./ChapterModal";
 import SectionModal from "./SectionModal";
+import { z } from "zod";
+import { toast } from "sonner";
+
+interface Lesson {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  pathToUrlVid: string;
+  courseModuleId: number;
+}
+
+interface CourseModule {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  order: number;
+  courseId: number;
+  lessons: Lesson[];
+}
+
+interface Course {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  description: string | null;
+  pathToImg: string;
+  difficulty: string;
+  instructorId: number;
+  courseModules: CourseModule[];
+}
+
+const courseSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  courseImg: z.any(),
+  difficulty: z.enum(["beginner", "intermediate", "advanced"]),
+  courseStatus: z.boolean().default(false),
+});
+
+type CourseFormData = z.infer<typeof courseSchema>;
 
 const CourseEditor = () => {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
-  const { data: course, isLoading, refetch } = useGetCourseQuery(id);
-  const [updateCourse] = useUpdateCourseMutation();
-  const [getUploadVideoUrl] = useGetUploadVideoUrlMutation();
+  const id = params?.id;
+  const courseId = typeof id === 'string' ? parseInt(id, 10) : undefined;
+  
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [course, setCourse] = useState<Course | null>(null);
+  
 
   const dispatch = useAppDispatch();
   const { sections } = useAppSelector((state) => state.global.courseEditor);
@@ -40,45 +91,181 @@ const CourseEditor = () => {
   const methods = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
-      courseTitle: "",
-      courseDescription: "",
-      courseCategory: "",
-      coursePrice: "0",
+      title: "",
+      description: "",
+      courseImg: "",
+      difficulty: "beginner",
       courseStatus: false,
     },
   });
 
+  
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        const response = await fetch(`http://localhost/api/courses/${courseId}`, {
+          credentials: 'include'
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch course');
+        }
+  
+        const responseData = await response.json();
+        console.log('API Response:', responseData);
+  
+        if (!responseData || !responseData.title) {
+          console.error('Invalid course data received:', responseData);
+          return;
+        }
+  
+        // Set course data
+        setCourse(responseData);
+  
+        // Map CourseModules to sections
+        if (responseData.courseModules) {
+          const formattedSections = responseData.courseModules.map((module: CourseModule) => ({
+            id: module.id,
+            title: module.title,
+            order: module.order,
+            chapters: module.lessons.map((lesson: Lesson) => ({
+              id: lesson.id,
+              title: lesson.title,
+              videoUrl: lesson.pathToUrlVid,
+              sectionId: module.id
+            }))
+          }));
+  
+          // Dispatch sections to Redux store
+          dispatch(setSections(formattedSections));
+        }
+  
+      } catch (error) {
+        console.error('Error fetching course:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    if (courseId && !isNaN(courseId)) {
+      console.log('Fetching course with ID:', courseId);
+      fetchCourse();
+    }
+  }, [courseId, dispatch]);
+
+
   useEffect(() => {
     if (course) {
       methods.reset({
-        courseTitle: course.title,
-        courseDescription: course.description,
-        courseCategory: course.category,
-        coursePrice: centsToDollars(700),
-        courseStatus: course.status === "Published",
+        title: course.title,
+        description: course.description || "",
+        difficulty: course.difficulty as "beginner" | "intermediate" | "advanced",
+        courseStatus: course.publishedAt !== null,
+        courseImg: "" // Keep empty since it's a file input
       });
-      dispatch(setSections(course.sections || []));
     }
-  }, [course, methods]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [course, methods]);
+
+  const createCourseModule = async (courseId: number, title: string, order: number) => {
+    const response = await fetch(`http://localhost/api/courses/${courseId}/course-modules`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ title, order })
+    });
+  
+    if (!response.ok) {
+      throw new Error('Failed to create course module');
+    }
+  
+    return await response.json();
+  };
+
+
+  const createLesson = async (courseModuleId: number, title: string, pathToUrlVid: string) => {
+    const response = await fetch(`http://localhost/api/course-modules/${courseModuleId}/lessons`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ title, pathToUrlVid })
+    });
+  
+    if (!response.ok) {
+      throw new Error('Failed to create lesson');
+    }
+  
+    return await response.json();
+  };
+
 
   const onSubmit = async (data: CourseFormData) => {
+    if (!courseId) {
+      toast.error('Course ID is required');
+      return;
+    }
+  
     try {
-      const updatedSections = await uploadAllVideos(
-        sections,
-        id,
-        getUploadVideoUrl
-      );
 
-      const formData = createCourseFormData(data, updatedSections);
-
-      await updateCourse({
-        courseId: id,
-        formData,
-      }).unwrap();
-
-      refetch();
+      let imagePath = data.courseImg;
+    if (data.courseImg instanceof File) {
+      // You'll need to implement file upload logic here
+      // For now, we'll use a placeholder or the existing path
+      imagePath = course?.pathToImg || ''; // Use existing path if available
+    }
+      // First, update the course data with PATCH
+      const response = await fetch(`http://localhost/api/courses/${courseId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: data.title,
+          description: data.description,
+          difficulty: data.difficulty,
+          pathToImg: imagePath, // Changed from courseImg to pathToImg
+        }),
+      });
+  
+      const responseData = await response.json();
+      console.log('Update Course Response:', responseData);
+        
+      if (!response.ok) {
+        const errorMessage = responseData.message || 'Failed to update course';
+        throw new Error(errorMessage);
+      }
+  
+      // Then create/update all sections (course modules)
+      for (const section of sections) {
+        let courseModule;
+        
+        if (!section.id) {
+          // Create new course module
+          courseModule = await createCourseModule(courseId, section.title, section.order);
+          console.log('Created new module:', courseModule);
+        }
+  
+        // Create/update chapters (lessons) for this module
+        const moduleId = courseModule?.id || section.id;
+        for (const chapter of section.chapters || []) {
+          if (!chapter.id) {
+            // Create new lesson
+            const newLesson = await createLesson(moduleId, chapter.title, chapter.videoUrl || '');
+            console.log('Created new lesson:', newLesson);
+          }
+        }
+      }
+  
+      toast.success('Course saved successfully');
+      router.push('/teacher/courses');
     } catch (error) {
-      console.error("Failed to update course:", error);
+      console.error('Error saving course:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save course');
     }
   };
 
@@ -95,31 +282,17 @@ const CourseEditor = () => {
       </div>
 
       <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)}>
+      <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Header
             title="Course Setup"
             subtitle="Complete all fields and save your course"
             rightElement={
               <div className="flex items-center space-x-4">
-                <CustomFormField
-                  name="courseStatus"
-                  label={methods.watch("courseStatus") ? "Published" : "Draft"}
-                  type="switch"
-                  className="flex items-center space-x-2"
-                  labelClassName={`text-sm font-medium ${
-                    methods.watch("courseStatus")
-                      ? "text-green-500"
-                      : "text-yellow-500"
-                  }`}
-                  inputClassName="data-[state=checked]:bg-green-500"
-                />
                 <Button
                   type="submit"
                   className="bg-primary-700 hover:bg-primary-600"
                 >
-                  {methods.watch("courseStatus")
-                    ? "Update Published Course"
-                    : "Save Draft"}
+                  Save
                 </Button>
               </div>
             }
@@ -128,39 +301,42 @@ const CourseEditor = () => {
           <div className="flex justify-between md:flex-row flex-col gap-10 mt-5 font-dm-sans">
             <div className="basis-1/2">
               <div className="space-y-4">
-                <CustomFormField
-                  name="courseTitle"
-                  label="Course Title"
-                  type="text"
-                  placeholder="Write course title here"
-                  className="border-none"
-                  initialValue={course?.title}
-                />
+              <CustomFormField
+  name="title"
+  label="Course Title"
+  type="text"
+  placeholder="Write course title here"
+  className="border-none"
+/>
 
-                <CustomFormField
-                  name="courseDescription"
-                  label="Course Description"
-                  type="textarea"
-                  placeholder="Write course description here"
-                  initialValue={course?.description}
-                />
+<CustomFormField
+  name="description"
+  label="Course Description"
+  type="textarea"
+  placeholder="Write course description here"
+/>
 
-                <CustomFormField
-                  name="courseCategory"
-                  label="Course Category"
-                  type="select"
-                  placeholder="Select category here"
-                  options={[
-                    { value: "technology", label: "Technology" },
-                    { value: "science", label: "Science" },
-                    { value: "mathematics", label: "Mathematics" },
-                    {
-                      value: "Artificial Intelligence",
-                      label: "Artificial Intelligence",
-                    },
-                  ]}
-                  initialValue={course?.category}
-                />
+<CustomFormField
+  name="courseImg"
+  label="Course Image"
+  type="file"
+  accept="image/*"
+  className="border-none"
+/>
+
+<CustomFormField
+  name="difficulty"
+  label="Course Difficulty"
+  type="select"
+  placeholder="Select difficulty level"
+  options={[
+    { value: "beginner", label: "Beginner" },
+    { value: "intermediate", label: "Intermediate" },
+    { value: "advanced", label: "Advanced" },
+  ]}
+/>
+
+
               </div>
             </div>
 
@@ -186,13 +362,13 @@ const CourseEditor = () => {
                 </Button>
               </div>
 
-              {isLoading ? (
+              {/**isLoading ? (
                 <p>Loading course content...</p>
-              ) : sections.length > 0 ? (
+              ) : sections.length > 0 ? (*/
                 <DroppableComponent />
-              ) : (
+              /** ) : (
                 <p>No sections available</p>
-              )}
+              )*/}
             </div>
           </div>
         </form>

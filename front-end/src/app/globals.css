@@ -908,6 +908,10 @@ input[type="color"] {
 
 
 /* Assignment Card Styles */
+.teacher-assignment-card {
+  @apply flex flex-col w-full h-[190px] border-none bg-customgreys-primarybg overflow-hidden transition duration-200 rounded-lg;
+}
+
 .assignment-card {
   @apply flex flex-col w-full h-[160px] border-none bg-customgreys-primarybg overflow-hidden transition duration-200 rounded-lg;
 }
@@ -1283,6 +1287,10 @@ input[type="color"] {
 
 .course-card-teacher__delete-button {
   @apply rounded w-full bg-red-600 text-white-100 hover:bg-red-400 hover:text-customgreys-primarybg cursor-pointer;
+}
+
+.course-card-teacher__publish-button {
+  @apply rounded w-10 bg-primary-600 border-none hover:bg-primary/90 hover:text-customgreys-primarybg text-white-100 cursor-pointer;
 }
 
 /* NonDashboard Navbar Additional Classes */

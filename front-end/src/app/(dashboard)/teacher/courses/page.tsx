@@ -118,6 +118,26 @@ const Courses = () => {
       }
     }
   };
+  const handlePublish = async (course: Course) => {
+    if (window.confirm("Are you sure you want to publish this course?")) {
+      try {
+        const response = await fetch(`http://localhost/api/courses/${course.id}/publish`, {
+          method: 'PATCH',
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to publish course');
+        }
+
+        // Optionally, you can update the course state here
+        setCourses(courses.map(c => c.id === course.id ? { ...c, publishedAt: new Date().toISOString() } : c));
+      } catch (error) {
+        console.error('Error publishing course:', error);
+        alert('Failed to publish the course. Please try again.');
+      }
+    }
+  }
 
   const handleCreateCourse = () => {
     router.push('/teacher/courses/create');
@@ -152,6 +172,7 @@ const Courses = () => {
             course={course}
             onEdit={() => handleEdit(course)}
             onDelete={() => handleDelete(course)}
+            onPublish={() => handlePublish(course)}
             isOwner={course.instructorId === 1} // You might want to get the actual instructor ID from auth
           />
         ))}

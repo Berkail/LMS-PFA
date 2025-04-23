@@ -22,7 +22,7 @@ import { Pencil, Trash2 } from "lucide-react";
   
   const TeacherAssignmentCard = ({ assignment , onGoToCourse }: AssignmentCardProps) => {
     return (
-      <Card className="assignment-card group" onClick={() => onGoToCourse(assignment)}>
+      <Card className="teacher-assignment-card group" onClick={() => onGoToCourse(assignment)}>
         <CardHeader className="assignment-card__header">
         <CardTitle className="assignment-card__title">
             {assignment.title}: {assignment.description}

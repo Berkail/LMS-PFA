@@ -1,22 +1,56 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+interface Chapter {
+  id: number;
+  title: string;
+  content?: string;
+  videoUrl?: string;
+  sectionId: number;
+}
+
+interface Section {
+  id: number;
+  title: string;
+  description?: string;
+  chapters: Chapter[];
+  order: number;
+}
+
+interface ChapterModal {
+  isOpen: boolean;
+  sectionIndex: number | null;
+  chapterIndex: number | null;
+  editChapter: Chapter | null;
+}
+
+interface SectionModal {
+  isOpen: boolean;
+  sectionIndex: number | null;
+  editSection: Section | null;
+}
+
 interface InitialStateTypes {
   courseEditor: {
     sections: Section[];
-    isChapterModalOpen: boolean;
-    isSectionModalOpen: boolean;
-    selectedSectionIndex: number | null;
-    selectedChapterIndex: number | null;
+    chapterModal: ChapterModal;
+    sectionModal: SectionModal;
   };
 }
 
 const initialState: InitialStateTypes = {
   courseEditor: {
     sections: [],
-    isChapterModalOpen: false,
-    isSectionModalOpen: false,
-    selectedSectionIndex: null,
-    selectedChapterIndex: null,
+    chapterModal: {
+      isOpen: false,
+      sectionIndex: null,
+      chapterIndex: null,
+      editChapter: null,
+    },
+    sectionModal: {
+      isOpen: false,
+      sectionIndex: null,
+      editSection: null,
+    },
   },
 };
 
@@ -27,45 +61,65 @@ export const globalSlice = createSlice({
     setSections: (state, action: PayloadAction<Section[]>) => {
       state.courseEditor.sections = action.payload;
     },
+    
     openChapterModal: (
       state,
       action: PayloadAction<{
-        sectionIndex: number | null;
+        sectionIndex: number;
         chapterIndex: number | null;
+        editChapter?: Chapter;
       }>
     ) => {
-      state.courseEditor.isChapterModalOpen = true;
-      state.courseEditor.selectedSectionIndex = action.payload.sectionIndex;
-      state.courseEditor.selectedChapterIndex = action.payload.chapterIndex;
+      state.courseEditor.chapterModal = {
+        isOpen: true,
+        sectionIndex: action.payload.sectionIndex,
+        chapterIndex: action.payload.chapterIndex,
+        editChapter: action.payload.editChapter || null,
+      };
     },
+
     closeChapterModal: (state) => {
-      state.courseEditor.isChapterModalOpen = false;
-      state.courseEditor.selectedSectionIndex = null;
-      state.courseEditor.selectedChapterIndex = null;
+      state.courseEditor.chapterModal = {
+        isOpen: false,
+        sectionIndex: null,
+        chapterIndex: null,
+        editChapter: null,
+      };
     },
 
     openSectionModal: (
       state,
-      action: PayloadAction<{ sectionIndex: number | null }>
+      action: PayloadAction<{
+        sectionIndex: number | null;
+        editSection?: Section;
+      }>
     ) => {
-      state.courseEditor.isSectionModalOpen = true;
-      state.courseEditor.selectedSectionIndex = action.payload.sectionIndex;
+      state.courseEditor.sectionModal = {
+        isOpen: true,
+        sectionIndex: action.payload.sectionIndex,
+        editSection: action.payload.editSection || null,
+      };
     },
+
     closeSectionModal: (state) => {
-      state.courseEditor.isSectionModalOpen = false;
-      state.courseEditor.selectedSectionIndex = null;
+      state.courseEditor.sectionModal = {
+        isOpen: false,
+        sectionIndex: null,
+        editSection: null,
+      };
     },
 
     addSection: (state, action: PayloadAction<Section>) => {
       state.courseEditor.sections.push(action.payload);
     },
-    editSection: (
+
+    updateSection: (
       state,
       action: PayloadAction<{ index: number; section: Section }>
     ) => {
-      state.courseEditor.sections[action.payload.index] =
-        action.payload.section;
+      state.courseEditor.sections[action.payload.index] = action.payload.section;
     },
+
     deleteSection: (state, action: PayloadAction<number>) => {
       state.courseEditor.sections.splice(action.payload, 1);
     },
@@ -78,7 +132,8 @@ export const globalSlice = createSlice({
         action.payload.chapter
       );
     },
-    editChapter: (
+
+    updateChapter: (
       state,
       action: PayloadAction<{
         sectionIndex: number;
@@ -90,6 +145,7 @@ export const globalSlice = createSlice({
         action.payload.chapterIndex
       ] = action.payload.chapter;
     },
+
     deleteChapter: (
       state,
       action: PayloadAction<{ sectionIndex: number; chapterIndex: number }>
@@ -109,10 +165,10 @@ export const {
   openSectionModal,
   closeSectionModal,
   addSection,
-  editSection,
+  updateSection,
   deleteSection,
   addChapter,
-  editChapter,
+  updateChapter,
   deleteChapter,
 } = globalSlice.actions;
 
