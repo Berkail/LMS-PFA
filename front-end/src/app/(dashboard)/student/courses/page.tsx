@@ -98,8 +98,12 @@ const Courses = () => {
         }
 
         const data: EnrollmentResponse = await response.json();
-        const courses = data.data.map(enrollment => enrollment.course);
-        setEnrolledCourses(courses);
+const courses = data.data
+  .filter(enrollment => enrollment && enrollment.course) // Filter out null/undefined entries
+  .map(enrollment => enrollment.course);
+setEnrolledCourses(courses);
+console.log('API Response:', data);
+console.log('Mapped courses:', data.data.map(enrollment => enrollment.course));
       } catch (error) {
         console.error('Error fetching enrolled courses:', error);
       } finally {
@@ -112,6 +116,11 @@ const Courses = () => {
 
   const filteredCourses = useMemo(() => {
     return enrolledCourses.filter((course) => {
+      // Add null check
+      if (!course || !course.title) {
+        return false;
+      }
+      
       const matchesSearch = course.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
