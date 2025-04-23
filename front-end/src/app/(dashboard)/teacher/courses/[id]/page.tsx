@@ -80,7 +80,8 @@ const CourseEditor = () => {
   const id = params?.id;
   const courseId = typeof id === 'string' ? parseInt(id, 10) : undefined;
   
-  
+  const isCreateMode = courseId === undefined || isNaN(courseId);
+
   const [isLoading, setIsLoading] = useState(true);
   const [course, setCourse] = useState<Course | null>(null);
   
@@ -204,86 +205,129 @@ const CourseEditor = () => {
 
 
   const onSubmit = async (data: CourseFormData) => {
-    if (!courseId) {
-      toast.error('Course ID is required');
-      return;
-    }
-  
     try {
-      let imagePath = data.courseImg;
-      if (data.courseImg instanceof File) {
-        // Handle file upload if needed
-        imagePath = course?.pathToImg || '';
-      }
+      if (isCreateMode) {
+        try {
+          const formData = new FormData();
+          formData.append('title', data.title);
+          formData.append('description', data.description);
+          formData.append('difficulty', data.difficulty);
+          
+          if (data.courseImg instanceof File) {
+            formData.append('courseImg', data.courseImg);
+          }
   
-      // Update course data
-      const response = await fetch(`http://localhost/api/courses/${courseId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          title: data.title,
-          description: data.description,
-          difficulty: data.difficulty,
-          pathToImg: imagePath,
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to update course');
-      }
-  
-      // Update sections/modules and their lessons
-      for (const section of sections) {
-        if (section.id) {
-          // Update existing module
-          await fetch(`http://localhost/api/course-modules/${section.id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+          const response = await fetch('http://localhost/api/courses', {
+            method: 'POST',
             credentials: 'include',
-            body: JSON.stringify({
-              title: section.title,
-              order: section.order,
-            }),
+            body: formData,
           });
   
-          // Update existing chapters/lessons
-          for (const chapter of section.chapters || []) {
-            if (chapter.id) {
-              await fetch(`http://localhost/api/lessons/${chapter.id}`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                  title: chapter.title,
-                  pathToUrlVid: chapter.videoUrl,
-                }),
-              });
-            }
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            console.error('Server response:', {
+              status: response.status,
+              statusText: response.statusText,
+              error: errorData
+            });
+            throw new Error(`Failed to create course: ${response.status} ${response.statusText}`);
           }
-        } else {
-          // Handle new sections and chapters if needed
-          const newModule = await createCourseModule(courseId, section.title, section.order);
-          
-          for (const chapter of section.chapters || []) {
-            if (!chapter.id) {
+  
+          const newCourse = await response.json();
+          console.log('Created course:', newCourse);
+  
+          // Create sections and chapters for the new course
+          for (const section of sections) {
+            const newModule = await createCourseModule(newCourse.id, section.title, section.order);
+            
+            for (const chapter of section.chapters || []) {
               await createLesson(newModule.id, chapter.title, chapter.videoUrl || '');
             }
           }
+  
+          toast.success('Course created successfully');
+        } catch (error) {
+          console.error('Detailed create course error:', error);
+          toast.error(`Failed to create course: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          return;
         }
+      } else {
+        if (!courseId) {
+          toast.error('Course ID is required');
+          return;
+        }
+  
+        const courseData = {
+          title: data.title,
+          description: data.description,
+          difficulty: data.difficulty,
+          pathToImg: data.courseImg instanceof File ? '' : data.courseImg,
+        };
+  
+        // Update course
+        const response = await fetch(`http://localhost/api/courses/${courseId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(courseData),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to update course');
+        }
+  
+        // Update sections/modules and their lessons
+        for (const section of sections) {
+          if (section.id) {
+            // Update existing module
+            await fetch(`http://localhost/api/courses/${course?.id}/course-modules/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                title: section.title,
+                order: section.order,
+              }),
+            });
+  
+            for (const chapter of section.chapters || []) {
+              if (chapter.id) {
+                await fetch(`http://localhost/api/course-modules/${section.id}/lessons/`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  credentials: 'include',
+                  body: JSON.stringify({
+                    title: chapter.title,
+                    pathToUrlVid: chapter.videoUrl,
+                  }),
+                });
+              }
+            }
+          } else {
+            // Handle new sections and chapters
+            const newModule = await createCourseModule(courseId, section.title, section.order);
+            
+            for (const chapter of section.chapters || []) {
+              if (!chapter.id) {
+                await createLesson(newModule.id, chapter.title, chapter.videoUrl || '');
+              }
+            }
+          }
+        }
+  
+        toast.success('Course updated successfully');
       }
   
-      toast.success('Course updated successfully');
       router.push('/teacher/courses');
     } catch (error) {
-      console.error('Error updating course:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update course');
+      console.error('Error saving course:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save course');
     }
   };
   
