@@ -6,82 +6,214 @@ import TeacherCourseCard from "@/components/TeacherCourseCard";
 import Toolbar from "@/components/Toolbar";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
+interface Lesson {
+  id: number;
+  title: string;
+}
 
-const dummyCourses: Course[] = [
-  {
-    courseId: "course1",
-    teacherId: "teacher1",
-    teacherName: "John Doe",
-    title: "Advanced JavaScript",
-    description: "Master JavaScript concepts",
-    image: "/placeholder.png",
-    category: "Programming",
-    status: "draft",
-    level: "Beginner",
-    sections: []
-  },
-  {
-    courseId: "course2",
-    teacherId: "teacher1",
-    teacherName: "John Doe",
-    title: "React Fundamentals",
-    description: "Learn React from scratch",
-    image: "/hero2.jpg",
-    category: "Web Development",
-    status: "published",
-    level: "Intermediate",
-    sections: []
-  }
-];
+interface CourseModule {
+  id: number;
+  title: string;
+  order: number;
+  lessons: Lesson[];
+}
+
+interface Instructor {
+  id: number;
+  username: string;
+}
+
+interface Course {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  description: string;
+  pathToImg: string;
+  difficulty: string;
+  instructorId: number;
+  courseModules: CourseModule[];
+  instructor: Instructor;
+}
+
+interface ApiResponse {
+  data: Course[];
+  meta: {
+    itemsPerPage: number;
+    sortBy: [string, string][];
+  };
+  links: {
+    previous: string | null;
+    current: string;
+    next: string | null;
+  };
+}
 
 const Courses = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch('http://localhost/api/courses', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch courses');
+        }
+
+        const data: ApiResponse = await response.json();
+        setCourses(data.data);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const filteredCourses = useMemo(() => {
-    return dummyCourses.filter((course) => {
+    return courses.filter((course) => {
       const matchesSearch = course.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "all" || course.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      return matchesSearch;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [courses, searchTerm]);
 
   const handleEdit = (course: Course) => {
-    router.push(`/teacher/courses/${course.courseId}`, {
+    router.push(`/teacher/courses/${course.id}`, {
       scroll: false,
     });
   };
 
   const handleDelete = async (course: Course) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
-      console.log("Deleting course:", course.courseId);
+      try {
+        const response = await fetch(`http://localhost/api/courses/${course.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete course');
+        }
+
+        // Remove the deleted course from the state
+        setCourses(courses.filter(c => c.id !== course.id));
+      } catch (error) {
+        console.error('Error deleting course:', error);
+        alert('Failed to delete the course. Please try again.');
+      }
+    }
+  };
+  const handlePublish = async (course: Course) => {
+    if (window.confirm("Are you sure you want to publish this course?")) {
+      try {
+        const response = await fetch(`http://localhost/api/courses/${course.id}/publish`, {
+          method: 'PATCH',
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to publish course');
+        }
+
+        // Optionally, you can update the course state here
+        setCourses(courses.map(c => c.id === course.id ? { ...c, publishedAt: new Date().toISOString() } : c));
+      } catch (error) {
+        console.error('Error publishing course:', error);
+        alert('Failed to publish the course. Please try again.');
+      }
+    }
+  }
+
+  const handleUpdate = async (course: Course) => {
+    try {
+      // Update course details
+      const courseResponse = await fetch(`http://localhost/api/courses/${course.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: course.title,
+          description: course.description,
+          difficulty: course.difficulty,
+          pathToImg: course.pathToImg,
+        }),
+      });
+  
+      if (!courseResponse.ok) {
+        throw new Error('Failed to update course');
+      }
+  
+      // Update course modules (sections)
+      for (const module of course.courseModules) {
+        const moduleResponse = await fetch(`http://localhost/api/course-modules/${module.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            title: module.title,
+            order: module.order,
+          }),
+        });
+  
+        if (!moduleResponse.ok) {
+          throw new Error(`Failed to update module ${module.id}`);
+        }
+  
+        // Update lessons (chapters) for each module
+        for (const lesson of module.lessons) {
+          const lessonResponse = await fetch(`http://localhost/api/lessons/${lesson.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              title: lesson.title,
+            }),
+          });
+  
+          if (!lessonResponse.ok) {
+            throw new Error(`Failed to update lesson ${lesson.id}`);
+          }
+        }
+      }
+  
+      // Update the local state with the new course data
+      setCourses(courses.map(c => c.id === course.id ? course : c));
+      alert('Course updated successfully!');
+    } catch (error) {
+      console.error('Error updating course:', error);
+      alert('Failed to update the course. Please try again.');
     }
   };
 
+  
   const handleCreateCourse = () => {
-    const newCourseId = `course${dummyCourses.length + 1}`;
-    const newCourse: Course = {
-      courseId: newCourseId,
-      teacherId: "teacher1",
-      teacherName: "John Doe",
-      title: "",
-      description: "",
-      image: "/placeholder.png",
-      category: "",
-      status: "draft",
-      level: "Beginner",
-      sections: []
-    };
-    
-    console.log("Creating new course:", newCourse);
-    router.push(`/teacher/courses/${newCourseId}`);
+    router.push('/teacher/courses/create');
   };
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="teacher-courses">
@@ -104,11 +236,12 @@ const Courses = () => {
       <div className="teacher-courses__grid">
         {filteredCourses.map((course) => (
           <TeacherCourseCard
-            key={course.courseId}
+            key={course.id}
             course={course}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            isOwner={course.teacherId === "teacher1"} // Assuming current user is teacher1
+            onEdit={() => handleEdit(course)}
+            onDelete={() => handleDelete(course)}
+            onPublish={() => handlePublish(course)}
+            isOwner={course.instructorId === 1} // You might want to get the actual instructor ID from auth
           />
         ))}
       </div>

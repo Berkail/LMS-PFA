@@ -9,7 +9,48 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Upload } from "lucide-react";
+
+
+interface Lesson {
+  id: number;
+  title: string;
+}
+
+interface CourseModule {
+  id: number;
+  title: string;
+  order: number;
+  lessons: Lesson[];
+}
+
+interface Instructor {
+  id: number;
+  username: string;
+}
+
+interface Course {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  publishedAt: string | null;
+  description: string;
+  pathToImg: string;
+  difficulty: string;
+  instructorId: number;
+  courseModules: CourseModule[];
+  instructor: Instructor;
+}
+
+interface TeacherCourseCardProps {
+  course: Course;
+  onEdit: (course: Course) => void;
+  onDelete: (course: Course) => void;
+  isOwner: boolean;
+  onPublish: (course: Course) => void;
+}
 
 
 const TeacherCourseCard = ({
@@ -17,18 +58,23 @@ const TeacherCourseCard = ({
   onEdit,
   onDelete,
   isOwner,
+  onPublish,
 }: TeacherCourseCardProps) => {
+
+  const imageUrl = course.pathToImg ? `http://localhost/api/${course.pathToImg}` : "/placeholder.png";
+
   return (
     <Card className="course-card-teacher group">
       <CardHeader className="course-card-teacher__header">
-        <Image
-          src={course.image || "/placeholder.png"}
-          alt={course.title}
-          width={370}
-          height={150}
+      <div 
           className="course-card-teacher__image"
-          priority
+          style={{ 
+            backgroundImage: `url(${imageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
         />
+        
       </CardHeader>
 
       <CardContent className="course-card-teacher__content">
@@ -42,45 +88,81 @@ const TeacherCourseCard = ({
             <span
               className={cn(
                 "font-semibold px-2 py-1 rounded",
-                course.status === "published"
+                course.publishedAt
                   ? "bg-green-500/20 text-green-400"
                   : "bg-red-500/20 text-red-400"
               )}
             >
-              {course.status}
+              {course.publishedAt ? "Published" : "Draft"}
             </span>
           </p>
-          {course.enrollments && (
+          {/**course.enrollments && (
             <p className="ml-1 mt-1 inline-block text-secondary bg-secondary/10 text-sm font-normal">
               <span className="font-bold text-white-100">
                 {course.enrollments.length}
               </span>{" "}
               Student{course.enrollments.length > 1 ? "s" : ""} Enrolled
             </p>
-          )}
+          )*/}
         </div>
 
         <div className="w-full xl:flex space-y-2 xl:space-y-0 gap-2 mt-3">
-          {isOwner ? (
+        {isOwner ? (
             <>
-              <div>
-                <Button
-                  className="course-card-teacher__edit-button"
-                  onClick={() => onEdit(course)}
-                >
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-              </div>
-              <div>
-                <Button
-                  className="course-card-teacher__delete-button"
-                  onClick={() => onDelete(course)}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
+              {course.publishedAt ? (
+                <>
+                  <div>
+                    <Button
+                      className="course-card-teacher__edit-button"
+                      onClick={() => onEdit(course)}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                  </div>
+                  <div>
+                    <Button
+                      className="course-card-teacher__delete-button"
+                      onClick={() => onDelete(course)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between gap-10">
+                <div className="flex justify-left gap-2">
+                  <div>
+                    <Button
+                      className="course-card-teacher__edit-button"
+                      onClick={() => onEdit(course)}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                  </div>
+                  <div>
+                    <Button
+                      className="course-card-teacher__delete-button"
+                      onClick={() => onDelete(course)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                  </div>
+                  <div>
+                    <Button
+                      className="course-card-teacher__publish-button"
+                      onClick={() => onPublish(course)}
+
+                    >
+                      <Upload className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <p className="text-sm text-gray-500 italic">View Only</p>
