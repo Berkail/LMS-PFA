@@ -111,14 +111,14 @@ const TeacherCourseCard = ({
             <>
               {course.publishedAt ? (
                 <>
-                  <div>
+                  <div>{/* 
                     <Button
                       className="course-card-teacher__edit-button"
                       onClick={() => onEdit(course)}
                     >
                       <Pencil className="w-4 h-4 mr-2" />
                       Edit
-                    </Button>
+                    </Button>*/}
                   </div>
                   <div>
                     <Button
@@ -133,14 +133,14 @@ const TeacherCourseCard = ({
               ) : (
                 <div className="flex justify-between gap-10">
                 <div className="flex justify-left gap-2">
-                  <div>
+                  <div>{/* 
                     <Button
                       className="course-card-teacher__edit-button"
                       onClick={() => onEdit(course)}
                     >
                       <Pencil className="w-4 h-4 mr-2" />
                       Edit
-                    </Button>
+                    </Button>*/}
                   </div>
                   <div>
                     <Button

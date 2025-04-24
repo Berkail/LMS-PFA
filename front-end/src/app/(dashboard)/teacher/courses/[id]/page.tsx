@@ -64,10 +64,23 @@ interface Course {
   courseModules: CourseModule[];
 }
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 const courseSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  courseImg: z.any(),
+  courseImg: z
+    .any()
+    .refine((file) => !file || file instanceof File, "Must be a valid file")
+    .refine(
+      (file) => !file || file.size <= MAX_FILE_SIZE,
+      `Image must be less than 5MB`
+    )
+    .refine(
+      (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
+      "Only .jpg, .jpeg, .png and .webp formats are supported"
+    ),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]),
   courseStatus: z.boolean().default(false),
 });
@@ -76,18 +89,10 @@ type CourseFormData = z.infer<typeof courseSchema>;
 
 const CourseEditor = () => {
   const router = useRouter();
-  const params = useParams();
-  const id = params?.id;
-  const courseId = typeof id === 'string' ? parseInt(id, 10) : undefined;
-  
-  const isCreateMode = courseId === undefined || isNaN(courseId);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [course, setCourse] = useState<Course | null>(null);
-  
-
   const dispatch = useAppDispatch();
   const { sections } = useAppSelector((state) => state.global.courseEditor);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const methods = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
@@ -100,236 +105,94 @@ const CourseEditor = () => {
     },
   });
 
-  
-
-  useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        const response = await fetch(`http://localhost/api/courses/${courseId}`, {
-          credentials: 'include'
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to fetch course');
-        }
-  
-        const responseData = await response.json();
-        console.log('API Response:', responseData);
-  
-        if (!responseData || !responseData.title) {
-          console.error('Invalid course data received:', responseData);
-          return;
-        }
-  
-        // Set course data
-        setCourse(responseData);
-  
-        // Map CourseModules to sections
-        if (responseData.courseModules) {
-          const formattedSections = responseData.courseModules.map((module: CourseModule) => ({
-            id: module.id,
-            title: module.title,
-            order: module.order,
-            chapters: module.lessons.map((lesson: Lesson) => ({
-              id: lesson.id,
-              title: lesson.title,
-              videoUrl: lesson.pathToUrlVid,
-              sectionId: module.id
-            }))
-          }));
-  
-          // Dispatch sections to Redux store
-          dispatch(setSections(formattedSections));
-        }
-  
-      } catch (error) {
-        console.error('Error fetching course:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    if (courseId && !isNaN(courseId)) {
-      console.log('Fetching course with ID:', courseId);
-      fetchCourse();
-    }
-  }, [courseId, dispatch]);
-
-
-  useEffect(() => {
-    if (course) {
-      methods.reset({
-        title: course.title,
-        description: course.description || "",
-        difficulty: course.difficulty as "beginner" | "intermediate" | "advanced",
-        courseStatus: course.publishedAt !== null,
-        courseImg: "" // Keep empty since it's a file input
-      });
-    }
-  }, [course, methods]);
-
   const createCourseModule = async (courseId: number, title: string, order: number) => {
     const response = await fetch(`http://localhost/api/courses/${courseId}/course-modules`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ title, order })
     });
-  
-    if (!response.ok) {
-      throw new Error('Failed to create course module');
-    }
-  
+
+    if (!response.ok) throw new Error('Failed to create course module');
     return await response.json();
   };
-
 
   const createLesson = async (courseModuleId: number, title: string, pathToUrlVid: string) => {
     const response = await fetch(`http://localhost/api/course-modules/${courseModuleId}/lessons`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ title, pathToUrlVid })
     });
-  
-    if (!response.ok) {
-      throw new Error('Failed to create lesson');
-    }
-  
+
+    if (!response.ok) throw new Error('Failed to create lesson');
     return await response.json();
   };
 
-
   const onSubmit = async (data: CourseFormData) => {
-    try {
-      if (isCreateMode) {
-        try {
-          const formData = new FormData();
-          formData.append('title', data.title);
-          formData.append('description', data.description);
-          formData.append('difficulty', data.difficulty);
-          
-          if (data.courseImg instanceof File) {
-            formData.append('courseImg', data.courseImg);
-          }
-  
-          const response = await fetch('http://localhost/api/courses', {
-            method: 'POST',
-            credentials: 'include',
-            body: formData,
-          });
-  
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => null);
-            console.error('Server response:', {
-              status: response.status,
-              statusText: response.statusText,
-              error: errorData
-            });
-            throw new Error(`Failed to create course: ${response.status} ${response.statusText}`);
-          }
-  
-          const newCourse = await response.json();
-          console.log('Created course:', newCourse);
-  
-          // Create sections and chapters for the new course
-          for (const section of sections) {
-            const newModule = await createCourseModule(newCourse.id, section.title, section.order);
-            
-            for (const chapter of section.chapters || []) {
-              await createLesson(newModule.id, chapter.title, chapter.videoUrl || '');
-            }
-          }
-  
-          toast.success('Course created successfully');
-        } catch (error) {
-          console.error('Detailed create course error:', error);
-          toast.error(`Failed to create course: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          return;
-        }
-      } else {
-        if (!courseId) {
-          toast.error('Course ID is required');
-          return;
-        }
-  
-        const courseData = {
-          title: data.title,
-          description: data.description,
-          difficulty: data.difficulty,
-          pathToImg: data.courseImg instanceof File ? '' : data.courseImg,
-        };
-  
-        // Update course
-        const response = await fetch(`http://localhost/api/courses/${courseId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(courseData),
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to update course');
-        }
-  
-        // Update sections/modules and their lessons
-        for (const section of sections) {
-          if (section.id) {
-            // Update existing module
-            await fetch(`http://localhost/api/courses/${course?.id}/course-modules/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              credentials: 'include',
-              body: JSON.stringify({
-                title: section.title,
-                order: section.order,
-              }),
-            });
-  
-            for (const chapter of section.chapters || []) {
-              if (chapter.id) {
-                await fetch(`http://localhost/api/course-modules/${section.id}/lessons/`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  credentials: 'include',
-                  body: JSON.stringify({
-                    title: chapter.title,
-                    pathToUrlVid: chapter.videoUrl,
-                  }),
-                });
-              }
-            }
-          } else {
-            // Handle new sections and chapters
-            const newModule = await createCourseModule(courseId, section.title, section.order);
-            
-            for (const chapter of section.chapters || []) {
-              if (!chapter.id) {
-                await createLesson(newModule.id, chapter.title, chapter.videoUrl || '');
-              }
-            }
-          }
-        }
-  
-        toast.success('Course updated successfully');
-      }
-  
-      router.push('/teacher/courses');
-    } catch (error) {
-      console.error('Error saving course:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save course');
+  setIsSubmitting(true);
+  try {
+    // Validate image size before submission
+    if (data.courseImg instanceof File && data.courseImg.size > MAX_FILE_SIZE) {
+      toast.error("Image file is too large. Maximum size is 5MB");
+      return;
     }
-  };
+
+    // Create course
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('description', data.description);
+    formData.append('difficulty', data.difficulty);
+    
+    if (data.courseImg instanceof File) {
+      formData.append('courseImg', data.courseImg);
+    }
+
+    const response = await fetch('http://localhost/api/courses', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null) as { message?: string };
+      if (response.status === 413) {
+        toast.error("File size too large. Please choose a smaller image.");
+        return;
+      }
+      throw new Error(errorData?.message || `Failed to create course: ${response.statusText}`);
+    }
+
+    const newCourse = await response.json();
+
+    // Create sections and chapters
+    for (const section of sections) {
+      try {
+        const newModule = await createCourseModule(newCourse.id, section.title, section.order);
+        
+        if (section.chapters?.length) {
+          for (const chapter of section.chapters) {
+            try {
+              await createLesson(newModule.id, chapter.title, chapter.videoUrl || '');
+            } catch (err) {
+              toast.error(`Failed to create lesson "${chapter.title}"`);
+            }
+          }
+        }
+      } catch (err) {
+        toast.error(`Failed to create section "${section.title}"`);
+      }
+    }
+
+    toast.success('Course created successfully');
+    router.push('/teacher/courses');
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to create course';
+    toast.error(errorMessage);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   
   return (
     <div>
@@ -351,11 +214,12 @@ const CourseEditor = () => {
             rightElement={
               <div className="flex items-center space-x-4">
                 <Button
-                  type="submit"
-                  className="bg-primary-700 hover:bg-primary-600"
-                >
-                  Save
-                </Button>
+  type="submit"
+  className="bg-primary-700 hover:bg-primary-600"
+  disabled={isSubmitting}
+>
+  {isSubmitting ? 'Creating...' : 'Save'}
+</Button>
               </div>
             }
           />

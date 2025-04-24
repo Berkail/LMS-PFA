@@ -11,13 +11,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 interface Instructor {
   id: number;
-  firstName: string;
-  lastName: string;
   username: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
 }
 
 interface Lesson {
@@ -82,6 +76,7 @@ const Course = () => {
 
         const responseData = await response.json();
         // Set the course from the enrollment data
+        console.log(responseData.course);
         setCourse(responseData.course);
       } catch (error) {
         console.error('Error fetching course:', error);
@@ -121,6 +116,30 @@ const Course = () => {
     );
   }
 
+  const transformYoutubeUrl = (url: string): string => {
+    if (!url) return '';
+  
+    try {
+      // For youtube-nocookie.com embed URL
+      return `https://www.youtube-nocookie.com/embed/${getYouTubeVideoId(url)}`;
+    } catch (error) {
+      console.error('Error transforming YouTube URL:', error);
+      return url;
+    }
+  };
+  
+  // Add this helper function to extract video ID
+  const getYouTubeVideoId = (url: string): string => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    
+    if (match && match[2].length === 11) {
+      return match[2];
+    }
+    
+    throw new Error('Invalid YouTube URL');
+  };
+
   if (!currentLesson || !currentModule || !course) {
     return <div>Chapter not found</div>;
   }
@@ -140,12 +159,12 @@ const Course = () => {
           <div className="course__instructor">
   <Avatar className="course__avatar">
     <AvatarFallback className="course__avatar-fallback">
-      {course?.instructor?.firstName?.[0] || 'U'}
+      {course?.instructor?.username?.[0] || 'U'}
     </AvatarFallback>
   </Avatar>
   <span className="course__instructor-name">
     {course?.instructor ? 
-      `${course.instructor.firstName} ${course.instructor.lastName}` : 
+      `${course.instructor.username}` : 
       'Unknown Instructor'
     }
   </span>
@@ -155,13 +174,13 @@ const Course = () => {
 
         <Card className="course__video">
           <CardContent className="course__video-container">
-            <iframe 
-              src={currentLesson.pathToUrlVid}
-              title="Course Video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen 
-              className="bg-customgreys-secondarybg"
-            />
+          <iframe 
+  src={transformYoutubeUrl(currentLesson.pathToUrlVid)}
+  title="Course Video"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen 
+  className="bg-customgreys-secondarybg"
+/>
           </CardContent>
         </Card>
 
@@ -204,13 +223,13 @@ const Course = () => {
     <div className="course__instructor-header">
       <Avatar className="course__instructor-avatar">
         <AvatarFallback className="course__instructor-avatar-fallback">
-          {course?.instructor?.firstName?.[0] || 'U'}
+          {course?.instructor?.username?.[0] || 'U'}
         </AvatarFallback>
       </Avatar>
       <div className="course__instructor-details">
         <h4 className="course__instructor-name">
           {course?.instructor ? 
-            `${course.instructor.firstName} ${course.instructor.lastName}` : 
+            `${course.instructor.username}` : 
             'Unknown Instructor'
           }
         </h4>
@@ -221,7 +240,7 @@ const Course = () => {
     </div>
     <div className="course__instructor-bio">
       <p>
-        {course?.instructor?.email || 'No email available'}
+        {/*course?.instructor?.email || */'No email available'}
       </p>
     </div>
   </CardContent>

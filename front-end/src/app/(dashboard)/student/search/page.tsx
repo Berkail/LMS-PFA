@@ -181,7 +181,7 @@ const Search = () => {
         throw new Error('Failed to enroll in course');
       }
   
-      router.push(`/student/courses/${courseId}`);
+      router.push(`/student/courses/${courseId}/chapters/${selectedCourse?.sections?.[0]?.chapters?.[0]?.chapterId}`);
     } catch (error) {
       console.error('Error enrolling in course:', error);
     }

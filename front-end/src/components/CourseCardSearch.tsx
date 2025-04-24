@@ -31,12 +31,14 @@ interface CourseCardSearchProps {
 }
 
 
+
 const CourseCardSearch: React.FC<CourseCardSearchProps> = ({
   course,
   isSelected,
   onGoToCourse,
 }) => {
   console.log(course.image);
+
   return (
     <div
       onClick={onGoToCourse}
@@ -46,17 +48,21 @@ const CourseCardSearch: React.FC<CourseCardSearchProps> = ({
           : "course-card-search--unselected"
       }`}
     >
-      <div className="course-card-search__image-container">
+      <div className="">
         <div 
           className="course-card__image"
           style={{ 
             backgroundImage: `url(${course.image})`,
             backgroundSize: 'cover',
-            backgroundPosition: 'center'
+            backgroundPosition: 'center',
+            width: '100%',
+            height: '170px' // Add a fixed height
           }}
         />
       </div>
+      
       <div className="course-card-search__content">
+        
         <div>
           <h2 className="course-card-search__title">{course.title}</h2>
           <p className="course-card-search__description">

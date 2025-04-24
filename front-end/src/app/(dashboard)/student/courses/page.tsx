@@ -11,13 +11,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 interface Instructor {
   id: number;
-  firstName: string;
-  lastName: string;
   username: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
 }
 
 interface Course {
@@ -194,7 +188,7 @@ console.log('Mapped courses:', data.data.map(enrollment => enrollment.course));
               title: course.title,
               description: course.description || "No description available",
               image: course.pathToImg,
-              teacherName: `${course.instructor.firstName} ${course.instructor.lastName}`,
+              teacherName: `${course.instructor.username}`,
               category: "Programming"
             }}
             onGoToCourse={() => handleGoToCourse(course)}

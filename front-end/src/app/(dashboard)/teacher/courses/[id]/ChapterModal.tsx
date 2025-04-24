@@ -11,11 +11,23 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+const isValidYoutubeUrl = (url: string): boolean => {
+  if (!url) return true; // Allow empty URL
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return !!(match && match[2].length === 11);
+};
+
 // Define the schema
 const chapterSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().optional(),
-  videoUrl: z.string().optional(),
+  videoUrl: z
+    .string()
+    .optional()
+    .refine((url) => !url || isValidYoutubeUrl(url), {
+      message: "Please enter a valid YouTube URL",
+    }),
 });
 
 type ChapterFormData = z.infer<typeof chapterSchema>;
@@ -33,7 +45,10 @@ const ChapterModal = () => {
       content: "",
       videoUrl: "",
     },
+
   });
+
+
 
   useEffect(() => {
     if (editChapter) {
@@ -113,11 +128,11 @@ const ChapterModal = () => {
               placeholder="Write chapter title here"
             />
             <CustomFormField
-              name="videoUrl"
-              label="Video URL"
-              type="text"
-              placeholder="Enter video URL (e.g., YouTube, Vimeo)"
-            />
+  name="videoUrl"
+  label="YouTube Video URL"
+  type="text"
+  placeholder="Enter YouTube URL (e.g., https://youtube.com/watch?v=...)"
+/>
 
             <div className="flex justify-end gap-2 mt-6">
               <Button

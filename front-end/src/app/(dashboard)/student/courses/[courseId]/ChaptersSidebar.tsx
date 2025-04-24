@@ -8,7 +8,7 @@ import {
   CheckCircle,
   Trophy,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ChaptersSidebarSkeleton } from "@/components/skeletons/ChaptersSidebarSkeleton";
@@ -48,13 +48,15 @@ const ChaptersSidebar = () => {
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [courseData, setCourseData] = useState<Course | null>(null);
-  
+  const pathname = usePathname(); // Add this hook
+
   const sidebarRef = useRef<HTMLDivElement>(null);
   const {toggleSidebar} = useSidebar();
 
-  const pathArray = window.location.pathname.split('/');
+  const pathArray = pathname.split('/');
   const courseId = pathArray[pathArray.indexOf('courses') + 1];
-  const lessonId = pathArray[pathArray.indexOf('lessons') + 1];
+  const currentChapterId = pathArray[pathArray.indexOf('chapters') + 1];
+  
 
   useEffect(() => {
     toggleSidebar();
@@ -101,15 +103,15 @@ const ChaptersSidebar = () => {
       </div>
       {courseData.courseModules.map((module, index) => (
         <CourseModule
-          key={module.id}
-          module={module}
-          index={index}
-          lessonId={lessonId as string}
-          courseId={courseId as string}
-          expandedModules={expandedModules}
-          toggleModule={toggleModule}
-          handleLessonClick={handleLessonClick}
-        />
+        key={module.id}
+        module={module}
+        index={index}
+        lessonId={currentChapterId as string}  // Update this prop name for clarity
+        courseId={courseId as string}
+        expandedModules={expandedModules}
+        toggleModule={toggleModule}
+        handleLessonClick={handleLessonClick}
+      />
       ))}
     </div>
   );
@@ -143,7 +145,7 @@ const CourseModule = ({
       >
         <div className="chapters-sidebar__section-title-wrapper">
           <p className="chapters-sidebar__section-number">
-            Module {module.order}
+            Module {index + 1}
           </p>
           {isExpanded ? (
             <ChevronUp className="chapters-sidebar__chevron" />
@@ -188,8 +190,7 @@ const LessonItem = ({
   currentLessonId: string;
   handleLessonClick: (moduleId: number, lessonId: number) => void;
 }) => {
-  const isCurrentLesson = Boolean(currentLessonId) && String(currentLessonId) === String(lesson.id);
-
+  const isCurrentLesson = Boolean(currentLessonId) && String(lesson.id) === currentLessonId;
   return (
     <li
       className={cn("chapters-sidebar__chapter", {
