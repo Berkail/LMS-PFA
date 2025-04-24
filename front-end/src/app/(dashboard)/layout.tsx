@@ -9,40 +9,59 @@ import { useEffect, useState } from "react";
 import ChaptersSidebar from "./student/courses/[courseId]/ChaptersSidebar";
 import StoreProvider from "@/state/redux";
 import { useRouter } from "next/navigation";
+import Loading from "@/components/Loading";
 
 
-
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
+  export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const router = useRouter();
     const pathname = usePathname();
     const [courseId, setCourseId] = useState<string | null>(null);
-    const isCoursePage = /^\/student\/courses\/[^\/]+(?:\/chapters\/[^\/]+)?$/.test(
-      pathname
-    );
+    const isCoursePage = /^\/student\/courses\/[^\/]+(?:\/chapters\/[^\/]+)?$/.test(pathname);
     const [isLoading, setIsLoading] = useState(true);
-/** 
+  
+    // First useEffect for auth check
     useEffect(() => {
       const checkAuth = async () => {
         try {
-          const response = await fetch('http://localhost/api/learners/me', {
-            credentials: 'include'
-          });
+          if (pathname.startsWith('/teacher')) {
+            const response = await fetch('http://localhost/api/instructors/me', {
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              window.location.href = '/signin';
+              return;
+            }
   
-          if (response.status === 403) {
-            router.push('/signin');
-            return;
+            if (pathname === '/teacher') {
+              window.location.href = '/teacher/courses';
+            }
           }
+          else if (pathname.startsWith('/student')) {
+            const response = await fetch('http://localhost/api/learners/me', {
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              window.location.href = '/signin';
+              return;
+            }
   
+            if (pathname === '/student') {
+              window.location.href = '/student/search';
+            }
+          }
           setIsLoading(false);
         } catch (error) {
           console.error('Auth check failed:', error);
-          router.push('/signin');
+          window.location.href = '/signin';
         }
       };
   
       checkAuth();
-    }, [router]);
-*/
+    }, [pathname]);
+  
+    // Second useEffect for course ID
     useEffect(() => {
       if (isCoursePage) {
         const match = pathname.match(/\/student\/courses\/([^\/]+)/);
@@ -51,23 +70,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setCourseId(null);
       }
     }, [isCoursePage, pathname]);
-
-  return (
-    <StoreProvider>
-    <SidebarProvider>
-    <div className="dashboard">
-        <AppSidebar />
-        <div className="dashboard__content">
-          {courseId && <ChaptersSidebar />}
-            <div className={cn("dashboard__main",
-              isCoursePage && "dashboard__main--not-course"
-            )} style={{height: "100vh"}}>
+  
+    if (isLoading) {
+      return <Loading />;
+    }
+  
+    return (
+      <StoreProvider>
+        <SidebarProvider>
+          <div className="dashboard">
+            <AppSidebar />
+            <div className="dashboard__content">
+              {courseId && <ChaptersSidebar />}
+              <div 
+                className={cn("dashboard__main",
+                  isCoursePage && "dashboard__main--not-course"
+                )} 
+                style={{height: "100vh"}}
+              >
                 <Navbar isCoursePage={isCoursePage} />
                 <main className="dashboard__body">{children}</main>
+              </div>
             </div>
-        </div>
-    </div>
-    </SidebarProvider>
-    </StoreProvider>
-  );
-}
+          </div>
+        </SidebarProvider>
+      </StoreProvider>
+    );
+  }

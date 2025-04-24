@@ -68,20 +68,28 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const courseSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  courseImg: z
-    .any()
-    .refine((file) => !file || file instanceof File, "Must be a valid file")
-    .refine(
-      (file) => !file || file.size <= MAX_FILE_SIZE,
-      `Image must be less than 5MB`
-    )
-    .refine(
-      (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
-      "Only .jpg, .jpeg, .png and .webp formats are supported"
-    ),
-  difficulty: z.enum(["beginner", "intermediate", "advanced"]),
+  title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string()
+    .min(10, "Description must be at least 10 characters")
+    .max(1000, "Description must be less than 1000 characters"),
+    courseImg: z.custom<File | null>()
+    .refine((file) => {
+      if (!file) return true;
+      return file instanceof File;
+    }, "Please upload a valid file")
+    .refine((file) => {
+      if (!file) return true;
+      const size = file instanceof File ? file.size : 0;
+      return size <= MAX_FILE_SIZE;
+    }, `Image must be less than 2MB`)
+    .refine((file) => {
+      if (!file) return true;
+      return ACCEPTED_IMAGE_TYPES.includes(file.type);
+    }, "Only .jpg, .jpeg, .png and .webp formats are supported")
+    .nullable(),
+  difficulty: z.enum(["beginner", "intermediate", "advanced"], {
+    required_error: "Please select a difficulty level",
+  }),
   courseStatus: z.boolean().default(false),
 });
 
@@ -92,6 +100,7 @@ const CourseEditor = () => {
   const dispatch = useAppDispatch();
   const { sections } = useAppSelector((state) => state.global.courseEditor);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
 
   const methods = useForm<CourseFormData>({
@@ -99,11 +108,22 @@ const CourseEditor = () => {
     defaultValues: {
       title: "",
       description: "",
-      courseImg: "",
+      courseImg: null,
       difficulty: "beginner",
       courseStatus: false,
     },
+    mode: "onBlur", // This will show errors when user leaves a field
   });
+  
+    useEffect(() => {
+      if (process.env.NODE_ENV === 'development') {
+        const formState = methods.formState;
+        if (formState.errors && Object.keys(formState.errors).length > 0) {
+          console.log('Form Errors:', formState.errors);
+        }
+      }
+    }, [methods.formState]);
+  
 
   const createCourseModule = async (courseId: number, title: string, order: number) => {
     const response = await fetch(`http://localhost/api/courses/${courseId}/course-modules`, {
@@ -133,12 +153,15 @@ const CourseEditor = () => {
   setIsSubmitting(true);
   try {
     // Validate image size before submission
-    if (data.courseImg instanceof File && data.courseImg.size > MAX_FILE_SIZE) {
-      toast.error("Image file is too large. Maximum size is 5MB");
-      return;
+    if (data.courseImg instanceof File) {
+      const fileSizeInMB = data.courseImg.size / (1024 * 1024);
+      if (fileSizeInMB > 2) { // Using 2MB as limit
+        setFormError(`File size (${fileSizeInMB.toFixed(2)}MB) exceeds 2MB limit`);
+        setIsSubmitting(false);
+        return;
+      }
     }
 
-    // Create course
     const formData = new FormData();
     formData.append('title', data.title);
     formData.append('description', data.description);
@@ -157,8 +180,7 @@ const CourseEditor = () => {
     if (!response.ok) {
       const errorData = await response.json().catch(() => null) as { message?: string };
       if (response.status === 413) {
-        toast.error("File size too large. Please choose a smaller image.");
-        return;
+        throw new Error("The image file is too large. Please choose a smaller image (max 2MB).");
       }
       throw new Error(errorData?.message || `Failed to create course: ${response.statusText}`);
     }
@@ -188,11 +210,12 @@ const CourseEditor = () => {
     router.push('/teacher/courses');
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Failed to create course';
-    toast.error(errorMessage);
+    setFormError(errorMessage);
   } finally {
     setIsSubmitting(false);
   }
 };
+
   
   return (
     <div>
@@ -227,6 +250,11 @@ const CourseEditor = () => {
           <div className="flex justify-between md:flex-row flex-col gap-10 mt-5 font-dm-sans">
             <div className="basis-1/2">
               <div className="space-y-4">
+              {formError && (
+      <div className="p-3 mb-4 text-sm text-red-500 bg-red-100 rounded-md border border-red-200">
+        Error: {formError}
+      </div>
+    )}
               <CustomFormField
   name="title"
   label="Course Title"

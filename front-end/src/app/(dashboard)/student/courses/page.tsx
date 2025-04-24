@@ -96,8 +96,6 @@ const courses = data.data
   .filter(enrollment => enrollment && enrollment.course) // Filter out null/undefined entries
   .map(enrollment => enrollment.course);
 setEnrolledCourses(courses);
-console.log('API Response:', data);
-console.log('Mapped courses:', data.data.map(enrollment => enrollment.course));
       } catch (error) {
         console.error('Error fetching enrolled courses:', error);
       } finally {
