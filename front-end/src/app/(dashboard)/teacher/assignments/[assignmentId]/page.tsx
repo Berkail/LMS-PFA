@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Loader2 } from "lucide-react";
 
 interface Assignment {
   id: number;
@@ -38,6 +39,7 @@ const EditAssignment = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const isCreateMode = params.assignmentId === 'create';
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<AssignmentFormData>({
     resolver: zodResolver(assignmentSchema),
@@ -78,6 +80,7 @@ const EditAssignment = () => {
   }, [params.assignmentId, form, router, isCreateMode]);
 
   const onSubmit = async (data: AssignmentFormData) => {
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("title", data.title);
@@ -85,23 +88,25 @@ const EditAssignment = () => {
       if (pdfFile) {
         formData.append("file", pdfFile);
       }
-
+  
       const url = isCreateMode 
         ? 'http://localhost/api/exams'
         : `http://localhost/api/exams/${params.assignmentId}`;
-
+  
       const response = await fetch(url, {
         method: isCreateMode ? 'POST' : 'PATCH',
         body: formData,
+        credentials: 'include',
       });
-
+  
       if (response.ok) {
         router.push("/teacher/assignments");
       } else {
         throw new Error(isCreateMode ? "Failed to create assignment" : "Failed to update assignment");
       }
     } catch (error) {
-      console.error(isCreateMode ? "Error creating assignment:" : "Error updating assignment:", error);
+      // Silent fail
+      setIsSubmitting(false);
     }
   };
 
@@ -168,19 +173,30 @@ const EditAssignment = () => {
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-
-<div className="flex justify-end space-x-4">
-                  <Button 
-                    variant="outline" 
-                    type="button"
-                    onClick={() => router.push("/teacher/assignments")}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-primary">
-                    {isCreateMode ? 'Create Assignment' : 'Update Assignment'}
-                  </Button>
-                </div>
+                <div className="flex justify-end space-x-4">
+  <Button 
+    variant="outline" 
+    type="button"
+    onClick={() => router.push("/teacher/assignments")}
+    disabled={isSubmitting}
+  >
+    Cancel
+  </Button>
+  <Button 
+    type="submit" 
+    className="bg-primary text-white-50"
+    disabled={isSubmitting}
+  >
+    {isSubmitting ? (
+      <>
+        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        {isCreateMode ? 'Creating...' : 'Updating...'}
+      </>
+    ) : (
+      isCreateMode ? 'Create Assignment' : 'Update Assignment'
+    )}
+  </Button>
+</div>
               </form>
             </Form>
           </CardContent>

@@ -9,6 +9,7 @@ import Loading from "@/components/Loading";
 import { AssignmentSkeleton } from "@/components/skeletons/AssignmentSkeleton";
 import { Button } from "@/components/ui/button";
 import TeacherAssignmentCard from "@/components/TeacherAssignmentCard";
+import { Loader2 } from "lucide-react";
 
 
 
@@ -37,6 +38,7 @@ const Assignments = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [instructor, setInstructor] = useState<User| null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   // First useEffect to fetch instructor data
   useEffect(() => {
@@ -61,23 +63,29 @@ const Assignments = () => {
   
   // Second useEffect to fetch assignments when instructor is available
   useEffect(() => {
-      const fetchAssignments = async () => {
-          if (!instructor?.id) return;
-          
-          try {
-              const response = await fetch(`http://localhost/api/exams?instructorId=${instructor.id}`);
-              const result = await response.json();
-              setAssignments(result.data); // Changed from setInstructor to setAssignments
-          } catch (error) {
-              console.error('Error fetching assignments:', error);
-          } finally {
-              setIsLoading(false);
-          }
-      };
-  
-      fetchAssignments();
-  }, [instructor]); // Added instructor as dependency
+    const fetchAssignments = async () => {
+      if (!instructor?.id) return;
+      
+      try {
+        const response = await fetch(`http://localhost/api/exams?instructorId=${instructor.id}`, {
+          credentials: 'include'
+        });
 
+        if (!response.ok) return;
+
+        const result = await response.json();
+        setAssignments(result.data);
+      } catch (error) {
+        // Silent fail
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, [instructor]);
+
+  
   const filteredAssignments = useMemo(() => {
     return assignments.filter((assignment) => 
       assignment.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -89,32 +97,29 @@ const Assignments = () => {
   }
 
   const handleDelete = async (assignment: Assignment) => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete the assignment "${assignment.title}"?`);
-    if (confirmDelete) {
+    if (window.confirm("Are you sure you want to delete this assignment?")) {
       try {
         const response = await fetch(`http://localhost/api/exams/${assignment.id}`, {
           method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          credentials: 'include',
         });
-  
-        const data = await response.json();
-  
-        if (response.ok) {
-          setAssignments(assignments.filter(a => a.id !== assignment.id));
-        } else {
-          alert(`Failed to delete: ${data.message || 'Unknown error occurred'}`);
-        }
+
+        if (!response.ok) return;
+        setAssignments(assignments.filter(a => a.id !== assignment.id));
       } catch (error) {
-        console.error('Error deleting assignment:', error);
-        alert('Failed to delete the assignment. Please check your connection and try again.');
+        // Silent fail
       }
     }
   };
 
-  const handleCreateAssignment = () => {
-    router.push('/teacher/assignments/create');
+  const handleCreateAssignment = async () => {
+    setIsCreating(true);
+    try {
+      await router.prefetch('/teacher/assignments/create');
+      await router.replace('/teacher/assignments/create');
+    } catch (error) {
+      setIsCreating(false);
+    }
   };
 
   if (isLoading) {
@@ -140,11 +145,19 @@ const Assignments = () => {
         subtitle={`${assignments.length} assignments available`}
         rightElement={
           <Button
-            className="teacher-courses__header"
-            onClick={handleCreateAssignment}
-          >
-            Create Assignment
-          </Button>
+  className="teacher-courses__header"
+  onClick={handleCreateAssignment}
+  disabled={isCreating}
+>
+  {isCreating ? (
+    <>
+      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      Creating...
+    </>
+  ) : (
+    "Create Assignment"
+  )}
+</Button>
         }
       />
       <div className="user-courses__grid">

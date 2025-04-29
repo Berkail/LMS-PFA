@@ -5,6 +5,7 @@ import Loading from "@/components/Loading";
 import TeacherCourseCard from "@/components/TeacherCourseCard";
 import Toolbar from "@/components/Toolbar";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -62,53 +63,52 @@ const Courses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [instructor, setInstructor] = useState<Instructor| null>(null);
+  const [isCreating, setIsCreating] = useState(false); // Add this line
 
 // First useEffect to fetch instructor data
 useEffect(() => {
-    const fetchInstructor = async () => {
-        try {
-            const endpoint = 'http://localhost/api/instructors/me';
-              
-            const response = await fetch(endpoint, {
-                credentials: 'include'
-            });
-            
-            if (!response.ok) throw new Error(`Failed to fetch data`);
-            const data = await response.json();
-            setInstructor(data);
-        } catch (error) {
-            console.error(`Error fetching data:`, error);
-        }
-    };
+  const fetchInstructor = async () => {
+      try {
+          const endpoint = 'http://localhost/api/instructors/me';
+          const response = await fetch(endpoint, {
+              credentials: 'include'
+          });
+          
+          if (!response.ok) return;
+          const data = await response.json();
+          setInstructor(data);
+      } catch (error) {
+          setLoading(false);
+      }
+  };
 
-    fetchInstructor();
+  fetchInstructor();
 }, []);
 
 // Second useEffect to fetch courses when instructor is available
 useEffect(() => {
-    const fetchCourses = async () => {
-        if (!instructor?.id) return; // Add this check
-        
-        try {
-            const response = await fetch(`http://localhost/api/courses?filter.instructorId=${instructor.id}`, {
-                credentials: 'include'
-            });
+  const fetchCourses = async () => {
+      if (!instructor?.id) return;
+      
+      try {
+          const response = await fetch(`http://localhost/api/courses?filter.instructorId=${instructor.id}`, {
+              credentials: 'include'
+          });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch courses');
-            }
+          if (!response.ok) return;
 
-            const data: ApiResponse = await response.json();
-            setCourses(data.data);
-        } catch (error) {
-            console.error('Error fetching courses:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+          const data: ApiResponse = await response.json();
+          setCourses(data.data);
+      } catch (error) {
+          // Silent fail
+      } finally {
+          setLoading(false);
+      }
+  };
 
-    fetchCourses();
-}, [instructor]); 
+  fetchCourses();
+}, [instructor]);
+
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
@@ -127,44 +127,35 @@ useEffect(() => {
 
   const handleDelete = async (course: Course) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
-      try {
-        const response = await fetch(`http://localhost/api/courses/${course.id}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
+        try {
+            const response = await fetch(`http://localhost/api/courses/${course.id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
 
-        if (!response.ok) {
-          throw new Error('Failed to delete course');
+            if (!response.ok) return;
+            setCourses(courses.filter(c => c.id !== course.id));
+        } catch (error) {
+            // Silent fail
         }
-
-        // Remove the deleted course from the state
-        setCourses(courses.filter(c => c.id !== course.id));
-      } catch (error) {
-        console.error('Error deleting course:', error);
-        alert('Failed to delete the course. Please try again.');
-      }
     }
-  };
-  const handlePublish = async (course: Course) => {
-    if (window.confirm("Are you sure you want to publish this course?")) {
+};
+
+const handlePublish = async (course: Course) => {
+  if (window.confirm("Are you sure you want to publish this course?")) {
       try {
-        const response = await fetch(`http://localhost/api/courses/${course.id}/publish`, {
-          method: 'PATCH',
-          credentials: 'include',
-        });
+          const response = await fetch(`http://localhost/api/courses/${course.id}/publish`, {
+              method: 'PATCH',
+              credentials: 'include',
+          });
 
-        if (!response.ok) {
-          throw new Error('Failed to publish course');
-        }
-
-        // Optionally, you can update the course state here
-        setCourses(courses.map(c => c.id === course.id ? { ...c, publishedAt: new Date().toISOString() } : c));
+          if (!response.ok) return;
+          setCourses(courses.map(c => c.id === course.id ? { ...c, publishedAt: new Date().toISOString() } : c));
       } catch (error) {
-        console.error('Error publishing course:', error);
-        alert('Failed to publish the course. Please try again.');
+          // Silent fail
       }
-    }
   }
+};
 
   const handleUpdate = async (course: Course) => {
     try {
@@ -234,9 +225,15 @@ useEffect(() => {
   };
 
   
-  const handleCreateCourse = () => {
-    router.push('/teacher/courses/create');
-  };
+  const handleCreateCourse = async () => {
+    setIsCreating(true);
+    try {
+        await router.prefetch('/teacher/courses/create');
+        await router.replace('/teacher/courses/create');
+    } catch (error) {
+        setIsCreating(false);
+    }
+};
 
   if (loading) {
     return <Loading />;
@@ -249,11 +246,13 @@ useEffect(() => {
         subtitle="Browse your courses"
         rightElement={
           <Button
-            onClick={handleCreateCourse}
-            className="teacher-courses__header"
-          >
-            Create Course
-          </Button>
+  onClick={handleCreateCourse}
+  className="teacher-courses__header flex items-center gap-2"
+  disabled={isCreating}
+>
+  {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
+  {isCreating ? "Creating..." : "Create Course"}
+</Button>
         }
       />
       <Toolbar
@@ -268,7 +267,7 @@ useEffect(() => {
             onEdit={() => handleEdit(course)}
             onDelete={() => handleDelete(course)}
             onPublish={() => handlePublish(course)}
-            isOwner={course.instructorId === 1} // You might want to get the actual instructor ID from auth
+            isOwner={course.instructorId === instructor?.id} // You might want to get the actual instructor ID from auth
           />
         ))}
       </div>

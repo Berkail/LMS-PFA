@@ -18,7 +18,8 @@ import Loading from "@/components/Loading";
     const [courseId, setCourseId] = useState<string | null>(null);
     const isCoursePage = /^\/student\/courses\/[^\/]+(?:\/chapters\/[^\/]+)?$/.test(pathname);
     const [isLoading, setIsLoading] = useState(true);
-  
+    const userType = pathname.startsWith('/teacher') ? 'teacher' : 'student';
+
     // First useEffect for auth check
     useEffect(() => {
       const checkAuth = async () => {
@@ -88,7 +89,7 @@ import Loading from "@/components/Loading";
                 )} 
                 style={{height: "100vh"}}
               >
-                <Navbar isCoursePage={isCoursePage} />
+                <Navbar isCoursePage={isCoursePage} userType={userType} />
                 <main className="dashboard__body">{children}</main>
               </div>
             </div>

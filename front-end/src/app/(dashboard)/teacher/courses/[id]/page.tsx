@@ -9,7 +9,7 @@ import {
   createCourseFormData,
   uploadAllVideos,
 } from "@/lib/utils";
-import { openSectionModal, setSections } from "@/state";
+import { openSectionModal, resetCourseEditor, setSections } from "@/state";
 import {
   useGetCourseQuery,
   useUpdateCourseMutation,
@@ -102,6 +102,12 @@ const CourseEditor = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+
+  useEffect(() => {
+    return () => {
+      dispatch(resetCourseEditor());
+    };
+  }, [dispatch]);
 
   const methods = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
@@ -282,6 +288,7 @@ const CourseEditor = () => {
   name="difficulty"
   label="Course Difficulty"
   type="select"
+  className="[&_select]:text-white [&_option]:text-white"
   placeholder="Select difficulty level"
   options={[
     { value: "beginner", label: "Beginner" },

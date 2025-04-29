@@ -155,6 +155,11 @@ export const globalSlice = createSlice({
         1
       );
     },
+
+    resetCourseEditor: (state) => {
+      state.courseEditor = initialState.courseEditor;
+    },
+
   },
 });
 
@@ -170,6 +175,7 @@ export const {
   addChapter,
   updateChapter,
   deleteChapter,
+  resetCourseEditor,
 } = globalSlice.actions;
 
 export default globalSlice.reducer;

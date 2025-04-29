@@ -26,6 +26,8 @@ const SectionModal = () => {
     (state) => state.global.courseEditor.sectionModal
   );
 
+  
+
   const methods = useForm<SectionFormData>({
     resolver: zodResolver(sectionSchema),
     defaultValues: {
@@ -47,6 +49,15 @@ const SectionModal = () => {
       });
     }
   }, [editSection, methods]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      methods.reset({
+        title: "",
+        description: "",
+      });
+    }
+  }, [isOpen, methods]);
 
   const onSubmit = async (data: SectionFormData) => {
     try {

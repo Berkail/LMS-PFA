@@ -48,6 +48,16 @@ const ChapterModal = () => {
 
   });
 
+  useEffect(() => {
+    if (!isOpen) {
+      methods.reset({
+        title: "",
+        content: "",
+        videoUrl: "",
+      });
+    }
+  }, [isOpen, methods]);
+
 
 
   useEffect(() => {
