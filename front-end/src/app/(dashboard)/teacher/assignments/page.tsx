@@ -4,11 +4,13 @@ import Toolbar from "@/components/Toolbar";
 import AssignmentCard from "@/components/AssignmentCard";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, use } from "react";
 import Loading from "@/components/Loading";
 import { AssignmentSkeleton } from "@/components/skeletons/AssignmentSkeleton";
 import { Button } from "@/components/ui/button";
 import TeacherAssignmentCard from "@/components/TeacherAssignmentCard";
+
+
 
 interface Assignment {
   id: number;
@@ -22,28 +24,59 @@ interface Assignment {
   isPublished: boolean;
   instructorId: number;
 }
-
+interface User {
+  id: number;
+  username: string; 
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 const Assignments = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [instructor, setInstructor] = useState<User| null>(null);
 
+  // First useEffect to fetch instructor data
   useEffect(() => {
-    const fetchAssignments = async () => {
-      try {
-        const response = await fetch('http://localhost/api/exams');
-        const result = await response.json();
-        setAssignments(result.data || []);
-      } catch (error) {
-        console.error('Error fetching assignments:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAssignments();
+      const fetchInstructor = async () => {
+          try {
+              const endpoint = 'http://localhost/api/instructors/me';
+                
+              const response = await fetch(endpoint, {
+                  credentials: 'include'
+              });
+              
+              if (!response.ok) throw new Error(`Failed to fetch data`);
+              const data = await response.json();
+              setInstructor(data);
+          } catch (error) {
+              console.error(`Error fetching data:`, error);
+          }
+      };
+  
+      fetchInstructor();
   }, []);
+  
+  // Second useEffect to fetch assignments when instructor is available
+  useEffect(() => {
+      const fetchAssignments = async () => {
+          if (!instructor?.id) return;
+          
+          try {
+              const response = await fetch(`http://localhost/api/exams?instructorId=${instructor.id}`);
+              const result = await response.json();
+              setAssignments(result.data); // Changed from setInstructor to setAssignments
+          } catch (error) {
+              console.error('Error fetching assignments:', error);
+          } finally {
+              setIsLoading(false);
+          }
+      };
+  
+      fetchAssignments();
+  }, [instructor]); // Added instructor as dependency
 
   const filteredAssignments = useMemo(() => {
     return assignments.filter((assignment) => 

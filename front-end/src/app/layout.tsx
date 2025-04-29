@@ -8,15 +8,12 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
-
-
 export const metadata: Metadata = {
   title: "My Cool App",
   description: "Just a normal app",
   icons: {
     icon: "/favicon.ico"
   }
-
 };
 
 export default function RootLayout({
@@ -25,12 +22,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${dmSans.className}`}
-      >
-        <div>{children}</div>
-        </body>
+    <html lang="en" className={dmSans.variable}>
+      <body>
+        {children}
+      </body>
     </html>
   );
 }

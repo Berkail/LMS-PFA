@@ -53,35 +53,62 @@ interface ApiResponse {
   };
 }
 
+
+
 const Courses = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [instructor, setInstructor] = useState<Instructor| null>(null);
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const response = await fetch('http://localhost/api/courses', {
-          credentials: 'include'
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch courses');
+// First useEffect to fetch instructor data
+useEffect(() => {
+    const fetchInstructor = async () => {
+        try {
+            const endpoint = 'http://localhost/api/instructors/me';
+              
+            const response = await fetch(endpoint, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) throw new Error(`Failed to fetch data`);
+            const data = await response.json();
+            setInstructor(data);
+        } catch (error) {
+            console.error(`Error fetching data:`, error);
         }
+    };
 
-        const data: ApiResponse = await response.json();
-        setCourses(data.data);
-      } catch (error) {
-        console.error('Error fetching courses:', error);
-      } finally {
-        setLoading(false);
-      }
+    fetchInstructor();
+}, []);
+
+// Second useEffect to fetch courses when instructor is available
+useEffect(() => {
+    const fetchCourses = async () => {
+        if (!instructor?.id) return; // Add this check
+        
+        try {
+            const response = await fetch(`http://localhost/api/courses?filter.instructorId=${instructor.id}`, {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch courses');
+            }
+
+            const data: ApiResponse = await response.json();
+            setCourses(data.data);
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     fetchCourses();
-  }, []);
+}, [instructor]); 
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {

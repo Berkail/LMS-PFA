@@ -92,7 +92,7 @@ const Assignment = () => {
                 <Avatar className="assignment__avatar">
                   <AvatarImage alt="Instructor" />
                   <AvatarFallback className="assignment__avatar-fallback">
-                    {assignment?.id}
+                    I
                   </AvatarFallback>
                 </Avatar>
                 <span className="assignment__instructor-name">

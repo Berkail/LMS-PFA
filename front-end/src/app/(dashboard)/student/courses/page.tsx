@@ -90,6 +90,7 @@ const Courses = () => {
         if (!response.ok) {
           throw new Error('Failed to fetch enrolled courses');
         }
+        console.log("course now:",response);
 
         const data: EnrollmentResponse = await response.json();
 const courses = data.data
