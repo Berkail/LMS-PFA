@@ -46,14 +46,6 @@ const CourseCard = ({ course, onGoToCourse }: CourseCardProps) => {
 
   const imageUrl =`http://localhost/api/${course.image}`;
 
-<div 
-          className="course-card__image"
-          style={{ 
-            backgroundImage: `url(${imageUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        />
 
   return (
     <Card className="course-card group" onClick={handleClick}>

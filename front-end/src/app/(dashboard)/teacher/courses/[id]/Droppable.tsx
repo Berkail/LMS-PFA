@@ -12,45 +12,57 @@ import {
   openChapterModal,
 } from "@/state";
 
+interface Chapter {
+  id: number;
+  title: string;
+  content?: string;
+  videoUrl?: string;
+  sectionId: number;
+}
+
+interface Section {
+  id: number;
+  title: string;
+  description?: string;
+  chapters: Chapter[];
+  order: number;
+}
+
 export default function DroppableComponent() {
   const dispatch = useAppDispatch();
-  const { sections } = useAppSelector((state) => state.global.courseEditor);
+  const { sections = [] } = useAppSelector((state) => state.global.courseEditor);
 
   const handleSectionDragEnd = (result: any) => {
     if (!result.destination) return;
-
+  
     const startIndex = result.source.index;
     const endIndex = result.destination.index;
-
+  
     const updatedSections = [...sections];
     const [reorderedSection] = updatedSections.splice(startIndex, 1);
     updatedSections.splice(endIndex, 0, reorderedSection);
-    dispatch(setSections(updatedSections));
+  
+    // Update the order property for all sections based on their new position
+    const reorderedSections = updatedSections.map((section, index) => ({
+      ...section,
+      order: index
+    }));
+
+    dispatch(setSections(reorderedSections));
+
   };
+  
 
-  const handleChapterDragEnd = (result: any, sectionIndex: number) => {
-    if (!result.destination) return;
-
-    const startIndex = result.source.index;
-    const endIndex = result.destination.index;
-
-    const updatedSections = [...sections];
-    const updatedChapters = [...updatedSections[sectionIndex].chapters];
-    const [reorderedChapter] = updatedChapters.splice(startIndex, 1);
-    updatedChapters.splice(endIndex, 0, reorderedChapter);
-    updatedSections[sectionIndex].chapters = updatedChapters;
-    dispatch(setSections(updatedSections));
-  };
 
   return (
     <DragDropContext onDragEnd={handleSectionDragEnd}>
       <Droppable droppableId="sections">
         {(provided) => (
           <div ref={provided.innerRef} {...provided.droppableProps}>
-            {sections.map((section: Section, sectionIndex: number) => (
+            {sections.map((section, sectionIndex) => (
               <Draggable
-                key={section.sectionId}
-                draggableId={section.sectionId}
+                key={section.id}
+                draggableId={`section-${section.id}`}
                 index={sectionIndex}
               >
                 {(draggableProvider) => (
@@ -69,40 +81,17 @@ export default function DroppableComponent() {
                       dragHandleProps={draggableProvider.dragHandleProps}
                     />
 
-                    <DragDropContext
-                      onDragEnd={(result) =>
-                        handleChapterDragEnd(result, sectionIndex)
-                      }
-                    >
-                      <Droppable droppableId={`chapters-${section.sectionId}`}>
-                        {(droppableProvider) => (
-                          <div
-                            ref={droppableProvider.innerRef}
-                            {...droppableProvider.droppableProps}
-                          >
-                            {section.chapters.map(
-                              (chapter: Chapter, chapterIndex: number) => (
-                                <Draggable
-                                  key={chapter.chapterId}
-                                  draggableId={chapter.chapterId}
-                                  index={chapterIndex}
-                                >
-                                  {(draggableProvider) => (
-                                    <ChapterItem
-                                      chapter={chapter}
-                                      chapterIndex={chapterIndex}
-                                      sectionIndex={sectionIndex}
-                                      draggableProvider={draggableProvider}
-                                    />
-                                  )}
-                                </Draggable>
-                              )
-                            )}
-                            {droppableProvider.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
+                    <div className="droppable-section__chapters">
+                      {section.chapters?.map((chapter, chapterIndex) => (
+                        <ChapterItem
+                          key={chapter.id}
+                          chapter={chapter}
+                          chapterIndex={chapterIndex}
+                          sectionIndex={sectionIndex}
+                          draggableProvider={draggableProvider}
+                        />
+                      ))}
+                    </div>
 
                     <Button
                       type="button"
@@ -119,9 +108,7 @@ export default function DroppableComponent() {
                       className="add-chapter-button group"
                     >
                       <Plus className="add-chapter-button__icon" />
-                      <span className="add-chapter-button__text">
-                        Add Chapter
-                      </span>
+                      <span className="add-chapter-button__text">Add Chapter</span>
                     </Button>
                   </div>
                 )}
@@ -140,7 +127,7 @@ const SectionHeader = ({
   sectionIndex,
   dragHandleProps,
 }: {
-  section: Section;
+  section: Section;  // Added type
   sectionIndex: number;
   dragHandleProps: any;
 }) => {
@@ -152,7 +139,7 @@ const SectionHeader = ({
         <div className="droppable-section__title-container">
           <div className="droppable-section__title">
             <GripVertical className="h-6 w-6 mb-1" />
-            <h3 className="text-lg font-medium">{section.sectionTitle}</h3>
+            <h3 className="text-lg font-medium">{section.title}</h3>
           </div>
           <div className="droppable-chapter__actions">
             <Button
@@ -160,7 +147,12 @@ const SectionHeader = ({
               variant="ghost"
               size="sm"
               className="p-0"
-              onClick={() => dispatch(openSectionModal({ sectionIndex }))}
+              onClick={() => 
+                dispatch(openSectionModal({ 
+                  sectionIndex,
+                  editSection: section 
+                }))
+              }
             >
               <Edit className="h-5 w-5" />
             </Button>
@@ -175,9 +167,9 @@ const SectionHeader = ({
             </Button>
           </div>
         </div>
-        {section.sectionDescription && (
+        {section.description && (
           <p className="droppable-section__description">
-            {section.sectionDescription}
+            {section.description}
           </p>
         )}
       </div>
@@ -191,7 +183,7 @@ const ChapterItem = ({
   sectionIndex,
   draggableProvider,
 }: {
-  chapter: Chapter;
+  chapter: Chapter;  // Added type
   chapterIndex: number;
   sectionIndex: number;
   draggableProvider: any;
@@ -224,6 +216,7 @@ const ChapterItem = ({
               openChapterModal({
                 sectionIndex,
                 chapterIndex,
+                editChapter: chapter
               })
             )
           }

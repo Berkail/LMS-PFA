@@ -9,7 +9,7 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Upload } from "lucide-react";
 
 
 interface Lesson {
@@ -49,6 +49,7 @@ interface TeacherCourseCardProps {
   onEdit: (course: Course) => void;
   onDelete: (course: Course) => void;
   isOwner: boolean;
+  onPublish: (course: Course) => void;
 }
 
 
@@ -57,6 +58,7 @@ const TeacherCourseCard = ({
   onEdit,
   onDelete,
   isOwner,
+  onPublish,
 }: TeacherCourseCardProps) => {
 
   const imageUrl = course.pathToImg ? `http://localhost/api/${course.pathToImg}` : "/placeholder.png";
@@ -105,26 +107,62 @@ const TeacherCourseCard = ({
         </div>
 
         <div className="w-full xl:flex space-y-2 xl:space-y-0 gap-2 mt-3">
-          {isOwner ? (
+        {isOwner ? (
             <>
-              <div>
-                <Button
-                  className="course-card-teacher__edit-button"
-                  onClick={() => onEdit(course)}
-                >
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-              </div>
-              <div>
-                <Button
-                  className="course-card-teacher__delete-button"
-                  onClick={() => onDelete(course)}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
+              {course.publishedAt ? (
+                <>
+                  <div>{/* 
+                    <Button
+                      className="course-card-teacher__edit-button"
+                      onClick={() => onEdit(course)}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>*/}
+                  </div>
+                  <div>
+                    <Button
+                      className="course-card-teacher__delete-button"
+                      onClick={() => onDelete(course)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between gap-10">
+                <div className="flex justify-left gap-2">
+                  <div>{/* 
+                    <Button
+                      className="course-card-teacher__edit-button"
+                      onClick={() => onEdit(course)}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>*/}
+                  </div>
+                  <div>
+                    <Button
+                      className="course-card-teacher__delete-button"
+                      onClick={() => onDelete(course)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                  </div>
+                  <div>
+                    <Button
+                      className="course-card-teacher__publish-button"
+                      onClick={() => onPublish(course)}
+
+                    >
+                      <Upload className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <p className="text-sm text-gray-500 italic">View Only</p>

@@ -11,13 +11,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 interface Instructor {
   id: number;
-  firstName: string;
-  lastName: string;
   username: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
 }
 
 interface Course {
@@ -96,10 +90,13 @@ const Courses = () => {
         if (!response.ok) {
           throw new Error('Failed to fetch enrolled courses');
         }
+        console.log("course now:",response);
 
         const data: EnrollmentResponse = await response.json();
-        const courses = data.data.map(enrollment => enrollment.course);
-        setEnrolledCourses(courses);
+const courses = data.data
+  .filter(enrollment => enrollment && enrollment.course) // Filter out null/undefined entries
+  .map(enrollment => enrollment.course);
+setEnrolledCourses(courses);
       } catch (error) {
         console.error('Error fetching enrolled courses:', error);
       } finally {
@@ -112,6 +109,11 @@ const Courses = () => {
 
   const filteredCourses = useMemo(() => {
     return enrolledCourses.filter((course) => {
+      // Add null check
+      if (!course || !course.title) {
+        return false;
+      }
+      
       const matchesSearch = course.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
@@ -185,7 +187,7 @@ const Courses = () => {
               title: course.title,
               description: course.description || "No description available",
               image: course.pathToImg,
-              teacherName: `${course.instructor.firstName} ${course.instructor.lastName}`,
+              teacherName: `${course.instructor.username}`,
               category: "Programming"
             }}
             onGoToCourse={() => handleGoToCourse(course)}

@@ -4,105 +4,175 @@ import Toolbar from "@/components/Toolbar";
 import AssignmentCard from "@/components/AssignmentCard";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, use } from "react";
 import Loading from "@/components/Loading";
 import { AssignmentSkeleton } from "@/components/skeletons/AssignmentSkeleton";
 import { Button } from "@/components/ui/button";
 import TeacherAssignmentCard from "@/components/TeacherAssignmentCard";
+import { Loader2 } from "lucide-react";
 
-const dummyAssignments = [
-  {
-    assignmentId: "assignment1",
-    title: "React Fundamentals Quiz",
-    courseTitle: "Introduction to React",
-    description: "Complete the quiz about React basics",
-    dueDate: "2025-04-10",
-    teacherName: "John Doe",
-    teacherTitle: "Senior React Developer",
-    pdfUrl: "/assignments/react-quiz.pdf",
-    status: "pending",
-    maxPoints: 100,
-    instructions: "Please complete all questions. You have 60 minutes to finish this assignment."
-  },
-  {
-    assignmentId: "assignment2",
-    title: "JavaScript Project",
-    courseTitle: "Advanced JavaScript",
-    description: "Build a simple JavaScript application",
-    dueDate: "2025-04-15",
-    teacherName: "Jane Smith",
-    teacherTitle: "JavaScript Expert",
-    pdfUrl: "/assignments/javascript-project.pdf",
-    status: "pending",
-    maxPoints: 100,
-    instructions: "Build a JavaScript application following the provided specifications."
-  },
-];
 
+
+interface Assignment {
+  id: number;
+  title: string;
+  description: string;
+  pdfPath: string | null;
+  pdfName: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  isPublished: boolean;
+  instructorId: number;
+}
+interface User {
+  id: number;
+  username: string; 
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 const Assignments = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [instructor, setInstructor] = useState<User| null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
+  // First useEffect to fetch instructor data
+  useEffect(() => {
+      const fetchInstructor = async () => {
+          try {
+              const endpoint = 'http://localhost/api/instructors/me';
+                
+              const response = await fetch(endpoint, {
+                  credentials: 'include'
+              });
+              
+              if (!response.ok) throw new Error(`Failed to fetch data`);
+              const data = await response.json();
+              setInstructor(data);
+          } catch (error) {
+              console.error(`Error fetching data:`, error);
+          }
+      };
+  
+      fetchInstructor();
+  }, []);
+  
+  // Second useEffect to fetch assignments when instructor is available
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      if (!instructor?.id) return;
+      
+      try {
+        const response = await fetch(`http://localhost/api/exams?instructorId=${instructor.id}`, {
+          credentials: 'include'
+        });
+
+        if (!response.ok) return;
+
+        const result = await response.json();
+        setAssignments(result.data);
+      } catch (error) {
+        // Silent fail
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, [instructor]);
+
+  
   const filteredAssignments = useMemo(() => {
-    return dummyAssignments.filter((assignment) => {
-      const matchesSearch = assignment.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      return matchesSearch;
-    });
-  }, [searchTerm]);
+    return assignments.filter((assignment) => 
+      assignment.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [assignments, searchTerm]);
 
-  const handleGoToAssignment = (assignment: any) => {
-    router.push(`/student/assignments/${assignment.assignmentId}`);
+  const handleEdit = (assignment: Assignment) => {
+    router.push(`/teacher/assignments/${assignment.id}`);
+  }
+
+  const handleDelete = async (assignment: Assignment) => {
+    if (window.confirm("Are you sure you want to delete this assignment?")) {
+      try {
+        const response = await fetch(`http://localhost/api/exams/${assignment.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        if (!response.ok) return;
+        setAssignments(assignments.filter(a => a.id !== assignment.id));
+      } catch (error) {
+        // Silent fail
+      }
+    }
   };
 
-  useEffect(() => {
-    
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000); // Increased to 3.5 seconds
-  
-    return () => clearTimeout(timer);
-  }, []);
-
-    if (isLoading) {
-      return (
-      <div className="user-assignments">
-      <Header 
-        title="Assignments to take" 
-        subtitle="View your pending assignments" 
-      />
-      <div className="user-courses__grid">
-          {filteredAssignments.map((assignment) => (
-            <AssignmentSkeleton key={assignment.assignmentId}/>
-          ))}
-      </div>
-    </div>
-      );
+  const handleCreateAssignment = async () => {
+    setIsCreating(true);
+    try {
+      await router.prefetch('/teacher/assignments/create');
+      await router.replace('/teacher/assignments/create');
+    } catch (error) {
+      setIsCreating(false);
     }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="user-assignments">
+        <Header 
+          title="Assignments" 
+          subtitle="Loading assignments..." 
+        />
+        <div className="user-courses__grid">
+          {[1, 2, 3].map((index) => (
+            <AssignmentSkeleton key={index}/>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="user-assignments">
       <Header
         title="Assignments"
-        subtitle="Browse your assignments"
+        subtitle={`${assignments.length} assignments available`}
         rightElement={
           <Button
-            className="teacher-courses__header"
-          >
-            Create Assignment
-          </Button>
+  className="teacher-courses__header"
+  onClick={handleCreateAssignment}
+  disabled={isCreating}
+>
+  {isCreating ? (
+    <>
+      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      Creating...
+    </>
+  ) : (
+    "Create Assignment"
+  )}
+</Button>
         }
       />
       <div className="user-courses__grid">
-        {filteredAssignments.map((assignment) => (
-          <TeacherAssignmentCard
-            key={assignment.assignmentId}
-            assignment={assignment}
-            onGoToCourse={() => handleGoToAssignment(assignment)}
-          />
-        ))}
+        {filteredAssignments.length > 0 ? (
+          filteredAssignments.map((assignment) => (
+            <TeacherAssignmentCard
+              key={assignment.id}
+              assignment={assignment}
+              onEdit={() => handleEdit(assignment)}
+              onDelete={() => handleDelete(assignment)}
+            />
+          ))
+        ) : (
+          <p>No assignments found.</p>
+        )}
       </div>
     </div>
   );

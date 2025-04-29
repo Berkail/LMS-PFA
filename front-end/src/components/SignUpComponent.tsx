@@ -84,14 +84,18 @@ function SignUpComponent({
       const data = await response.json();
     
       if (!response.ok) {
-        setError('Failed to create account');
+        setError(data.message || 'Failed to create account');
         setIsLoading(false);
         return;
       }
     
       window.location.href = signInUrl;
     } catch (err) {
-      setError('Failed to create account');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
       setIsLoading(false);
     }
   };
@@ -133,14 +137,18 @@ function SignUpComponent({
       const data = await response.json();
     
       if (!response.ok) {
-        setError('Failed to create account');
+        setError(data.message || 'Failed to create account');
         setIsLoading(false);
         return;
       }
     
       window.location.href = signInUrl;
     } catch (err) {
-      setError('Failed to create account');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
       setIsLoading(false);
     }
   };

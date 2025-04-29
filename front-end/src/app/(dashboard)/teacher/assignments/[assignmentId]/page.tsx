@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -9,6 +10,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Loader2 } from "lucide-react";
+
+interface Assignment {
+  id: number;
+  title: string;
+  description: string;
+  pdfPath: string | null;
+  pdfName: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  isPublished: boolean;
+  instructorId: number;
+}
 
 const assignmentSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -18,8 +33,13 @@ const assignmentSchema = z.object({
 
 type AssignmentFormData = z.infer<typeof assignmentSchema>;
 
-const CreateAssignment = () => {
+const EditAssignment = () => {
+  const params = useParams();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const isCreateMode = params.assignmentId === 'create';
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<AssignmentFormData>({
     resolver: zodResolver(assignmentSchema),
@@ -29,19 +49,80 @@ const CreateAssignment = () => {
     },
   });
 
-  const onSubmit = (data: AssignmentFormData) => {
-    // Handle form submission here
-    console.log(data);
-    console.log(pdfFile);
+  useEffect(() => {
+    const fetchAssignment = async () => {
+      if (isCreateMode) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost/api/exams/${params.assignmentId}`);
+        const data = await response.json();
+
+        if (response.ok && data.data) {
+          form.reset({
+            title: data.data.title,
+            description: data.data.description,
+          });
+        } else {
+          throw new Error("Failed to fetch assignment");
+        }
+      } catch (error) {
+        console.error("Error fetching assignment:", error);
+        router.push("/teacher/assignments");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAssignment();
+  }, [params.assignmentId, form, router, isCreateMode]);
+
+  const onSubmit = async (data: AssignmentFormData) => {
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", data.title);
+      formData.append("description", data.description);
+      if (pdfFile) {
+        formData.append("file", pdfFile);
+      }
+  
+      const url = isCreateMode 
+        ? 'http://localhost/api/exams'
+        : `http://localhost/api/exams/${params.assignmentId}`;
+  
+      const response = await fetch(url, {
+        method: isCreateMode ? 'POST' : 'PATCH',
+        body: formData,
+        credentials: 'include',
+      });
+  
+      if (response.ok) {
+        router.push("/teacher/assignments");
+      } else {
+        throw new Error(isCreateMode ? "Failed to create assignment" : "Failed to update assignment");
+      }
+    } catch (error) {
+      // Silent fail
+      setIsSubmitting(false);
+    }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="assignment dark">
       <div className="assignment__container">
         <Card className="assignment__content">
           <CardHeader>
-            <CardTitle>Create New Assignment</CardTitle>
-            <CardDescription>Fill in the assignment details below</CardDescription>
+            <CardTitle>{isCreateMode ? 'Create Assignment' : 'Edit Assignment'}</CardTitle>
+            <CardDescription>
+              {isCreateMode ? 'Create a new assignment' : 'Update the assignment details below'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -79,7 +160,7 @@ const CreateAssignment = () => {
                 />
 
                 <FormItem>
-                  <FormLabel>Upload PDF Assignment</FormLabel>
+                  <FormLabel>Update PDF Assignment</FormLabel>
                   <FormControl>
                     <Input
                       type="file"
@@ -92,15 +173,30 @@ const CreateAssignment = () => {
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-
                 <div className="flex justify-end space-x-4">
-                  <Button variant="outline" type="button">
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-primary">
-                    Create Assignment
-                  </Button>
-                </div>
+  <Button 
+    variant="outline" 
+    type="button"
+    onClick={() => router.push("/teacher/assignments")}
+    disabled={isSubmitting}
+  >
+    Cancel
+  </Button>
+  <Button 
+    type="submit" 
+    className="bg-primary text-white-50"
+    disabled={isSubmitting}
+  >
+    {isSubmitting ? (
+      <>
+        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        {isCreateMode ? 'Creating...' : 'Updating...'}
+      </>
+    ) : (
+      isCreateMode ? 'Create Assignment' : 'Update Assignment'
+    )}
+  </Button>
+</div>
               </form>
             </Form>
           </CardContent>
@@ -110,4 +206,4 @@ const CreateAssignment = () => {
   );
 };
 
-export default CreateAssignment;
+export default EditAssignment;
